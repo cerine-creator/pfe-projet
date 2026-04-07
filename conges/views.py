@@ -78,7 +78,7 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
         
         # Create notification for HR admin
         Notification.objects.create(
-            destinataire=Employe.objects.filter(role='admin_rh').first(),
+            destinataire=Employe.objects.filter(role='responsable_rh').first(),
             message=f"Demande de {demande.employe.nom} en attente d'approbation RH",
             lien=f"/demandes/{demande.id}"
         )

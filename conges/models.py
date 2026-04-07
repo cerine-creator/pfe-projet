@@ -6,8 +6,8 @@ from datetime import date
 class Employe(models.Model):
     ROLE_CHOICES = [
         ('employe', 'Employé'),
-        ('responsable', 'Responsable'),
-        ('admin_rh', 'Administrateur RH'),
+        ('responsable_hierarchique', 'Responsable Hiérarchique'),
+        ('responsable_rh', 'Responsable RH'),
     ]
     
     # Link to Django's built-in User for authentication
@@ -18,7 +18,7 @@ class Employe(models.Model):
     prenom = models.CharField(max_length=100, blank=True)
     email = models.EmailField(unique=True)
     matricule = models.CharField(max_length=20, unique=True, blank=True)
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='employe')
+    role = models.CharField(max_length=30, choices=ROLE_CHOICES, default='employe')
     
     # Leave balance
     jours_conges_restants = models.FloatField(default=30)
@@ -42,11 +42,11 @@ class Employe(models.Model):
     
     @property
     def est_responsable(self):
-        return self.role == 'responsable'
+        return self.role == 'responsable_hierarchique'
     
     @property
     def est_admin_rh(self):
-        return self.role == 'admin_rh'
+        return self.role == 'responsable_rh'
     
     @property
     def equipe_sous_responsabilite(self):
