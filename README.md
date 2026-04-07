@@ -9,10 +9,9 @@ Ce document t'explique les étapes exactes (à copier/coller) pour relancer l'en
 
 Ouvrez un Terminal de commande et téléchargez le projet :
 ```bash
-git clone https://github.com/ton-pseudo/pfe-manual.git
-cd pfe-manual
+git clone https://github.com/cerine-creator/pfe-projet.git
+cd pfe-projet
 ```
-*(Optionnel : Change `https://github.com/ton-pseudo/pfe-manual.git` par ton vrai lien GitHub)*
 
 ---
 
@@ -66,7 +65,8 @@ Ouvrez **une deuxième** et **nouvelle** fenêtre de Terminal, puis allez dans l
    cd frontend
    ```
 
-2. **Installer les modules dépendants de l'interface visuelle**
+2. **Installer TOUTES les dépendances du projet**
+   *(Cette commande télécharge non seulement les modules de l'interface visuelle, mais absolument **tous les paquets nécessaires** au fonctionnement de l'application (comme `axios`, `react-router-dom`, etc.) qui sont déclarés dans le projet. Vous n'avez pas besoin de les installer un par un !)*
    ```powershell
    npm install
    ```
@@ -79,3 +79,41 @@ Ouvrez **une deuxième** et **nouvelle** fenêtre de Terminal, puis allez dans l
 🎉 L'application s'ouvrira (ou vous donnera un lien cliquable du type : `http://localhost:5173/`).
 
 C'est Fini ! Vous pouvez maintenant accéder à votre tableau de bord interactif React connecté à Django !
+
+---
+
+## Étape 4 : Guide de Travail en Équipe (Git & Github)
+
+Pour éviter de casser le code principal et de créer des "conflits" compliqués dans le `main`, chaque membre de l'équipe **doit impérativement** travailler sur sa propre *"branche"* isolée. Voici les étapes à suivre à chaque nouvelle tâche :
+
+1. **Toujours récupérer la dernière version (Avant de coder)**
+   Assurez-vous d'être sur la branche principale et téléchargez les nouveautés des autres :
+   ```bash
+   git checkout main
+   git pull origin main
+   ```
+
+2. **Créer sa propre branche pour travailler**
+   Nommez la branche avec votre prénom ou la tâche (ex: `amine-nouvelle-page` ou `cerine-boutons`).
+   ```bash
+   git checkout -b <nom-de-mabranche>
+   ```
+
+3. **Coder et Sauvegarder son travail localement (Commit)**
+   ```bash
+   git add .
+   git commit -m "J'ai ajouté les boutons de la page d'accueil"
+   ```
+
+4. **Envoyer sa branche sur GitHub (Push)**
+   *La **première fois** que vous envoyez votre nouvelle branche sur le site, utilisez :*
+   ```bash
+   git push -u origin <nom-de-mabranche>
+   ```
+   *(Puis, au fur et à mesure que vous continuez à travailler sur cette même branche le lendemain, un simple `git push` suffira).*
+
+5. **Fusionner avec le projet complet (Pull Request)**
+   - Allez sur la page GitHub du projet.
+   - GitHub vous affichera un bouton vert **"Compare & pull request"**. Cliquez dessus.
+   - Demandez à vos coéquipiers de jeter un coup d'œil, et si tout fonctionne et qu'il n'y a pas de conflits, cliquez sur **"Merge pull request"**. 
+   - Félicitations, votre code est désormais officiellement dans le `main` ! Vous pouvez maintenant reprendre à l'étape 1 pour votre prochaine tâche.
