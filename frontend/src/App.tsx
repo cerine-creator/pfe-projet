@@ -34,7 +34,7 @@ function App() {
         return (
           <div className="dashboard-card slide-up">
             <h2>Mon Espace Employé</h2>
-            <p>Bienvenue dans votre espace. Voici la liste des collaborateurs (version test MVC).</p>
+            <p>Bienvenue dans votre espace. Voici la liste des collaborateurs.</p>
             <div className="stat-boxes">
               <div className="stat-box">
                 <Calendar />
@@ -114,11 +114,11 @@ function App() {
       {/* Sidebar / Role Switcher for MVC testing */}
       <aside className="sidebar">
         <div className="logo-area">
-          <h3>PFE Congés</h3>
+          <h3 className="app-title">Gestion et Suivi<br/>des Congés du Personnel</h3>
         </div>
         
         <div className="role-switcher">
-          <p className="sidebar-label">Mode Test (MVC)</p>
+          <p className="sidebar-label">Changer de rôle</p>
           <button 
             className={`role-btn ${currentRole === 'employe' ? 'active' : ''}`}
             onClick={() => setCurrentRole('employe')}
