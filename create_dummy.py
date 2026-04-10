@@ -4,7 +4,7 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
 django.setup()
 
-from conges.models import Employe
+from backend.conges.models import Employe
 from django.contrib.auth.models import User
 from datetime import date
 
