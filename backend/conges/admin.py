@@ -1,5 +1,44 @@
 from django.contrib import admin
-from .models import Employe, DemandeConge
+from .models import Structure, Fonction, Employe, TypeConge, Exercice, DroitConge, Justificatif, DemandeConge, TitreConge, Notification
 
-admin.site.register(Employe)
-admin.site.register(DemandeConge)
+@admin.register(Structure)
+class StructureAdmin(admin.ModelAdmin):
+    list_display = ('libelle', 'niveau', 'parent')
+
+@admin.register(Fonction)
+class FonctionAdmin(admin.ModelAdmin):
+    list_display = ('libelle',)
+
+@admin.register(Employe)
+class EmployeAdmin(admin.ModelAdmin):
+    list_display = ('nomEmpl', 'prenomEmpl', 'structure', 'fonction', 'dateRecrutement')
+    list_filter = ('structure', 'fonction')
+
+@admin.register(TypeConge)
+class TypeCongeAdmin(admin.ModelAdmin):
+    list_display = ('nomType',)
+
+@admin.register(Exercice)
+class ExerciceAdmin(admin.ModelAdmin):
+    list_display = ('libelle',)
+
+@admin.register(DroitConge)
+class DroitCongeAdmin(admin.ModelAdmin):
+    list_display = ('employe', 'exercice', 'nbrJConsome', 'nbrJRes', 'nbrJCumule')
+
+@admin.register(Justificatif)
+class JustificatifAdmin(admin.ModelAdmin):
+    list_display = ('id', 'fichierJustificatif')
+
+@admin.register(DemandeConge)
+class DemandeCongeAdmin(admin.ModelAdmin):
+    list_display = ('employe', 'date_debut', 'date_fin', 'duree', 'statut', 'type_conge', 'motif')
+    list_filter = ('statut', 'type_conge')
+
+@admin.register(TitreConge)
+class TitreCongeAdmin(admin.ModelAdmin):
+    list_display = ('ref', 'employe', 'dateDebut', 'dateFin', 'exercice')
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ('utilisateur', 'dateNotif', 'lu')
