@@ -15,6 +15,11 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Titre dynamique de la page
+  useEffect(() => {
+    document.title = "Connexion | Air Algérie";
+  }, []);
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -57,12 +62,7 @@ const Login: React.FC = () => {
 
   return (
     <div className="login-page">
-      {/* Fond animé */}
-      <div className="login-bg">
-        <div className="login-bg-orb orb-1" />
-        <div className="login-bg-orb orb-2" />
-        <div className="login-bg-orb orb-3" />
-      </div>
+
 
       <div className="login-container">
         {/* Logo / Branding */}
