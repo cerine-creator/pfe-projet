@@ -30,56 +30,26 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f8fafc; /* Fond clair */
+  background: url('/BackAvion.png') no-repeat center center;
+  background-size: cover;
   position: relative;
   overflow: hidden;
   padding: 24px;
   font-family: 'Inter', system-ui, sans-serif;
 }
 
-/* ─── Animated Background ─────────────────────────────────────────────────── */
-
-.login-bg {
+/* Filtre adoucissant sur l'image pour que le texte reste lisible et doux pour les yeux */
+.login-page::before {
+  content: '';
   position: absolute;
   inset: 0;
+  background: rgba(248, 250, 252, 0.65); /* Voile clair / léger */
+  backdrop-filter: blur(3px); /* Rendu très moderne "Soft Focus" */
+  -webkit-backdrop-filter: blur(3px);
   pointer-events: none;
 }
 
-.login-bg-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.15; /* Très doux sur fond blanc */
-  animation: float 8s ease-in-out infinite;
-}
 
-.orb-1 {
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, #da0027, transparent 70%);
-  top: -150px;
-  left: -150px;
-  animation-delay: 0s;
-}
-
-.orb-2 {
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, #a30018, transparent 70%);
-  bottom: -100px;
-  right: -100px;
-  animation-delay: -3s;
-}
-
-.orb-3 {
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(circle, #ff2a50, transparent 70%);
-  top: 50%;
-  right: 15%;
-  animation-delay: -6s;
-  opacity: 0.1;
-}
 
 /* ─── Card ───────────────────────────────────────────────────────────────── */
 
@@ -88,16 +58,16 @@
   z-index: 1;
   width: 100%;
   max-width: 400px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(218, 0, 39, 0.15); /* Bordure discrète mais rougeâtre */
+  background: rgba(255, 255, 255, 0.7); /* Plus de translucidité */
+  backdrop-filter: blur(28px);          /* Glassmorphism fort */
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(255, 255, 255, 0.8); /* Bordure blanche givrée */
   border-radius: 20px;
   padding: 40px;
   box-shadow:
-    0 15px 35px rgba(0, 0, 0, 0.05),
-    0 5px 15px rgba(0, 0, 0, 0.02);
-  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    0 25px 50px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(218, 0, 39, 0.05); /* Ligne rouge à peine perceptible */
+  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* ─── Header ─────────────────────────────────────────────────────────────── */
@@ -183,7 +153,7 @@
 .login-input {
   width: 100%;
   padding: 12px 14px 12px 42px;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.8);
   border: 1px solid #cbd5e1;
   border-radius: 10px;
   color: #0f172a;
@@ -301,10 +271,7 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50%       { transform: translateY(-30px) scale(1.05); }
-}
+
 
 @keyframes spin {
   to { transform: rotate(360deg); }

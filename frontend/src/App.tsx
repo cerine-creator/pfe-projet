@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -5,12 +6,18 @@ import Layout from './components/Layout'
 import Login from './pages/Login'
 
 // ─── Composant générique très léger pour remplacer les longues pages ───
-const DashboardPlaceholder = ({ title }: { title: string }) => (
-  <div className="card-minimal">
-    <h1 className="title-minimal">{title}</h1>
-    <p className="desc-minimal">Cette interface sera gérée dans une prochaine étape de développement.</p>
-  </div>
-)
+const DashboardPlaceholder = ({ title }: { title: string }) => {
+  useEffect(() => {
+    document.title = `${title} | Air Algérie`;
+  }, [title]);
+
+  return (
+    <div className="card-minimal">
+      <h1 className="title-minimal">{title}</h1>
+      <p className="desc-minimal">Cette interface sera dévelopée dans les prochaines étapes.</p>
+    </div>
+  );
+}
 
 // ─── Composant de racine : Redirige vers le bon tableau de bord ───
 const RoleBasedRedirect = () => {
