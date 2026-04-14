@@ -1,22 +1,15 @@
 from pathlib import Path
+from datetime import timedelta
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+SECRET_KEY = 'django-insecure-=l$%45w-u$_!n-gshpui8tio2@hfi%5)f$^jd5wy&m_+1j1+o4'
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-=l$&45w-u$_!n-gshpui8tio2@hfi&5)f$^jd5wy&m_+1j1+o4'
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
-# Application definition
+# ─── Applications ─────────────────────────────────────────────────────────────
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -25,14 +18,25 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Third-party
     'rest_framework',
+    'rest_framework_simplejwt',
     'corsheaders',
     'django_filters',
-    'conges',
+    # Project apps
+    'accounts',   # Auth & CustomUser — doit être avant conges
+    'conges',     # Logique métier RH
 ]
 
+# ─── Custom User Model ─────────────────────────────────────────────────────────
+# Remplace l'utilisateur Django par défaut par notre CustomUser.
+# DOIT être défini AVANT la première migration.
+AUTH_USER_MODEL = 'accounts.CustomUser'
+
+# ─── Middleware ────────────────────────────────────────────────────────────────
+
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',   # En premier pour gérer le CORS
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -40,11 +44,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    
 ]
-
-# Allow React dev server
-CORS_ALLOWED_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173']
 
 ROOT_URLCONF = 'config.urls'
 
@@ -65,10 +65,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-
-
-# Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+# ─── Database ──────────────────────────────────────────────────────────────────
 
 DATABASES = {
     'default': {
@@ -77,56 +74,75 @@ DATABASES = {
     }
 }
 
-
-# Password validation
-# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
+# ─── Password Validation ───────────────────────────────────────────────────────
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+# ─── Internationalization ──────────────────────────────────────────────────────
 
-# Internationalization
-# https://docs.djangoproject.com/en/6.0/topics/i18n/
-
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
+LANGUAGE_CODE = 'fr-fr'
+TIME_ZONE = 'Africa/Algiers'
 USE_I18N = True
-
 USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
 
-# CORS — allow React dev server
+# ─── CORS ─────────────────────────────────────────────────────────────────────
+# CORS_ALLOW_CREDENTIALS = True est OBLIGATOIRE pour que le navigateur
+# envoie les cookies HttpOnly avec chaque requête cross-origin.
+
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
 ]
+CORS_ALLOW_CREDENTIALS = True
 
-# Django REST Framework defaults
+# ─── Django REST Framework ────────────────────────────────────────────────────
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
+        # Notre classe qui lit le JWT depuis le cookie HttpOnly
+        'accounts.authentication.CookieJWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
+    # Gestionnaire d'exceptions personnalisé — aucune stack trace vers le client
+    'EXCEPTION_HANDLER': 'accounts.exceptions.custom_exception_handler',
+    # Pagination par défaut
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+    # Throttling global — protection anti-brute-force
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '1000/day',      # Très large pour le dev
+        'user': '10000/day',
+        'login': '30/minute',    # Plus souple pour les tests
+    },
+}
+
+# ─── JWT Configuration ────────────────────────────────────────────────────────
+
+SIMPLE_JWT = {
+    # Noms des cookies HttpOnly
+    'AUTH_COOKIE': 'access',
+    'REFRESH_COOKIE': 'refresh',
+    # Durées de vie des tokens
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=8),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,      # Génère un nouveau refresh à chaque usage
+    'BLACKLIST_AFTER_ROTATION': False,  # Pas de blacklist pour l'instant (SQLite)
+    # Algorithme de signature
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    # Claims ajoutés au token
+    'UPDATE_LAST_LOGIN': True,
 }

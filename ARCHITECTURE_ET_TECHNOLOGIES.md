@@ -1,6 +1,6 @@
 # Mon Stack Technique & Logique du Système (PFE)
 
-Ce document t'explique en profondeur toutes les technologies que j'ai utilisées dans ce projet et t'indique comment l'ensemble du système fonctionne et communique. Garde ça à l'esprit, c'est super pour parler avec les professeurs pendant ta soutenance !
+Ce document t'explique en profondeur toutes les technologies que j'ai utilisées dans ce projet et t'indique comment l'ensemble du système fonctionne et communique.
 
 ---
 
