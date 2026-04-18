@@ -30,18 +30,23 @@ class LoginView(APIView):
         user = serializer.validated_data['user']
         refresh = RefreshToken.for_user(user)
 
+        access_token = str(refresh.access_token)
+        refresh_token = str(refresh)
+
         response = Response({
             'message': 'Connexion réussie.',
             'user': UserSerializer(user).data,
+            'access': access_token,
+            'refresh': refresh_token,
         })
 
         jwt_settings = settings.SIMPLE_JWT
         is_secure = not settings.DEBUG  # HTTPS seulement en production
 
-        # Cookie access token (courte durée)
+        # Cookie access token (courte durée) — fallback pour les clients same-origin
         response.set_cookie(
             key=jwt_settings['AUTH_COOKIE'],
-            value=str(refresh.access_token),
+            value=access_token,
             max_age=int(jwt_settings['ACCESS_TOKEN_LIFETIME'].total_seconds()),
             httponly=True,
             samesite='Lax',
@@ -52,12 +57,12 @@ class LoginView(APIView):
         # Cookie refresh token (longue durée)
         response.set_cookie(
             key=jwt_settings['REFRESH_COOKIE'],
-            value=str(refresh),
+            value=refresh_token,
             max_age=int(jwt_settings['REFRESH_TOKEN_LIFETIME'].total_seconds()),
             httponly=True,
             samesite='Lax',
             secure=is_secure,
-            path='/api/auth/token/refresh/',
+            path='/',
         )
 
         return response
@@ -93,13 +98,17 @@ class WhoAmIView(APIView):
 class TokenRefreshCookieView(APIView):
     """
     POST /api/auth/token/refresh/
-    Lit le refresh token depuis le cookie et retourne un nouvel access token
-    en cookie. Le frontend n'a jamais accès aux tokens.
+    Lit le refresh token depuis le cookie OU le body JSON et retourne
+    un nouvel access token dans le body ET en cookie.
     """
     permission_classes = [AllowAny]
 
     def post(self, request):
-        refresh_token = request.COOKIES.get(settings.SIMPLE_JWT['REFRESH_COOKIE'])
+        # Priorité : body JSON > cookie (pour les clients cross-origin)
+        refresh_token = (
+            request.data.get('refresh')
+            or request.COOKIES.get(settings.SIMPLE_JWT['REFRESH_COOKIE'])
+        )
 
         if not refresh_token:
             return Response({'detail': 'Refresh token manquant.'}, status=401)
@@ -107,10 +116,11 @@ class TokenRefreshCookieView(APIView):
         try:
             token = RefreshToken(refresh_token)
             new_access = str(token.access_token)
+            new_refresh = str(token)  # ROTATE_REFRESH_TOKENS=True génère un nouveau refresh
         except TokenError:
             return Response({'detail': 'Token de rafraîchissement invalide ou expiré.'}, status=401)
 
-        response = Response({'message': 'Token rafraîchi.'})
+        response = Response({'access': new_access, 'refresh': new_refresh})
         jwt_settings = settings.SIMPLE_JWT
 
         response.set_cookie(

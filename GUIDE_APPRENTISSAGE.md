@@ -17,7 +17,7 @@ Pour démarrer un projet similaire depuis ton ordinateur avec deux dossiers vide
 ### 2. Démarrage du Backend (Django)
 Tu devrais ouvrir ton terminal et taper :
 1. `python -m venv venv` (Créer le bac à sable Python).
-2. `pip install django djangorestframework django-cors-headers` (Télécharger les briques de la fondation).
+2. `pip install -r backend/requirements.txt` (Télécharger toutes les briques nécessaires d'un coup).
 3. `django-admin startproject backend .` (Générer le dossier racine du serveur).
 4. `python manage.py startapp conges` (Créer la partie / l'application "Gestion des congés").
 5. Connecter l'application "conges", le framework "rest_framework" dans le fichier `backend/settings.py`.

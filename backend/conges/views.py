@@ -8,139 +8,167 @@ from accounts.permissions import (
     IsHRStaff,
     IsHRStaffOrAdmin,
 )
-from .models import Employe, DemandeConge, Notification
-from .serializers import EmployeSerializer, DemandeCongeSerializer, NotificationSerializer
+from .models import (
+    Structure, Fonction, TypeConge, Exercice,
+    Employe, DroitConge, DemandeConge, TitreConge, Notification
+)
+from .serializers import (
+    StructureSerializer, FonctionSerializer, TypeCongeSerializer, ExerciceSerializer,
+    EmployeSerializer, DroitCongeSerializer, DemandeCongeSerializer, TitreCongeSerializer, NotificationSerializer
+)
+from .services import deduire_solde_conge, generer_titre_conge_automatique
 
+class StructureViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Structure.objects.all()
+    serializer_class = StructureSerializer
+    permission_classes = [IsEmploye]
+
+class FonctionViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Fonction.objects.all()
+    serializer_class = FonctionSerializer
+    permission_classes = [IsEmploye]
+
+class TypeCongeViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = TypeConge.objects.all()
+    serializer_class = TypeCongeSerializer
+    permission_classes = [IsEmploye]
+
+class ExerciceViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Exercice.objects.all()
+    serializer_class = ExerciceSerializer
+    permission_classes = [IsEmploye]
 
 class EmployeViewSet(viewsets.ModelViewSet):
-    """
-    CRUD complet sur les profils Employé.
-    - Lecture : tout employé authentifié
-    - Écriture (create/update/delete) : équipe RH ou superadmin
-    """
-    queryset = Employe.objects.select_related('responsable').all()
+    queryset = Employe.objects.select_related('structure', 'fonction').all()
     serializer_class = EmployeSerializer
-
+    
     def get_permissions(self):
-        if self.action in ['list', 'retrieve', 'mon_equipe']:
+        if self.action in ['list', 'retrieve', 'me', 'mon_equipe']:
             return [IsEmploye()]
         return [IsHRStaffOrAdmin()]
 
+    @action(detail=False, methods=['get'], permission_classes=[IsEmploye])
+    def me(self, request):
+        """GET /api/employes/me/ — Profil employé de l'utilisateur connecté."""
+        employe = getattr(request.user, 'employe', None)
+        if employe is None:
+            return Response(
+                {'detail': "Votre compte n'est pas lié à un profil employé."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        serializer = self.get_serializer(employe)
+        return Response(serializer.data)
+
     @action(detail=False, methods=['get'], permission_classes=[IsResponsableHierarchique])
     def mon_equipe(self, request):
-        """GET /api/employes/mon_equipe/ — liste des membres de l'équipe du responsable."""
-        employe = request.user.employe
-        if not employe:
-            return Response({'detail': "Votre compte n'est lié à aucun profil employé."}, status=400)
-        equipe = employe.equipe_sous_responsabilite
+        employe = getattr(request.user, 'employe', None)
+        if not employe or not employe.structure:
+            return Response({'detail': "Vous n'êtes assigné à aucune structure."}, status=400)
+        
+        # Filtre: Les employés de la même structure que le responsable chef, sauf lui-même
+        equipe = Employe.objects.filter(structure=employe.structure).exclude(id=employe.id)
         serializer = self.get_serializer(equipe, many=True)
         return Response(serializer.data)
 
-
 class DemandeCongeViewSet(viewsets.ModelViewSet):
-    """
-    Gestion des demandes de congé avec filtrage par rôle.
-    - Employé : voit et soumet ses propres demandes
-    - Responsable hiérarchique : voit les demandes de son équipe, peut valider
-    - RH (responsable ou directeur) : voit tout, peut approuver/refuser
-    """
     serializer_class = DemandeCongeSerializer
     permission_classes = [IsEmploye]
 
     def get_queryset(self):
         user = self.request.user
 
+        # DRF voit tout
         if user.is_superuser or user.role in ['responsable_rh', 'directeur_rh']:
-            return DemandeConge.objects.select_related('employe').all()
+            return DemandeConge.objects.all()
 
+        # Le chef voit les demandes de sa structure
         if user.role == 'responsable_hierarchique':
-            employe = user.employe
-            if employe:
-                equipe_ids = employe.equipe_sous_responsabilite.values_list('id', flat=True)
-                return DemandeConge.objects.filter(employe__in=equipe_ids)
+            employe = getattr(user, 'employe', None)
+            if employe and employe.structure:
+                return DemandeConge.objects.filter(employe__structure=employe.structure)
             return DemandeConge.objects.none()
 
-        # Employé simple — uniquement ses propres demandes
-        employe = user.employe
+        # Un employé normal voit que les siennes
+        employe = getattr(user, 'employe', None)
         if employe:
             return DemandeConge.objects.filter(employe=employe)
         return DemandeConge.objects.none()
 
     def perform_create(self, serializer):
-        """Associe automatiquement la demande à l'employé courant."""
-        employe = self.request.user.employe
+        employe = getattr(self.request.user, 'employe', None)
         if not employe:
             from rest_framework.exceptions import PermissionDenied
-            raise PermissionDenied("Votre compte n'est lié à aucun profil employé.")
+            raise PermissionDenied("Votre compte n'est lié à un profil employé.")
+        # L'appel à '.clean()' sur le modèle validera les jours par motif exceptionnel automatiquement
         serializer.save(employe=employe)
 
     @action(detail=True, methods=['post'], permission_classes=[IsResponsableHierarchique])
     def valider_responsable(self, request, pk=None):
-        """POST /api/demandes/{id}/valider_responsable/ — validation hiérarchique."""
         demande = self.get_object()
-        employe = request.user.employe
-        demande.valider_par_responsable(employe)
-
-        # Notifier l'équipe RH
+        if demande.statut != 'en_attente_resp':
+            return Response({'detail': "Statut invalide pour cette action."}, status=400)
+            
+        demande.statut = 'en_attente_rh'
+        demande.save()
+        
+        # Récupérer les employés RH pour les notifier (ceux dont l'user lié a un rôle RH)
         rh_employes = Employe.objects.filter(compte__role__in=['responsable_rh', 'directeur_rh'])
         for rh in rh_employes:
-            Notification.objects.create(
-                destinataire=rh,
-                message=f"Demande de {demande.employe} validée par le responsable — en attente RH.",
-                lien=f"/demandes/{demande.id}",
-            )
-        return Response({'status': 'Validée par le responsable hiérarchique.'})
+            if hasattr(rh, 'compte') and rh.compte:
+                Notification.objects.create(
+                    utilisateur=rh.compte,
+                    description=f"La demande de {demande.employe} a été validée par la hiérarchie. En attente de traitement."
+                )
+        return Response({'status': 'Validée par le responsable'})
 
     @action(detail=True, methods=['post'], permission_classes=[IsHRStaff])
     def approuver_rh(self, request, pk=None):
-        """POST /api/demandes/{id}/approuver_rh/ — approbation finale RH."""
         demande = self.get_object()
-        employe = request.user.employe
-        demande.approuver_par_rh(employe)
+        if demande.statut != 'en_attente_rh':
+            return Response({'detail': "Cette demande ne peut pas être approuvée (Doit être en_attente_rh)."}, status=400)
 
-        Notification.objects.create(
-            destinataire=demande.employe,
-            message="Votre demande de congé a été approuvée par le service RH.",
-            lien=f"/demandes/{demande.id}",
-        )
-        return Response({'status': 'Approuvée par le service RH.'})
+        try:
+            # 1. On donne l'ordre au Service de déduire le solde
+            deduire_solde_conge(demande)
+            
+            # 2. Sauvegarde du nouveau statut
+            demande.statut = 'approuvee'
+            demande.save()
+            
+            # 3. On demande au Service de générer le document de validation (Titre)
+            titre = generer_titre_conge_automatique(demande)
+
+            Notification.objects.create(
+                utilisateur=demande.employe.compte,
+                description=f"Félicitations, votre demande a été approuvée (Réf: {titre.ref})"
+            )
+            return Response({'status': 'Totalement approuvée, Titre de congé généré', 'ref': titre.ref})
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
 
     @action(detail=True, methods=['post'], permission_classes=[IsHRStaff])
     def refuser(self, request, pk=None):
-        """POST /api/demandes/{id}/refuser/ — refus avec motif obligatoire."""
         demande = self.get_object()
-        raison = request.data.get('raison', '').strip()
-        if not raison:
-            return Response({'raison': 'Le motif de refus est obligatoire.'}, status=400)
-
-        demande.refuser(raison, request.user.employe)
+        raison = request.data.get('raison', 'Raison non spécifiée')
+        demande.statut = 'refusee'
+        demande.save()
 
         Notification.objects.create(
-            destinataire=demande.employe,
-            message=f"Votre demande de congé a été refusée : {raison}",
-            lien=f"/demandes/{demande.id}",
+            utilisateur=demande.employe.compte,
+            description=f"Votre demande de congé a malheureusement été refusée. Motif : {raison}"
         )
-        return Response({'status': 'Refusée.'})
-
+        return Response({'status': 'Demande refusée.'})
 
 class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    Lecture des notifications de l'utilisateur courant.
-    Action personnalisée pour marquer comme lue.
-    """
     serializer_class = NotificationSerializer
     permission_classes = [IsEmploye]
 
     def get_queryset(self):
-        employe = self.request.user.employe
-        if not employe:
-            return Notification.objects.none()
-        return Notification.objects.filter(destinataire=employe).order_by('-date_creation')
+        return Notification.objects.filter(utilisateur=self.request.user)
 
     @action(detail=True, methods=['post'])
     def marquer_lue(self, request, pk=None):
-        """POST /api/notifications/{id}/marquer_lue/"""
         notif = self.get_object()
         notif.lu = True
         notif.save()
-        return Response({'status': 'Notification marquée comme lue.'})
+        return Response({'status': 'Notification marquée comme lue'})

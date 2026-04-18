@@ -1,61 +1,48 @@
-import { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
 import Login from './pages/Login'
+import Dashboard from './pages/Dashboard'
+import Demandes from './pages/Demandes'
+import Profil from './pages/Profil'
+import NouvelleDemande from './pages/NouvelleDemande'
 
-// ─── Composant générique très léger pour remplacer les longues pages ───
-const DashboardPlaceholder = ({ title }: { title: string }) => {
-  useEffect(() => {
-    document.title = `${title} | Air Algérie`;
-  }, [title]);
-
-  return (
-    <div className="card-minimal">
-      <h1 className="title-minimal">{title}</h1>
-      <p className="desc-minimal">Cette interface sera dévelopée dans les prochaines étapes.</p>
-    </div>
-  );
-}
-
-// ─── Composant de racine : Redirige vers le bon tableau de bord ───
+/**
+ * Redirection de racine : 
+ * Tout le monde va vers /dashboard, car le Dashboard s'adapte au rôle.
+ */
 const RoleBasedRedirect = () => {
   const { user } = useAuth()
   if (!user) return <Navigate to="/login" replace />
-  // Extrait le premier mot du rôle pour l'URL (ex: 'responsable_hierarchique' -> 'responsable')
-  const prefix = user.role.split('_')[0]
-  return <Navigate to={`/${prefix}/dashboard`} replace />
+  return <Navigate to="/dashboard" replace />
 }
 
-// ─── Routeur Minimaliste ───
 export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      
-      {/* Redirection dynamique sur la racine '/' */}
       <Route path="/" element={<RoleBasedRedirect />} />
 
-      {/* 
-        Le Layout enveloppe TOUT le reste. 
-        S'il y a Layout, ProtectedRoute est forcé. 
-        On évite ainsi d'écrire <ProtectedRoute> 50 fois ! 
-      */}
       <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         
-        {/* Vues Employé */}
-        <Route path="/employe/dashboard" element={<DashboardPlaceholder title="Espace Employé : Tableau de Bord" />} />
+        {/* Routes Communes */}
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/mon-compte" element={<Profil />} />
         
-        {/* Vues Responsable Hiérarchique */}
-        <Route path="/responsable/dashboard" element={<DashboardPlaceholder title="Espace Manager : Vue d'équipe" />} />
+        {/* Gestion des Congés */}
+        <Route path="/conges/mes-demandes" element={<Demandes />} />
+        <Route path="/conges/nouvelle-demande" element={<NouvelleDemande />} />
+        <Route path="/conges/mon-solde" element={<Dashboard />} /> {/* Redirige vers dashboard (solde y est) */}
+
+        {/* Validation (Manager/RH) */}
+        <Route path="/validation/equipe" element={<div className="card-minimal"><h1>Portail de Validation</h1><p>En cours de développement...</p></div>} />
         
-        {/* Vues RH (Responsable RH / Directeur) */}
-        <Route path="/rh/dashboard" element={<DashboardPlaceholder title="Espace Ressources Humaines : Overview" />} />
+        {/* RH (Directeur) */}
+        <Route path="/rh/statistiques" element={<div className="card-minimal"><h1>Statistiques Globales RH</h1><p>En cours de développement...</p></div>} />
         
       </Route>
 
-      {/* Reste du code erroné renvoie vers l'accueil */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

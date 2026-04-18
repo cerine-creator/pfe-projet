@@ -1,58 +1,73 @@
-import { Outlet, NavLink } from 'react-router-dom';
+import { useNavigate, Outlet, NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import NotificationBell from './NotificationBell';
+import { 
+  Home, 
+  Send, 
+  UserCircle, 
+  ShieldCheck, 
+  PieChart, 
+  LogOut
+} from 'lucide-react';
 
 export default function Layout() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   
-  // Sécurité: Ne rend rien si non connecté
   if (!user) return null;
 
   return (
     <div className="app-layout">
-      {/* -- Le Menu Latéral (Sidebar) -- */}
-      <aside className="sidebar">
+      {/* ─── BARRE HORIZONTALE (TOP NAV) ─── */}
+      <header className="top-nav">
         
-        {/* Entête avec Logo */}
-        <div className="sidebar-header">
-          <img src="/logo.svg" alt="Air Algérie Logo" className="sidebar-logo" />
+        <div className="nav-left">
+          <img src="/logo.svg" alt="Air Algérie" className="nav-logo" />
+          
+          <nav className="nav-links">
+            <NavLink to="/dashboard" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
+              <Home size={18} /> Tableau de bord
+            </NavLink>
+            
+            <NavLink to="/conges/mes-demandes" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
+              <Send size={18} /> Mes Congés
+            </NavLink>
+            
+            {(user.role !== 'employe') && (
+              <NavLink to="/validation/equipe" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
+                <ShieldCheck size={18} /> Validation
+              </NavLink>
+            )}
+
+            {user.role === 'directeur_rh' && (
+              <NavLink to="/rh/statistiques" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
+                <PieChart size={18} /> Stats RH
+              </NavLink>
+            )}
+          </nav>
         </div>
-        
-        {/* Bloc Info Rapide Utilisateur */}
-        <div className="sidebar-user">
-          <div className="user-avatar">
-            {user.username.charAt(0).toUpperCase()}
+
+        <div className="nav-right">
+          {/* ── Cloche de notifications ── */}
+          <NotificationBell />
+
+          <div className="user-badge" onClick={() => navigate('/mon-compte')} style={{cursor: 'pointer'}}>
+            <div className="user-badge-info">
+              <span className="user-badge-name">{user.first_name} {user.last_name}</span>
+              <span className="user-badge-role">{user.role_display}</span>
+            </div>
+            <UserCircle size={24} color="var(--primary)" />
           </div>
-          <div className="user-info">
-            <div className="user-greeting">Bienvenue,</div>
-            <div className="user-name">{user.username}</div>
-            <div className="user-role">{user.role_display}</div>
-          </div>
+
+          <LogOut className="logout-icon" size={22} onClick={logout} />
         </div>
 
-        {/* Liens de Navigation */}
-        <nav className="sidebar-nav">
-          <NavLink 
-            to={`/${user.role.split('_')[0]}/dashboard`} 
-            className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}
-          >
-            Tableau de bord
-          </NavLink>
-        </nav>
+      </header>
 
-        {/* Bouton de sortie */}
-        <div className="sidebar-footer">
-          <button onClick={logout} className="logout-btn">
-            Déconnexion
-          </button>
-        </div>
-
-      </aside>
-
-      {/* -- Le contenu principal (Change à chaque clic de lien) -- */}
+      {/* ─── CONTENU PRINCIPAL ─── */}
       <main className="main-content">
         <Outlet />
       </main>
-
     </div>
   );
 }

@@ -3,10 +3,35 @@ import axios from 'axios';
 /**
  * Instance Axios configurée pour toute l'application.
  *
- * withCredentials: true → le navigateur attache automatiquement les cookies
- * HttpOnly (access + refresh) à chaque requête. Le code JavaScript n'a jamais
- * accès direct aux tokens (anti-XSS).
+ * Stratégie d'authentification cross-origin (dev) :
+ * - Le token d'accès est stocké EN MÉMOIRE uniquement (pas localStorage/sessionStorage).
+ * - Chaque requête reçoit automatiquement le header Authorization: Bearer <token>.
+ * - Anti-XSS : le token n'est jamais exposé à l'URL ni persisté dans le DOM.
+ * - withCredentials: true est conservé pour que les cookies HttpOnly soient envoyés
+ *   sur les navigateurs/environnements où ils fonctionnent (same-origin).
  */
+
+// ─── Token store en mémoire ──────────────────────────────────────────────────
+// Ces variables sont inaccessibles depuis l'extérieur du module.
+
+let _accessToken: string | null = null;
+let _refreshToken: string | null = null;
+
+export const tokenStore = {
+  getAccess: () => _accessToken,
+  getRefresh: () => _refreshToken,
+  set: (access: string, refresh: string) => {
+    _accessToken = access;
+    _refreshToken = refresh;
+  },
+  clear: () => {
+    _accessToken = null;
+    _refreshToken = null;
+  },
+};
+
+// ─── Instance Axios ──────────────────────────────────────────────────────────
+
 const api = axios.create({
   baseURL: 'http://127.0.0.1:8000/api',
   withCredentials: true,
@@ -15,50 +40,91 @@ const api = axios.create({
   },
 });
 
-// ─── Intercepteur de réponse ─────────────────────────────────────────────────
+// ─── Intercepteur de requête : injecte le Bearer token ──────────────────────
+
+api.interceptors.request.use((config) => {
+  const token = tokenStore.getAccess();
+  if (token && config.headers) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// ─── Intercepteur de réponse : refresh automatique sur 401 ──────────────────
+
+let _isRefreshing = false;
+let _refreshSubscribers: Array<(token: string) => void> = [];
+
+function subscribeTokenRefresh(cb: (token: string) => void) {
+  _refreshSubscribers.push(cb);
+}
+
+function onTokenRefreshed(newToken: string) {
+  _refreshSubscribers.forEach((cb) => cb(newToken));
+  _refreshSubscribers = [];
+}
 
 api.interceptors.response.use(
-  // Succès — retourne la réponse telle quelle
   (response) => response,
 
-  // Erreur — gestion centralisée
   async (error) => {
     const originalRequest = error.config;
 
-    // 401 : session expirée ou inexistante
     if (error.response?.status === 401) {
-      // Si c'est déjà une tentative de login, de refresh ou le check initial /me/ : on ne fait RIEN (on laisse échouer proprement)
-      if (
-        originalRequest.url?.includes('login') || 
-        originalRequest.url?.includes('refresh') || 
-        originalRequest.url?.includes('me')
-      ) {
+      // Endpoints qui ne doivent pas déclencher de refresh
+      const skipRefresh =
+        originalRequest.url?.includes('/auth/login/') ||
+        originalRequest.url?.includes('/auth/token/refresh/') ||
+        originalRequest.url?.includes('/auth/me/');
+
+      if (skipRefresh) {
         return Promise.reject(error);
       }
 
-      // Pour toutes les autres requêtes API métier : tentative de refresh unique
+      // Tentative de refresh unique
       if (!originalRequest._retry) {
         originalRequest._retry = true;
+
+        if (_isRefreshing) {
+          // D'autres requêtes attendent le refresh
+          return new Promise((resolve) => {
+            subscribeTokenRefresh((newToken) => {
+              originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
+              resolve(api(originalRequest));
+            });
+          });
+        }
+
+        _isRefreshing = true;
+        const refresh = tokenStore.getRefresh();
+
         try {
-          await api.post('/auth/token/refresh/');
+          const res = await api.post<{ access: string; refresh: string }>(
+            '/auth/token/refresh/',
+            { refresh }
+          );
+          const newAccess = res.data.access;
+          const newRefresh = res.data.refresh || refresh || '';
+          tokenStore.set(newAccess, newRefresh);
+          onTokenRefreshed(newAccess);
+          originalRequest.headers['Authorization'] = `Bearer ${newAccess}`;
           return api(originalRequest);
         } catch (refreshError) {
-          // Si le refresh échoue aussi, on redirige vers le login seulement si on n'y est pas
+          tokenStore.clear();
           if (window.location.pathname !== '/login') {
             window.location.href = '/login';
           }
           return Promise.reject(refreshError);
+        } finally {
+          _isRefreshing = false;
         }
       }
     }
 
-    // 403 : accès interdit → redirection vers page non autorisée
+    // 403 : accès interdit
     if (error.response?.status === 403) {
       window.location.href = '/non-autorise';
     }
-
-    // 500 : erreur serveur — le backend renvoie un JSON propre (custom_exception_handler)
-    // Pas besoin de traitement spécial ici, le composant affichera error.response.data.error
 
     return Promise.reject(error);
   }
