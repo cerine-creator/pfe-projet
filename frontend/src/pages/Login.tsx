@@ -89,23 +89,24 @@ const Login: React.FC = () => {
             </div>
           )}
 
-          {/* Champ identifiant */}
+          {/* Champ identifiant (Email) */}
           <div className={`login-field ${error ? 'login-field--error' : ''}`}>
             <label htmlFor="login-username" className="login-label">
-              Nom d'utilisateur
+              Adresse e-mail professionnelle
             </label>
             <div className="login-input-wrapper">
               <svg className="login-input-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
               </svg>
               <input
                 id="login-username"
-                type="text"
+                type="email"
                 className="login-input"
                 value={username}
                 onChange={(e) => { setUsername(e.target.value); handleInputChange(); }}
-                placeholder="Votre identifiant"
-                autoComplete="username"
+                placeholder="prenom.nom@airalgerie.dz"
+                autoComplete="email"
                 autoFocus
                 disabled={submitting}
                 required

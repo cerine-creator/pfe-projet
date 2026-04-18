@@ -20,11 +20,13 @@ export default function Layout() {
         {/* Bloc Info Rapide Utilisateur */}
         <div className="sidebar-user">
           <div className="user-avatar">
-            {user.username.charAt(0).toUpperCase()}
+            {user.first_name ? user.first_name.charAt(0).toUpperCase() : user.username.charAt(0).toUpperCase()}
           </div>
           <div className="user-info">
             <div className="user-greeting">Bienvenue,</div>
-            <div className="user-name">{user.username}</div>
+            <div className="user-name">
+              {user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.username}
+            </div>
             <div className="user-role">{user.role_display}</div>
           </div>
         </div>
@@ -37,6 +39,32 @@ export default function Layout() {
           >
             Tableau de bord
           </NavLink>
+          
+          <div className="nav-section-title">Gestion des congés</div>
+          
+          <NavLink to="/conges/mes-demandes" className="nav-item">
+            Mes demandes
+          </NavLink>
+          
+          <NavLink to="/conges/mon-solde" className="nav-item">
+            Mon solde
+          </NavLink>
+
+          {/* Actions spécifiques Responsables / RH */}
+          {(user.role === 'responsable_hierarchique' || user.role === 'responsable_rh' || user.role === 'directeur_rh') && (
+            <>
+              <div className="nav-section-title">Administration</div>
+              <NavLink to="/validation/equipe" className="nav-item">
+                Validation équipe
+              </NavLink>
+            </>
+          )}
+          
+          {user.role === 'directeur_rh' && (
+            <NavLink to="/rh/statistiques" className="nav-item">
+              Statistiques globales
+            </NavLink>
+          )}
         </nav>
 
         {/* Bouton de sortie */}

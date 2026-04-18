@@ -41,8 +41,27 @@ Tu as deux serveurs qui tournent en même temps :
 6. **Réponse (Django -> React) :** Django envoie ce JSON en retour à Axios en y joignant un statut "200 OK". L'application React sauvegarde instantanément ça dans son "État" (`useState`).
 7. **L'Interface se met à jour :** React détecte automatiquement qu'il a reçu les nouvelles informations. Il dessine alors le `<EmployeeList />` (Notre table de collaborateurs) en écrivant les informations matricules/email sur l'écran !
 
-### C. La Logique du "Role Switcher"
-Pour te faciliter la vie pour le POC/MVC :
-- Ton Frontend possède une variable de mémoire appelée `currentRole`.
-- Lorsque tu cliques sur les menus, React lit cette variable et choisit le bloc HTML qu'il a le droit de te montrer. 
-- *Note : Dans un vrai environnement en production, ce rôle ne s'échange pas par de simples boutons, il te serait donné via un système appelé JWT (JSON Web Token) juste après avoir tapé ton vrai mot de Passe et Login !*
+---
+
+## 3. Logiques Métier Spécifiques (Air Algérie)
+
+Le projet intègre des règles strictes qui distinguent cette application d'un simple gestionnaire de congés :
+
+### A. Priorité de Consommation (FIFO des Exercices)
+Le système n'autorise pas la création d'une demande sur un exercice (ex: 2024/2025) si l'employé possède encore un solde positif sur un exercice plus ancien (ex: 2023/2024). Cette règle est codée directement dans la méthode `clean()` du modèle `DemandeConge`.
+
+### B. Différenciation par Catégorie
+Le profil de l'employé contient une `categorie` qui définit ses droits :
+-   **SOL** : Acquis de 2.5 jours/mois (Maximum 30j/an).
+-   **NAVIGANT / SUD** : Acquis de 3.75 jours/mois (Maximum 45j/an).
+
+### C. Circuit de Validation
+1.  **En attente Responsable** : Premier niveau de filtrage par le chef de structure.
+2.  **En attente RH** : Validation finale par les Ressources Humaines.
+3.  **Approuvée** : Une fois ce statut atteint, le système déduit automatiquement le solde et génère un "Titre de Congé" (document officiel).
+
+---
+
+## 4. Installation & Déploiement
+
+Pour installer le projet sur une nouvelle machine, référez-vous au fichier [README.md](./README.md) qui contient le guide d'installation étape par étape utilisant `pip install -r requirements.txt`.
