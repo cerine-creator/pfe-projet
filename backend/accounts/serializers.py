@@ -38,7 +38,8 @@ class UserSerializer(serializers.ModelSerializer):
     Utilisé par le frontend pour identifier l'utilisateur courant.
     """
     role_display = serializers.CharField(source='get_role_display', read_only=True)
-    employe_id = serializers.IntegerField(source='employe.id', read_only=True, allow_null=True)
+    employe_id = serializers.SerializerMethodField()
+    employe_matricule = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
@@ -53,8 +54,15 @@ class UserSerializer(serializers.ModelSerializer):
             'is_staff',
             'is_superuser',
             'employe_id',
+            'employe_matricule',
         ]
         read_only_fields = fields
+
+    def get_employe_id(self, obj):
+        return obj.employe.id if hasattr(obj, 'employe') and obj.employe else None
+
+    def get_employe_matricule(self, obj):
+        return obj.employe.matricule if hasattr(obj, 'employe') and obj.employe else None
 
 
 class RegisterSerializer(serializers.ModelSerializer):

@@ -1,6 +1,6 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
-import api from '../api/axiosConfig';
+import api, { tokenStore } from '../api/axiosConfig';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -15,6 +15,7 @@ export type User = {
   is_staff: boolean;
   is_superuser: boolean;
   employe_id: number | null;
+  employe_matricule: string | null;
 }
 
 interface AuthContextType {
@@ -36,29 +37,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Évite un double-appel en StrictMode React 18
+  const initialized = useRef(false);
 
   /**
-   * Au montage de l'app, on interroge silencieusement /auth/me/.
-   * Si le cookie est valide, Django renvoie le profil utilisateur.
-   * Si non (pas de session), on reste sur null → redirection vers /login.
+   * Au montage de l'app, on tente de restaurer la session depuis le cookie HttpOnly.
+   * Si le cookie est valide (même-origine), Django renvoie le profil.
+   * Si non, loading passe à false → redirection vers /login.
+   *
+   * Note: en cross-origin dev (localhost:5173 → 127.0.0.1:8000),
+   * les cookies ne sont pas envoyés → 401 attendu et silencieux.
    */
   useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
+
     api.get<User>('/auth/me/')
       .then((res) => setUser(res.data))
-      .catch(() => setUser(null))
+      .catch(() => {
+        // 401 silencieux : pas de session active, l'utilisateur doit se connecter
+        setUser(null);
+      })
       .finally(() => setLoading(false));
   }, []);
 
   const login = async (username: string, password: string): Promise<void> => {
     setError(null);
     try {
-      const res = await api.post<{ message: string; user: User }>('/auth/login/', {
-        username,
-        password,
-      });
+      const res = await api.post<{ message: string; user: User; access: string; refresh: string }>(
+        '/auth/login/',
+        { username, password }
+      );
+      // Stocke les tokens en mémoire → active le header Authorization pour toutes les requêtes suivantes
+      tokenStore.set(res.data.access, res.data.refresh);
       setUser(res.data.user);
     } catch (err: unknown) {
-      // Extrait le message d'erreur depuis la réponse Django
       if (err && typeof err === 'object' && 'response' in err) {
         const axiosErr = err as { response?: { data?: { detail?: string; non_field_errors?: string[] } } };
         const detail =
@@ -74,7 +87,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async (): Promise<void> => {
-    await api.post('/auth/logout/').catch(() => null); // Ignore si déjà expiré
+    await api.post('/auth/logout/').catch(() => null);
+    tokenStore.clear();
     setUser(null);
   };
 

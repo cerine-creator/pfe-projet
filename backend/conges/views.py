@@ -43,9 +43,21 @@ class EmployeViewSet(viewsets.ModelViewSet):
     serializer_class = EmployeSerializer
     
     def get_permissions(self):
-        if self.action in ['list', 'retrieve', 'mon_equipe']:
+        if self.action in ['list', 'retrieve', 'me', 'mon_equipe']:
             return [IsEmploye()]
         return [IsHRStaffOrAdmin()]
+
+    @action(detail=False, methods=['get'], permission_classes=[IsEmploye])
+    def me(self, request):
+        """GET /api/employes/me/ — Profil employé de l'utilisateur connecté."""
+        employe = getattr(request.user, 'employe', None)
+        if employe is None:
+            return Response(
+                {'detail': "Votre compte n'est pas lié à un profil employé."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        serializer = self.get_serializer(employe)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['get'], permission_classes=[IsResponsableHierarchique])
     def mon_equipe(self, request):
