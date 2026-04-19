@@ -11,6 +11,9 @@ class Structure(models.Model):
     # La relation 'self' permet de créer une hiérarchie (Ex: Un Service a pour parent une Sous-direction)
     parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='sous_structures')
 
+    # Le responsable de la structure (Gérable via le panel Admin)
+    responsable = models.ForeignKey('Employe', on_delete=models.SET_NULL, null=True, blank=True, related_name='structures_dirigees', help_text="Le chef / responsable de cette structure")
+
     class Meta:
         verbose_name = 'Structure'
         verbose_name_plural = 'Structures'

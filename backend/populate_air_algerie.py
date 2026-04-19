@@ -70,6 +70,16 @@ def run():
         {
             "email": "yacine.hadj@airalgerie.dz", "role": "employe",
             "matricule": "AH-4122", "prenom": "Yacine", "nom": "Hadj", "structure": pn, "fonction": f_pilote, "categorie": "navigant"
+        },
+        # Un employé sous la responsabilité de Karim Mansouri (Technics)
+        {
+            "email": "samir.kaci@airalgerie.dz", "role": "employe",
+            "matricule": "AH-8832", "prenom": "Samir", "nom": "Kaci", "structure": tech, "fonction": f_mec, "categorie": "sol"
+        },
+        # Responsable du Personnel Navigant
+        {
+            "email": "redha.boutaleb@airalgerie.dz", "role": "responsable_hierarchique",
+            "matricule": "AH-1002", "prenom": "Redha", "nom": "Boutaleb", "structure": pn, "fonction": f_pilote, "categorie": "navigant"
         }
     ]
 
@@ -114,6 +124,30 @@ def run():
                 }
             )
             print(f"Mise à jour de {emp.prenomEmpl} {emp.nomEmpl} ({data['role']}). Solde: {solde_initial}j")
+
+    # 6. ASSIGNATION DES RESPONSABLES AUX STRUCTURES (Nouveau Flow Air Algérie)
+    # On récupère les employés créés
+    karim = Employe.objects.filter(compte__email="karim.mansouri@airalgerie.dz").first()
+    redha = Employe.objects.filter(compte__email="redha.boutaleb@airalgerie.dz").first()
+    tarik = Employe.objects.filter(compte__email="tarik.bensalah@airalgerie.dz").first()
+
+    if karim:
+        tech.responsable = karim
+        tech.save()
+        print(f"Assigné {karim} comme responsable de la structure {tech.libelle}")
+    
+    if redha:
+        pn.responsable = redha
+        pn.save()
+        # On assigne aussi pnc sous redha pour qu'il gère toute la branche PN
+        pnc.responsable = redha
+        pnc.save()
+        print(f"Assigné {redha} comme responsable des structures PN et PNC")
+
+    if tarik:
+        drh.responsable = tarik
+        drh.save()
+        print(f"Assigné {tarik} comme responsable de la DRH")
 
     print("\nTermine ! Base de donnees realiste Air Algerie prete pour React.")
 
