@@ -12,13 +12,23 @@ export default function NouvelleDemande() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<{type: 'success'|'error', text: string} | null>(null);
 
+  const [natureConge, setNatureConge] = useState<'annuel'|'exceptionnel'|'sans_solde'|''>('');
   const [formData, setFormData] = useState({
-    type_conge: '',
     exercice: '',
     date_debut: '',
     date_fin: '',
-    motif: '',
+    motif: '', // Dropdown value for exceptional
   });
+
+  const MOTIF_CHOICES = [
+    { value: 'mariage_perso', label: 'Mariage personnel (5j)', days: 5 },
+    { value: 'naissance', label: 'Naissance (3j)', days: 3 },
+    { value: 'deces_enfant', label: "Décès d'un enfant (5j)", days: 5 },
+    { value: 'deces_proche', label: "Décès d'un proche (3j)", days: 3 },
+    { value: 'mariage_enfant', label: "Mariage d'un enfant (3j)", days: 3 },
+  ];
+
+  const isExceptionnel = natureConge === 'exceptionnel';
 
   useEffect(() => {
     Promise.all([
@@ -43,8 +53,61 @@ export default function NouvelleDemande() {
     setSubmitting(true);
     setMessage(null);
 
+    let finalData = { ...formData } as any;
+
+    // Trouver l'ID du type de congé correspondant dans le backend
+    const typeObj = types.find(t => {
+      if (natureConge === 'exceptionnel') return t.est_exceptionnel === true || t.nomType.toLowerCase().includes('exceptionnel');
+      if (natureConge === 'annuel') return t.est_exceptionnel === false && t.nomType.toLowerCase().includes('annuel');
+      if (natureConge === 'sans_solde') return t.nomType.toLowerCase().includes('non payé') || t.nomType.toLowerCase().includes('sans solde');
+      return false;
+    });
+
+    if (!typeObj) {
+      setMessage({ type: 'error', text: `Erreur : Le type de congé "${natureConge}" est introuvable dans la base de données. Veuillez demander à l'administrateur de l'ajouter dans les Types de Congé.` });
+      setSubmitting(false);
+      return;
+    }
+    finalData.type_conge = typeObj.id;
+
+    if (isExceptionnel) {
+      if (!finalData.motif) {
+        setMessage({ type: 'error', text: "Veuillez sélectionner un motif pour ce congé exceptionnel." });
+        setSubmitting(false);
+        return;
+      }
+      if (!finalData.date_debut) {
+        setMessage({ type: 'error', text: "La date de début est requise." });
+        setSubmitting(false);
+        return;
+      }
+      // Calcul automatique de la date de fin
+      const selectedMotif = MOTIF_CHOICES.find(m => m.value === finalData.motif);
+      if (selectedMotif && finalData.date_debut) {
+        const start = new Date(finalData.date_debut);
+        start.setDate(start.getDate() + (selectedMotif.days - 1));
+        finalData.date_fin = start.toISOString().split('T')[0];
+      }
+    } else {
+      if (!finalData.date_debut || !finalData.date_fin) {
+        setMessage({ type: 'error', text: "Les dates de début et de fin sont requises." });
+        setSubmitting(false);
+        return;
+      }
+      
+      const dDebut = new Date(finalData.date_debut);
+      const dFin = new Date(finalData.date_fin);
+      if (dFin < dDebut) {
+        setMessage({ type: 'error', text: "Erreur : La date de fin doit être postérieure ou égale à la date de début." });
+        setSubmitting(false);
+        return;
+      }
+      // Pour un congé normal, on ne transmet pas de motif
+      finalData.motif = '';
+    }
+
     try {
-      await api.post('/demandes/', formData);
+      await api.post('/demandes/', finalData);
       setMessage({ type: 'success', text: 'Demande soumise avec succès ! Redirection...' });
       setTimeout(() => navigate('/conges/mes-demandes'), 2000);
     } catch (err: any) {
@@ -69,14 +132,19 @@ export default function NouvelleDemande() {
           
           <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginBottom: '30px'}}>
             <div className="form-group">
-              <label>Type de congé</label>
+              <label>Nature du congé</label>
               <select 
                 required
-                value={formData.type_conge}
-                onChange={e => setFormData({...formData, type_conge: e.target.value})}
+                value={natureConge}
+                onChange={e => {
+                  setNatureConge(e.target.value as any);
+                  setFormData(prev => ({ ...prev, date_debut: '', date_fin: '', motif: '' }));
+                }}
               >
-                <option value="">Sélectionner un type...</option>
-                {types.map(t => <option key={t.id} value={t.id}>{t.nomType}</option>)}
+                <option value="">Sélectionner une nature...</option>
+                <option value="annuel">Congé Annuel (Payé)</option>
+                <option value="exceptionnel">Congé Exceptionnel</option>
+                <option value="sans_solde">Congé Non Payé (Sans Solde)</option>
               </select>
             </div>
 
@@ -93,9 +161,9 @@ export default function NouvelleDemande() {
           </div>
 
           <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginBottom: '30px'}}>
-            <div className="form-group">
-              <label>Date de début</label>
-              <div style={{position: 'relative'}}>
+            {natureConge !== '' && (
+              <div className="form-group">
+                <label>Date de début</label>
                 <input 
                   type="date" 
                   required 
@@ -103,27 +171,35 @@ export default function NouvelleDemande() {
                   onChange={e => setFormData({...formData, date_debut: e.target.value})}
                 />
               </div>
-            </div>
+            )}
 
-            <div className="form-group">
-              <label>Date de fin</label>
-              <input 
-                type="date" 
-                required 
-                value={formData.date_fin}
-                onChange={e => setFormData({...formData, date_fin: e.target.value})}
-              />
-            </div>
-          </div>
+            {(natureConge === 'annuel' || natureConge === 'sans_solde') && (
+              <div className="form-group">
+                <label>Date de fin</label>
+                <input 
+                  type="date" 
+                  required
+                  value={formData.date_fin}
+                  onChange={e => setFormData({...formData, date_fin: e.target.value})}
+                />
+              </div>
+            )}
 
-          <div className="form-group" style={{marginBottom: '40px'}}>
-            <label>Motif / Justification (Optionnel)</label>
-            <textarea 
-              rows={3} 
-              placeholder="Précisez le motif si nécessaire..."
-              value={formData.motif}
-              onChange={e => setFormData({...formData, motif: e.target.value})}
-            />
+            {natureConge === 'exceptionnel' && (
+              <div className="form-group">
+                <label>Motif (Congé exceptionnel)</label>
+                <select 
+                  required
+                  value={formData.motif}
+                  onChange={e => setFormData({...formData, motif: e.target.value})}
+                >
+                  <option value="">Sélectionner le motif...</option>
+                  {MOTIF_CHOICES.map(m => (
+                    <option key={m.value} value={m.value}>{m.label}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           {message && (

@@ -62,11 +62,15 @@ class EmployeViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], permission_classes=[IsResponsableHierarchique])
     def mon_equipe(self, request):
         employe = getattr(request.user, 'employe', None)
-        if not employe or not employe.structure:
-            return Response({'detail': "Vous n'êtes assigné à aucune structure."}, status=400)
+        if not employe:
+            return Response({'detail': "Profil non trouvé."}, status=400)
         
-        # Filtre: Les employés de la même structure que le responsable chef, sauf lui-même
-        equipe = Employe.objects.filter(structure=employe.structure).exclude(id=employe.id)
+        structures_dirigees = employe.structures_dirigees.all()
+        if not structures_dirigees.exists():
+            return Response({'detail': "Vous n'êtes assigné comme responsable d'aucune structure."}, status=400)
+        
+        # Filtre: Les employés de toutes les structures que gère ce responsable
+        equipe = Employe.objects.filter(structure__in=structures_dirigees).exclude(id=employe.id)
         serializer = self.get_serializer(equipe, many=True)
         return Response(serializer.data)
 
@@ -75,24 +79,36 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
     permission_classes = [IsEmploye]
 
     def get_queryset(self):
+        # L'endpoint de base /api/demandes/ retourne TOUJOURS les demandes
+        # du compte connecté (ses propres congés), quel que soit son rôle.
         user = self.request.user
-
-        # DRF voit tout
-        if user.is_superuser or user.role in ['responsable_rh', 'directeur_rh']:
-            return DemandeConge.objects.all()
-
-        # Le chef voit les demandes de sa structure
-        if user.role == 'responsable_hierarchique':
-            employe = getattr(user, 'employe', None)
-            if employe and employe.structure:
-                return DemandeConge.objects.filter(employe__structure=employe.structure)
-            return DemandeConge.objects.none()
-
-        # Un employé normal voit que les siennes
         employe = getattr(user, 'employe', None)
         if employe:
             return DemandeConge.objects.filter(employe=employe)
         return DemandeConge.objects.none()
+
+    @action(detail=False, methods=['get'])
+    def a_valider(self, request):
+        """GET /api/demandes/a_valider/ — Les demandes que ce compte doit valider."""
+        user = self.request.user
+
+        # DRH / RH voient tout
+        if user.is_superuser or user.role in ['responsable_rh', 'directeur_rh']:
+            demandes = DemandeConge.objects.all()
+            serializer = self.get_serializer(demandes, many=True)
+            return Response(serializer.data)
+
+        # Le responsable hiérarchique voit les demandes des structures qu'il dirige (sauf les siennes)
+        if user.role == 'responsable_hierarchique':
+            employe = getattr(user, 'employe', None)
+            if employe:
+                structures_dirigees = employe.structures_dirigees.all()
+                if structures_dirigees.exists():
+                    demandes = DemandeConge.objects.filter(employe__structure__in=structures_dirigees, statut='en_attente_resp').exclude(employe=employe)
+                    serializer = self.get_serializer(demandes, many=True)
+                    return Response(serializer.data)
+
+        return Response([])
 
     def perform_create(self, serializer):
         employe = getattr(self.request.user, 'employe', None)
@@ -108,6 +124,10 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
         if demande.statut != 'en_attente_resp':
             return Response({'detail': "Statut invalide pour cette action."}, status=400)
             
+        responsable_employe = getattr(request.user, 'employe', None)
+        if not responsable_employe or not demande.employe.structure or demande.employe.structure.responsable != responsable_employe:
+            return Response({'detail': "Vous n'êtes pas le responsable désigné de la structure de cet employé."}, status=403)
+
         demande.statut = 'en_attente_rh'
         demande.save()
         
@@ -120,6 +140,26 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
                     description=f"La demande de {demande.employe} a été validée par la hiérarchie. En attente de traitement."
                 )
         return Response({'status': 'Validée par le responsable'})
+
+    @action(detail=True, methods=['post'], permission_classes=[IsResponsableHierarchique])
+    def refuser_responsable(self, request, pk=None):
+        demande = self.get_object()
+        if demande.statut != 'en_attente_resp':
+            return Response({'detail': "Statut invalide pour cette action."}, status=400)
+            
+        responsable_employe = getattr(request.user, 'employe', None)
+        if not responsable_employe or not demande.employe.structure or demande.employe.structure.responsable != responsable_employe:
+            return Response({'detail': "Vous n'êtes pas le responsable désigné de la structure de cet employé."}, status=403)
+
+        raison = request.data.get('raison', 'Raison non spécifiée par le responsable')
+        demande.statut = 'refusee'
+        demande.save()
+        
+        Notification.objects.create(
+            utilisateur=demande.employe.compte,
+            description=f"Votre demande de congé a été refusée par votre responsable hiérarchique. Motif : {raison}"
+        )
+        return Response({'status': 'Demande refusée par le responsable.'})
 
     @action(detail=True, methods=['post'], permission_classes=[IsHRStaff])
     def approuver_rh(self, request, pk=None):

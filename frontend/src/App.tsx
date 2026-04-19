@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard'
 import Demandes from './pages/Demandes'
 import Profil from './pages/Profil'
 import NouvelleDemande from './pages/NouvelleDemande'
+import Validation from './pages/Validation'
 
 /**
  * Redirection de racine : 
@@ -36,7 +37,7 @@ export default function App() {
         <Route path="/conges/mon-solde" element={<Dashboard />} /> {/* Redirige vers dashboard (solde y est) */}
 
         {/* Validation (Manager/RH) */}
-        <Route path="/validation/equipe" element={<div className="card-minimal"><h1>Portail de Validation</h1><p>En cours de développement...</p></div>} />
+        <Route path="/validation/equipe" element={<Validation />} />
         
         {/* RH (Directeur) */}
         <Route path="/rh/statistiques" element={<div className="card-minimal"><h1>Statistiques Globales RH</h1><p>En cours de développement...</p></div>} />
