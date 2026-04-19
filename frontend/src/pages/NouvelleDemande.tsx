@@ -55,13 +55,23 @@ export default function NouvelleDemande() {
 
     let finalData = { ...formData } as any;
 
-    // Trouver l'ID du type de congé correspondant dans le backend
-    const typeObj = types.find(t => {
-      if (natureConge === 'exceptionnel') return t.est_exceptionnel === true || t.nomType.toLowerCase().includes('exceptionnel');
-      if (natureConge === 'annuel') return t.est_exceptionnel === false && t.nomType.toLowerCase().includes('annuel');
-      if (natureConge === 'sans_solde') return t.nomType.toLowerCase().includes('non payé') || t.nomType.toLowerCase().includes('sans solde');
-      return false;
-    });
+    let typeObj = null;
+
+    if (natureConge === 'exceptionnel') {
+       // Essayer de trouver un type de congé qui correspond au motif spécifique
+       if (formData.motif.includes('mariage')) typeObj = types.find(t => t.est_exceptionnel && t.nomType.toLowerCase().includes('mariage'));
+       else if (formData.motif.includes('deces')) typeObj = types.find(t => t.est_exceptionnel && t.nomType.toLowerCase().includes('décès'));
+       else if (formData.motif.includes('naissance')) typeObj = types.find(t => t.est_exceptionnel && t.nomType.toLowerCase().includes('naissance'));
+       
+       // Fallback: Prendre le premier congé exceptionnel disponible si on ne trouve pas de correspondance exacte
+       if (!typeObj) {
+         typeObj = types.find(t => t.est_exceptionnel === true || t.nomType.toLowerCase().includes('exceptionnel'));
+       }
+    } else if (natureConge === 'annuel') {
+       typeObj = types.find(t => t.est_exceptionnel === false && t.nomType.toLowerCase().includes('annuel'));
+    } else if (natureConge === 'sans_solde') {
+       typeObj = types.find(t => t.nomType.toLowerCase().includes('non payé') || t.nomType.toLowerCase().includes('sans solde'));
+    }
 
     if (!typeObj) {
       setMessage({ type: 'error', text: `Erreur : Le type de congé "${natureConge}" est introuvable dans la base de données. Veuillez demander à l'administrateur de l'ajouter dans les Types de Congé.` });

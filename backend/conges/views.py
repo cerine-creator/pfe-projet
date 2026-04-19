@@ -79,9 +79,15 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
     permission_classes = [IsEmploye]
 
     def get_queryset(self):
-        # L'endpoint de base /api/demandes/ retourne TOUJOURS les demandes
-        # du compte connecté (ses propres congés), quel que soit son rôle.
         user = self.request.user
+        
+        # Pour les actions de validation, le manager/RH a besoin d'accéder à la demande d'un autre employé
+        if self.action in ['valider_responsable', 'refuser_responsable', 'approuver_rh', 'refuser', 'retrieve']:
+            if user.is_superuser or user.role in ['responsable_rh', 'directeur_rh', 'responsable_hierarchique']:
+                return DemandeConge.objects.all()
+
+        # L'endpoint de base /api/demandes/ retourne TOUJOURS les demandes
+        # du compte connecté (ses propres congés), par défaut.
         employe = getattr(user, 'employe', None)
         if employe:
             return DemandeConge.objects.filter(employe=employe)
@@ -115,9 +121,16 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
         if not employe:
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Votre compte n'est lié à un profil employé.")
-        # L'appel à '.clean()' sur le modèle validera les jours par motif exceptionnel automatiquement
-        serializer.save(employe=employe)
-
+        
+        # Sauvegarde de la demande
+        demande = serializer.save(employe=employe)
+        
+        # Envoi d'une notification au responsable hiérarchique
+        if employe.structure and employe.structure.responsable and employe.structure.responsable.compte:
+            Notification.objects.create(
+                utilisateur=employe.structure.responsable.compte,
+                description=f"Nouvelle demande de congé en attente : {employe.prenomEmpl} {employe.nomEmpl} a soumis une demande."
+            )
     @action(detail=True, methods=['post'], permission_classes=[IsResponsableHierarchique])
     def valider_responsable(self, request, pk=None):
         demande = self.get_object()
