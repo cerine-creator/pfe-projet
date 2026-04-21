@@ -7,6 +7,7 @@ import {
   ArrowRightCircle,
   TrendingUp
 } from 'lucide-react';
+import './dashboard.css';
 
 
 export default function Dashboard() {
@@ -48,55 +49,55 @@ export default function Dashboard() {
     fetchStats();
   }, []);
 
-  if (loading) return <div style={{padding: '50px', textAlign: 'center', fontWeight: 700}}>Chargement de vos statistiques...</div>;
+  if (loading) return <div className="loading-state">Chargement de vos statistiques...</div>;
 
   return (
     <div className="dashboard-v2">
-      <div style={{marginBottom: '40px'}}>
-        <h1 style={{fontSize: '2.5rem', fontWeight: 900, letterSpacing: '-0.02em'}}>Bonjour, <span style={{color: 'var(--primary)'}}>{user?.first_name}</span></h1>
-        <p style={{color: 'var(--text-muted)', fontSize: '1.1rem', fontWeight: 600}}>Voici l'état de vos congés pour l'exercice en cours.</p>
+      <div className="page-header">
+        <h1 className="page-title-lg">Bonjour, <span className="text-primary">{user?.first_name}</span></h1>
+        <p className="page-subtitle page-subtitle-lg">Voici l'état de vos congés pour l'exercice en cours.</p>
       </div>
 
       {/* --- CARDS GRID --- */}
-      <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '30px', marginBottom: '50px'}}>
+      <div className="stats-grid">
         
-        <div className="card-minimal" style={{position: 'relative', overflow: 'hidden'}}>
-          <div style={{position: 'relative', zIndex: 1}}>
-            <p style={{color: 'var(--text-muted)', fontWeight: 800, fontSize: '0.8rem', textTransform: 'uppercase', marginBottom: '15px'}}>Solde Restant</p>
-            <div style={{fontSize: '3.5rem', fontWeight: 900, color: 'var(--primary)', marginBottom: '10px'}}>{stats.solde} <span style={{fontSize: '1rem', color: 'var(--text-main)'}}>Jours</span></div>
-            <div style={{display: 'flex', alignItems: 'center', gap: '8px', color: '#10b981', fontWeight: 700, fontSize: '0.9rem'}}>
+        <div className="card-minimal card-relative">
+          <div className="card-content">
+            <p className="stat-label">Solde Restant</p>
+            <div className="stat-value text-primary">{stats.solde} <span className="stat-unit stat-unit-main">Jours</span></div>
+            <div className="trending-row">
                <TrendingUp size={16} /> +2.5j acquis ce mois
             </div>
           </div>
-          <BarChart3 style={{position: 'absolute', right: '-20px', bottom: '-20px', width: '150px', height: '150px', opacity: 0.03}} />
+          <BarChart3 className="bg-icon" />
         </div>
 
         <div className="card-minimal">
-          <p style={{color: 'var(--text-muted)', fontWeight: 800, fontSize: '0.8rem', textTransform: 'uppercase', marginBottom: '15px'}}>Demandes en cours</p>
-          <div style={{fontSize: '3.5rem', fontWeight: 900, marginBottom: '10px'}}>{stats.attente} <span style={{fontSize: '1rem', color: 'var(--text-muted)'}}>Dossier(s)</span></div>
-          <div style={{color: '#f59e0b', fontWeight: 700, fontSize: '0.9rem'}}>En attente de signature</div>
+          <p className="stat-label">Demandes en cours</p>
+          <div className="stat-value">{stats.attente} <span className="stat-unit stat-unit-muted">Dossier(s)</span></div>
+          <div className="pending-text">En attente de signature</div>
         </div>
 
-        <div className="card-minimal" style={{background: 'var(--primary)', color: 'white'}}>
-          <p style={{opacity: 0.8, fontWeight: 800, fontSize: '0.8rem', textTransform: 'uppercase', marginBottom: '15px'}}>Consommés</p>
-          <div style={{fontSize: '3.5rem', fontWeight: 900, marginBottom: '10px'}}>{stats.pris} <span style={{fontSize: '1rem', opacity: 0.8}}>Droit(s)</span></div>
-          <div style={{fontSize: '0.9rem', opacity: 0.9}}>Approuvés par la hiérarchie</div>
+        <div className="card-minimal card-blue">
+          <p className="stat-label">Consommés</p>
+          <div className="stat-value">{stats.pris} <span className="stat-unit">Droit(s)</span></div>
+          <div className="card-footer-text">Approuvés par la hiérarchie</div>
         </div>
 
       </div>
 
       {/* --- INFO SECTION --- */}
-      <div className="card-minimal" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #fee2e2', background: '#fffcfc'}}>
-        <div style={{display: 'flex', gap: '20px', alignItems: 'center'}}>
-          <div style={{width: '60px', height: '60px', borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white'}}>
+      <div className="card-minimal info-section">
+        <div className="info-section-left">
+          <div className="icon-box-lg">
              <CalendarCheck size={28} />
           </div>
-          <div>
-            <h3 style={{fontWeight: 800}}>Besoin de prendre des vacances ?</h3>
-            <p style={{color: 'var(--text-muted)'}}>Planifiez votre prochaine absence en quelques clics.</p>
+          <div className="info-text">
+            <h3>Besoin de prendre des vacances ?</h3>
+            <p>Planifiez votre prochaine absence en quelques clics.</p>
           </div>
         </div>
-        <button className="nav-item" onClick={() => window.location.href='/conges/nouvelle-demande'} style={{background: 'var(--primary)', color: 'white', padding: '12px 30px'}}>
+        <button className="nav-item submit-btn" onClick={() => window.location.href='/conges/nouvelle-demande'}>
            Soumettre maintenant <ArrowRightCircle size={20} />
         </button>
       </div>

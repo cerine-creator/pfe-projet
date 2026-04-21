@@ -135,7 +135,7 @@ export default function NotificationBell() {
                 <span className="notif-count-badge">{unread} non lue{unread > 1 ? 's' : ''}</span>
               )}
             </div>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <div className="notif-panel-header-actions">
               {unread > 0 && (
                 <button className="notif-btn-text" onClick={markAllRead} title="Tout marquer comme lu">
                   <CheckCheck size={16} /> Tout lire
@@ -154,7 +154,7 @@ export default function NotificationBell() {
             )}
             {notifs.length === 0 && (
               <div className="notif-empty">
-                <Bell size={36} style={{ opacity: 0.15, marginBottom: '12px' }} />
+                <Bell size={36} className="notif-empty-bell" />
                 <p>Aucune notification</p>
               </div>
             )}
@@ -180,7 +180,7 @@ export default function NotificationBell() {
                 </div>
                 {hints.map((h, i) => (
                   <div key={i} className="notif-hint">
-                    <Info size={14} style={{ flexShrink: 0, color: 'var(--primary)', marginTop: '2px' }} />
+                    <Info size={14} className="notif-hint-icon" />
                     <span>{h}</span>
                   </div>
                 ))}

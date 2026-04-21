@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axiosConfig';
 import { CheckCircle, AlertCircle } from 'lucide-react';
+import './nouvelle-demande.css';
 
 
 export default function NouvelleDemande() {
@@ -128,19 +129,19 @@ export default function NouvelleDemande() {
     }
   };
 
-  if (loading) return <div style={{padding: '50px', textAlign: 'center', fontWeight: 800}}>Initialisation du formulaire...</div>;
+  if (loading) return <div className="form-loading">Initialisation du formulaire...</div>;
 
   return (
-    <div style={{maxWidth: '800px'}}>
-      <div style={{marginBottom: '40px'}}>
-        <h1 style={{fontSize: '2.5rem', fontWeight: 900}}>Nouvelle <span style={{color: 'var(--primary)'}}>Demande</span></h1>
-        <p style={{color: 'var(--text-muted)', fontWeight: 600}}>Remplissez les informations ci-dessous pour soumettre votre congé.</p>
+    <div className="nouvelle-demande-page">
+      <div className="page-header">
+        <h1 className="page-title-lg">Nouvelle <span className="text-primary">Demande</span></h1>
+        <p className="page-subtitle">Remplissez les informations ci-dessous pour soumettre votre congé.</p>
       </div>
 
       <div className="card-minimal">
         <form onSubmit={handleSubmit}>
           
-          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginBottom: '30px'}}>
+          <div className="form-grid">
             <div className="form-group">
               <label>Nature du congé</label>
               <select 
@@ -170,7 +171,7 @@ export default function NouvelleDemande() {
             </div>
           </div>
 
-          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginBottom: '30px'}}>
+          <div className="form-grid">
             {natureConge !== '' && (
               <div className="form-group">
                 <label>Date de début</label>
@@ -213,24 +214,18 @@ export default function NouvelleDemande() {
           </div>
 
           {message && (
-            <div style={{
-              padding: '15px 20px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '15px',
-              background: message.type === 'success' ? '#ecfdf5' : '#fef2f2',
-              color: message.type === 'success' ? '#10b981' : '#ef4444',
-              marginBottom: '30px', fontWeight: 700
-            }}>
+            <div className={`msg-banner ${message.type === 'success' ? 'msg-success' : 'msg-error'}`}>
               {message.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
               {message.text}
             </div>
           )}
 
-          <div style={{display: 'flex', gap: '15px', justifyContent: 'flex-end'}}>
+          <div className="form-footer">
             <button type="button" className="nav-item" onClick={() => navigate(-1)}>Annuler</button>
             <button 
               type="submit" 
-              className="nav-item" 
+              className="nav-item submit-btn-primary" 
               disabled={submitting}
-              style={{background: 'var(--primary)', color: 'white', padding: '12px 40px'}}
             >
               {submitting ? 'Envoi...' : 'Soumettre la demande'}
             </button>
@@ -238,16 +233,6 @@ export default function NouvelleDemande() {
 
         </form>
       </div>
-
-      <style>{`
-        .form-group { display: flex; flex-direction: column; gap: 8px; }
-        .form-group label { font-size: 0.85rem; fontWeight: 800; color: var(--text-muted); text-transform: uppercase; }
-        .form-group input, .form-group select, .form-group textarea {
-          padding: 12px 16px; border: 1px solid var(--border-color); border-radius: 10px;
-          background: #f8fafc; font-size: 1rem; font-weight: 600; outline: none; transition: 0.2s;
-        }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); background: white; }
-      `}</style>
     </div>
   );
 }

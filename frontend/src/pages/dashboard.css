@@ -1,0 +1,101 @@
+/* ═══════════════════════════════════════
+   dashboard.css — Dashboard page styles
+   ═══════════════════════════════════════ */
+
+.dashboard-v2 {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* ─── Stats Grid ─── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 30px;
+  margin-bottom: 50px;
+}
+
+/* ─── Stat Card Variants ─── */
+.card-relative {
+  position: relative;
+  overflow: hidden;
+}
+
+.card-content {
+  position: relative;
+  z-index: 1;
+}
+
+.card-blue {
+  background: var(--primary);
+  color: white;
+}
+
+.card-blue .stat-label {
+  color: white;
+  opacity: 0.8;
+}
+
+.card-blue .stat-unit {
+  opacity: 0.8;
+}
+
+.card-blue .card-footer-text {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+/* ─── Background decorative icon ─── */
+.bg-icon {
+  position: absolute;
+  right: -20px;
+  bottom: -20px;
+  width: 150px;
+  height: 150px;
+  opacity: 0.03;
+  pointer-events: none;
+}
+
+/* ─── Trending Row ─── */
+.trending-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #10b981;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.pending-text {
+  color: #f59e0b;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+/* ─── Info / CTA Section ─── */
+.info-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #fee2e2;
+  background: #fffcfc;
+}
+
+.info-section-left {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.info-text h3 {
+  font-weight: 800;
+}
+
+.info-text p {
+  color: var(--text-muted);
+}
+
+.submit-btn {
+  background: var(--primary);
+  color: white;
+  padding: 12px 30px;
+}

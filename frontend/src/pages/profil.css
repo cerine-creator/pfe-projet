@@ -1,0 +1,104 @@
+/* ════════════════════════════════
+   profil.css — User profile styles
+   ════════════════════════════════ */
+
+.profil-page {
+  max-width: 900px;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.profil-title {
+  font-size: 2.5rem;
+  font-weight: 900;
+  margin-bottom: 40px;
+}
+
+/* ─── 2-column grid layout ─── */
+.profil-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 30px;
+}
+
+/* ─── Photo card ─── */
+.photo-card {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.avatar-circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 40px;
+  background: var(--sidebar-active-bg);
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+}
+
+.user-name-heading {
+  font-weight: 900;
+}
+
+.user-role-text {
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.card-divider-section {
+  margin-top: 30px;
+  padding-top: 30px;
+  border-top: 1px solid var(--border-color);
+}
+
+.edit-profile-btn {
+  width: 100%;
+  justify-content: center;
+  background: var(--primary);
+  color: white;
+}
+
+/* ─── Info card ─── */
+.info-card {
+  /* inherits card-minimal */
+}
+
+.info-card-title {
+  margin-bottom: 30px;
+  font-weight: 800;
+}
+
+.info-rows {
+  display: grid;
+  gap: 25px;
+}
+
+/* ─── InfoRow component ─── */
+.info-row {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.info-row-icon {
+  color: var(--primary);
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+.info-row-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.info-row-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+}

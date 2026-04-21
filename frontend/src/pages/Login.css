@@ -82,6 +82,12 @@
   margin-bottom: 16px;
 }
 
+.login-logo-img {
+  width: 180px;
+  height: auto;
+  filter: drop-shadow(0 0 10px rgba(218, 0, 39, 0.4));
+}
+
 .login-subtitle {
   font-size: 14px;
   color: #64748b;

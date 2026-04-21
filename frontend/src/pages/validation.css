@@ -1,0 +1,264 @@
+/* ═══════════════════════════════════════════
+   validation.css — Validation portal styles
+   ═══════════════════════════════════════════ */
+
+.validation-page {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* ─── Page Header ─── */
+.validation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+/* ─── Table Card ─── */
+.card-no-padding {
+  padding: 0;
+  overflow: hidden;
+}
+
+.table-toolbar-light {
+  padding: 25px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fafc;
+}
+
+.search-bar-white {
+  display: flex;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 8px 15px;
+  align-items: center;
+  gap: 10px;
+  width: 350px;
+  background: white;
+}
+
+/* ─── Pending count badge ─── */
+.badge-count {
+  background: var(--primary);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  box-shadow: 0 4px 10px rgba(218, 0, 39, 0.2);
+}
+
+/* ─── Table Rows ─── */
+.employee-cell {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.avatar-placeholder {
+  width: 45px;
+  height: 45px;
+  border-radius: 12px;
+  background: #eff6ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.employee-name {
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+.employee-date {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.type-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.period-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.duration-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f1f5f9;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 800;
+  color: #334155;
+  font-size: 0.9rem;
+}
+
+.btn-consult {
+  background: var(--primary);
+  color: white;
+  display: inline-flex;
+}
+
+/* ─── Empty State ─── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.empty-icon-wrap {
+  background: #f1f5f9;
+  padding: 20px;
+  border-radius: 50%;
+}
+
+.empty-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.empty-sub {
+  font-size: 0.9rem;
+}
+
+/* ─── Modal ─── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 600px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+              0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Modal Header ─── */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 900;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* ─── Modal Detail Grid ─── */
+.modal-detail-box {
+  background: #f8fafc;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+}
+
+.modal-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.detail-label {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.detail-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.detail-value-accent {
+  color: #e11d48;
+}
+
+/* ─── Modal Actions ─── */
+.modal-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+/* ─── Refusal Input Panel ─── */
+.refusal-panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 10px;
+}
+
+.refusal-textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  outline: none;
+  font-family: inherit;
+  resize: vertical;
+  font-size: 0.95rem;
+}
+
+.refusal-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.btn-cancel-refusal {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 10px 20px;
+}
+
+.btn-confirm-refusal {
+  padding: 10px 20px;
+}
+
+.btn-action-padded {
+  padding: 12px 25px;
+}

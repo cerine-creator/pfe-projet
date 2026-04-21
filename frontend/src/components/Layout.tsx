@@ -9,6 +9,7 @@ import {
   PieChart, 
   LogOut
 } from 'lucide-react';
+import './layout.css';
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -51,7 +52,7 @@ export default function Layout() {
           {/* ── Cloche de notifications ── */}
           <NotificationBell />
 
-          <div className="user-badge" onClick={() => navigate('/mon-compte')} style={{cursor: 'pointer'}}>
+          <div className="user-badge user-badge-clickable" onClick={() => navigate('/mon-compte')}>
             <div className="user-badge-info">
               <span className="user-badge-name">{user.first_name} {user.last_name}</span>
               <span className="user-badge-role">{user.role_display}</span>

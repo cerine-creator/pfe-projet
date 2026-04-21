@@ -1,0 +1,57 @@
+/* ═══════════════════════════════════════════════
+   nouvelle-demande.css — New Leave Request styles
+   ═══════════════════════════════════════════════ */
+
+.nouvelle-demande-page {
+  max-width: 800px;
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* ─── Form Grid ─── */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+/* ─── Status Message Banner ─── */
+.msg-banner {
+  padding: 15px 20px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 30px;
+  font-weight: 700;
+}
+
+.msg-success {
+  background: #ecfdf5;
+  color: #10b981;
+}
+
+.msg-error {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+/* ─── Form Footer Buttons ─── */
+.form-footer {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+}
+
+.submit-btn-primary {
+  background: var(--primary);
+  color: white;
+  padding: 12px 40px;
+}
+
+/* ─── Loading ─── */
+.form-loading {
+  padding: 50px;
+  text-align: center;
+  font-weight: 800;
+}

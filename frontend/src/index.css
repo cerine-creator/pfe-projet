@@ -406,4 +406,23 @@ body {
   font-size: 13px;
   font-weight: 600;
 }
+
+/* ── NotificationBell extracted inline styles ── */
+
+.notif-panel-header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.notif-empty-bell {
+  opacity: 0.15;
+  margin-bottom: 12px;
+}
+
+.notif-hint-icon {
+  flex-shrink: 0;
+  color: var(--primary);
+  margin-top: 2px;
+}
 

@@ -1,0 +1,9 @@
+/* ══════════════════════════════════
+   layout.css — App Layout component
+   ══════════════════════════════════ */
+
+/* The user-badge is already styled in index.css.
+   This adds the interactive cursor for the clickable profile section. */
+.user-badge-clickable {
+  cursor: pointer;
+}
