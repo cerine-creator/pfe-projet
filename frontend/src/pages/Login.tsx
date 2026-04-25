@@ -159,7 +159,7 @@ const Login: React.FC = () => {
           {/* Bouton de connexion */}
           <button
             type="submit"
-            className="login-btn"
+            className="btn-primary"
             disabled={submitting || !username.trim() || !password}
             id="login-submit-btn"
           >

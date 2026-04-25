@@ -22,7 +22,7 @@ export default function Profil() {
            <p className="user-role-text">{user.role_display}</p>
            
            <div className="card-divider-section">
-              <button className="nav-item edit-profile-btn">Modifier le profil</button>
+              <button className="btn-primary">Modifier le profil</button>
            </div>
         </div>
 

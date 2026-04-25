@@ -23,9 +23,9 @@ export default function Validation() {
         const list = Array.isArray(res.data) ? res.data : (res.data?.results ?? []);
         // On ne montre que ce qui concerne le rôle actif
         const filteredList = list.filter((d: any) => {
-            if (isManager) return d.statut === 'en_attente_resp';
-            if (isRH) return d.statut === 'en_attente_rh';
-            return false;
+          if (isManager) return d.statut === 'en_attente_resp';
+          if (isRH) return d.statut === 'en_attente_rh';
+          return false;
         });
         setDemandes(filteredList);
       })
@@ -40,28 +40,28 @@ export default function Validation() {
   const handleAction = async (id: number, action: 'approve' | 'reject') => {
     setProcessingId(id);
     try {
-        let endpoint = '';
-        let payload = {};
-        
-        if (action === 'approve') {
-            endpoint = isRH ? `/demandes/${id}/approuver_rh/` : `/demandes/${id}/valider_responsable/`;
-        } else {
-            if (!refusalReason.trim()) {
-                alert("Veuillez saisir un motif pour le refus.");
-                setProcessingId(null);
-                return;
-            }
-            endpoint = isRH ? `/demandes/${id}/refuser/` : `/demandes/${id}/refuser_responsable/`;
-            payload = { raison: refusalReason };
-        }
+      let endpoint = '';
+      let payload = {};
 
-        await api.post(endpoint, payload);
-        fetchDemandes(); // Rafraîchir la liste
-        setSelectedDemande(null); // Fermer le modal
+      if (action === 'approve') {
+        endpoint = isRH ? `/demandes/${id}/approuver_rh/` : `/demandes/${id}/valider_responsable/`;
+      } else {
+        if (!refusalReason.trim()) {
+          alert("Veuillez saisir un motif pour le refus.");
+          setProcessingId(null);
+          return;
+        }
+        endpoint = isRH ? `/demandes/${id}/refuser/` : `/demandes/${id}/refuser_responsable/`;
+        payload = { raison: refusalReason };
+      }
+
+      await api.post(endpoint, payload);
+      fetchDemandes(); // Rafraîchir la liste
+      setSelectedDemande(null); // Fermer le modal
     } catch (e: any) {
-        alert(e.response?.data?.detail || "Une erreur est survenue lors de l'opération.");
+      alert(e.response?.data?.detail || "Une erreur est survenue lors de l'opération.");
     } finally {
-        setProcessingId(null);
+      setProcessingId(null);
     }
   };
 
@@ -80,14 +80,14 @@ export default function Validation() {
 
       <div className="card-minimal card-no-padding">
         <div className="table-toolbar-light">
-           <div className="search-bar-white">
-              <Search size={18} color="var(--text-muted)" />
-              <input type="text" placeholder="Rechercher un employé..." className="search-input" />
-           </div>
-           
-           <div className="badge-count">
-             {demandes.length} demande(s) en attente
-           </div>
+          <div className="search-bar-white">
+            <Search size={18} color="var(--text-muted)" />
+            <input type="text" placeholder="Rechercher un employé..." className="search-input" />
+          </div>
+
+          <div className="badge-count">
+            {demandes.length} demande(s) en attente
+          </div>
         </div>
 
         <div className="table-body">
@@ -120,26 +120,26 @@ export default function Validation() {
                 <tr key={d.id} className="table-row row-hover">
                   <td className="td-cell">
                     <div className="employee-cell">
-                       <div className="avatar-placeholder">
-                          <User size={20} color="var(--primary)" />
-                       </div>
-                       <div>
-                         <div className="employee-name">{d.employe_noms}</div>
-                         <div className="employee-date">Date de demande: {d.dateDemande}</div>
-                       </div>
+                      <div className="avatar-placeholder">
+                        <User size={20} color="var(--primary)" />
+                      </div>
+                      <div>
+                        <div className="employee-name">{d.employe_noms}</div>
+                        <div className="employee-date">Date de demande: {d.dateDemande}</div>
+                      </div>
                     </div>
                   </td>
                   <td>
                     <div className="type-cell">
-                       <FileText size={16} color="var(--text-muted)" />
-                       {d.motif ? 'Congé Exceptionnel' : d.type_conge_nom}
+                      <FileText size={16} color="var(--text-muted)" />
+                      {d.motif ? 'Congé Exceptionnel' : d.type_conge_nom}
                     </div>
                   </td>
                   <td>
-                     <div className="period-cell">
-                        <Calendar size={16} />
-                        Du {d.date_debut} au {d.date_fin}
-                     </div>
+                    <div className="period-cell">
+                      <Calendar size={16} />
+                      Du {d.date_debut} au {d.date_fin}
+                    </div>
                   </td>
                   <td>
                     <span className="duration-badge">
@@ -148,16 +148,16 @@ export default function Validation() {
                     </span>
                   </td>
                   <td className="td-cell-right">
-                     <button 
-                       className="btn-action btn-consult" 
-                       onClick={() => {
-                          setSelectedDemande(d);
-                          setShowRefusalInput(false);
-                          setRefusalReason("");
-                       }}
-                     >
-                        Consulter
-                     </button>
+                    <button
+                      className="btn-primary"
+                      onClick={() => {
+                        setSelectedDemande(d);
+                        setShowRefusalInput(false);
+                        setRefusalReason("");
+                      }}
+                    >
+                      Consulter
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -176,7 +176,7 @@ export default function Validation() {
                 <XCircle size={24} color="var(--text-muted)" />
               </button>
             </div>
-            
+
             <div className="modal-detail-box">
               <div className="modal-detail-grid">
                 <div>
@@ -211,7 +211,7 @@ export default function Validation() {
             <div className="modal-actions">
               {showRefusalInput ? (
                 <div className="refusal-panel">
-                  <textarea 
+                  <textarea
                     rows={3}
                     value={refusalReason}
                     onChange={(e) => setRefusalReason(e.target.value)}
@@ -220,14 +220,14 @@ export default function Validation() {
                     autoFocus
                   />
                   <div className="refusal-buttons">
-                    <button 
+                    <button
                       className="btn-action btn-cancel-refusal"
-                      onClick={() => setShowRefusalInput(false)} 
+                      onClick={() => setShowRefusalInput(false)}
                     >
                       Annuler
                     </button>
-                    <button 
-                      className="btn-action btn-reject btn-confirm-refusal" 
+                    <button
+                      className="btn-action btn-reject btn-confirm-refusal"
                       onClick={() => handleAction(selectedDemande.id, 'reject')}
                       disabled={processingId === selectedDemande.id || !refusalReason.trim()}
                     >
@@ -237,15 +237,15 @@ export default function Validation() {
                 </div>
               ) : (
                 <>
-                  <button 
-                    className="btn-action btn-reject btn-action-padded" 
+                  <button
+                    className="btn-action btn-reject btn-action-padded"
                     onClick={() => setShowRefusalInput(true)}
                     disabled={processingId === selectedDemande.id}
                   >
                     <XCircle size={18} />
                     Refuser
                   </button>
-                  <button 
+                  <button
                     className="btn-action btn-approve btn-action-padded"
                     onClick={() => handleAction(selectedDemande.id, 'approve')}
                     disabled={processingId === selectedDemande.id}

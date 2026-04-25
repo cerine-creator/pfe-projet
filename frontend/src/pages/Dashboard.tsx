@@ -97,7 +97,7 @@ export default function Dashboard() {
             <p>Planifiez votre prochaine absence en quelques clics.</p>
           </div>
         </div>
-        <button className="nav-item submit-btn" onClick={() => window.location.href='/conges/nouvelle-demande'}>
+        <button className="btn-primary" onClick={() => window.location.href='/conges/nouvelle-demande'}>
            Soumettre maintenant <ArrowRightCircle size={20} />
         </button>
       </div>

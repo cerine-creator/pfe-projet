@@ -224,7 +224,7 @@ export default function NouvelleDemande() {
             <button type="button" className="nav-item" onClick={() => navigate(-1)}>Annuler</button>
             <button 
               type="submit" 
-              className="nav-item submit-btn-primary" 
+              className="btn-primary" 
               disabled={submitting}
             >
               {submitting ? 'Envoi...' : 'Soumettre la demande'}

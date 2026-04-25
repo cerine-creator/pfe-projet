@@ -94,8 +94,19 @@
   color: var(--text-muted);
 }
 
-.submit-btn {
-  background: var(--primary);
-  color: white;
-  padding: 12px 30px;
+/* .btn-primary used for submission */
+
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 30px;
+  }
+
+  .info-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
 }

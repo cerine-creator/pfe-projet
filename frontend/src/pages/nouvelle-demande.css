@@ -43,15 +43,33 @@
   justify-content: flex-end;
 }
 
-.submit-btn-primary {
-  background: var(--primary);
-  color: white;
-  padding: 12px 40px;
-}
+/* .btn-primary used for submission */
 
 /* ─── Loading ─── */
 .form-loading {
   padding: 50px;
   text-align: center;
   font-weight: 800;
+}
+
+@media (max-width: 900px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .form-footer {
+    flex-direction: column-reverse;
+  }
+
+  .btn-primary,
+  .form-footer .nav-item {
+    width: 100%;
+    max-width: 280px;
+    margin-left: auto;
+    justify-content: center;
+  }
 }

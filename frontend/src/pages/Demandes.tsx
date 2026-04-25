@@ -28,7 +28,7 @@ export default function Demandes() {
           <p className="page-subtitle">Consultez et exportez l'historique de vos absences.</p>
         </div>
         <button 
-          className="nav-item new-demande-btn" 
+          className="btn-primary" 
           onClick={() => navigate('/conges/nouvelle-demande')}
         >
           <PlusCircle size={20} /> Nouvelle demande
