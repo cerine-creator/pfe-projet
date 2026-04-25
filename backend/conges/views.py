@@ -65,12 +65,12 @@ class EmployeViewSet(viewsets.ModelViewSet):
         if not employe:
             return Response({'detail': "Profil non trouvé."}, status=400)
         
-        structures_dirigees = employe.structures_dirigees.all()
-        if not structures_dirigees.exists():
+        structure_dirigee = getattr(employe, 'structure_dirigee', None)
+        if not structure_dirigee:
             return Response({'detail': "Vous n'êtes assigné comme responsable d'aucune structure."}, status=400)
         
-        # Filtre: Les employés de toutes les structures que gère ce responsable
-        equipe = Employe.objects.filter(structure__in=structures_dirigees).exclude(id=employe.id)
+        # Filtre: Les employés de la structure que gère ce responsable
+        equipe = Employe.objects.filter(structure=structure_dirigee).exclude(id=employe.id)
         serializer = self.get_serializer(equipe, many=True)
         return Response(serializer.data)
 
@@ -108,9 +108,9 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
         if user.role == 'responsable_hierarchique':
             employe = getattr(user, 'employe', None)
             if employe:
-                structures_dirigees = employe.structures_dirigees.all()
-                if structures_dirigees.exists():
-                    demandes = DemandeConge.objects.filter(employe__structure__in=structures_dirigees, statut='en_attente_resp').exclude(employe=employe)
+                structure_dirigee = getattr(employe, 'structure_dirigee', None)
+                if structure_dirigee:
+                    demandes = DemandeConge.objects.filter(employe__structure=structure_dirigee, statut='en_attente_resp').exclude(employe=employe)
                     serializer = self.get_serializer(demandes, many=True)
                     return Response(serializer.data)
 
