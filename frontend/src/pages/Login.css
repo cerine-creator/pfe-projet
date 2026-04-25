@@ -82,6 +82,12 @@
   margin-bottom: 16px;
 }
 
+.login-logo-img {
+  width: 180px;
+  height: auto;
+  filter: drop-shadow(0 0 10px rgba(218, 0, 39, 0.4));
+}
+
 .login-subtitle {
   font-size: 14px;
   color: #64748b;
@@ -221,39 +227,10 @@
   height: 17px;
 }
 
-/* Submit Button */
-.login-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
+/* Login Primary Button Overrides */
+.btn-primary {
   width: 100%;
-  padding: 13px;
   margin-top: 4px;
-  background: linear-gradient(135deg, #da0027, #a30018);
-  border: none;
-  border-radius: 10px;
-  color: #ffffff;
-  font-size: 15px;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  transition: opacity 0.2s, transform 0.1s, box-shadow 0.2s;
-  box-shadow: 0 4px 15px rgba(218, 0, 39, 0.25);
-}
-
-.login-btn:hover:not(:disabled) {
-  box-shadow: 0 6px 20px rgba(218, 0, 39, 0.35);
-  transform: translateY(-1px);
-}
-
-.login-btn:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.login-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 /* Footer */

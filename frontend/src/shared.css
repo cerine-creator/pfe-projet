@@ -1,0 +1,384 @@
+/* ═══════════════════════════════════════════════════════════
+   shared.css — Common utility classes used across all pages
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── Page Header ─── */
+.page-header {
+  margin-bottom: 40px;
+}
+
+/* ─── Page Header ─── */
+.page-header {
+  margin-bottom: 40px;
+}
+
+.page-header-inline {
+  margin-bottom: 0;
+}
+
+.page-title {
+  font-size: 2.2rem;
+  font-weight: 900;
+}
+
+.page-title-lg {
+  font-size: 2.5rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.page-subtitle {
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.page-subtitle-lg {
+  font-size: 1.1rem;
+}
+
+.text-primary {
+  color: var(--primary);
+}
+
+/* ─── Stat unit color variants ─── */
+.stat-unit-main {
+  color: var(--text-main);
+}
+
+.stat-unit-muted {
+  color: var(--text-muted);
+}
+
+/* ─── Layout Utilities ─── */
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+}
+
+.flex-end {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Data Table (shared by Demandes & Validation) ─── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.th-cell {
+  padding: 15px 0;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-align: left;
+}
+
+.th-cell-right {
+  padding: 15px 0;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+.td-cell {
+  padding: 20px 0;
+}
+
+.td-cell-right {
+  padding: 20px 0;
+  text-align: right;
+}
+
+.table-row {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.row-hover {
+  transition: background-color 0.2s;
+}
+
+.row-hover:hover {
+  background-color: #f8fafc;
+}
+
+/* ─── Table Toolbar (top of card — search bar row) ─── */
+.table-toolbar {
+  padding: 25px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.table-body {
+  padding: 20px 30px 30px;
+}
+
+/* ─── Search Bar ─── */
+.search-bar {
+  display: flex;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 5px 15px;
+  align-items: center;
+  gap: 10px;
+  width: 350px;
+}
+
+.search-input {
+  border: none;
+  background: none;
+  outline: none;
+  padding: 8px;
+  width: 100%;
+  font-weight: 600;
+}
+
+/* ─── Status Badges (shared by Demandes & Validation) ─── */
+.badge {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: inline-block;
+}
+
+.badge-success {
+  background: #ecfdf5;
+  color: #10b981;
+}
+
+.badge-danger {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+.badge-pending {
+  background: #fffbeb;
+  color: #f59e0b;
+}
+
+/* ─── Icon Box (file/type icon wrapper) ─── */
+.icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--sidebar-active-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon-box-lg {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+/* ─── Stat Card Labels / Values (Dashboard) ─── */
+.stat-label {
+  color: var(--text-muted);
+  font-weight: 800;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  margin-bottom: 15px;
+}
+
+.stat-value {
+  font-size: 3.5rem;
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+
+.stat-unit {
+  font-size: 1rem;
+}
+
+/* ─── Loading State ─── */
+.loading-state {
+  padding: 50px;
+  text-align: center;
+  font-weight: 700;
+}
+
+/* ─── Form Group (NouvelleDemande) ─── */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 12px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: #f8fafc;
+  font-size: 1rem;
+  font-weight: 600;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: var(--primary);
+  background: white;
+}
+
+/* ─── Action Buttons (shared by Validation & Demandes) ─── */
+.btn-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.9rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.btn-action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-reject {
+  background: #fff1f2;
+  color: #e11d48;
+  box-shadow: 0 4px 10px rgba(225, 29, 72, 0.1);
+}
+
+.btn-reject:hover:not(:disabled) {
+  background: #ffe4e6;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(225, 29, 72, 0.2);
+}
+
+.btn-approve {
+  background: #ecfdf5;
+  color: #059669;
+  box-shadow: 0 4px 10px rgba(5, 150, 105, 0.1);
+}
+
+.btn-approve:hover:not(:disabled) {
+  background: #d1fae5;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(5, 150, 105, 0.2);
+}
+
+.btn-icon {
+  padding: 8px;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: var(--text-muted);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-icon:hover {
+  background: #f1f5f9;
+  color: var(--primary);
+}
+
+/* ─── Animations ─── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@media (max-width: 1024px) {
+  .page-header {
+    margin-bottom: 26px;
+  }
+
+  .page-title {
+    font-size: 1.9rem;
+  }
+
+  .page-title-lg {
+    font-size: 2rem;
+  }
+
+  .stat-value {
+    font-size: 2.8rem;
+  }
+
+  .table-toolbar {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .table-body {
+    overflow-x: auto;
+    padding: 12px 16px 20px;
+  }
+
+  .search-bar {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-title,
+  .page-title-lg {
+    font-size: 1.6rem;
+  }
+
+  .page-subtitle,
+  .page-subtitle-lg {
+    font-size: 0.95rem;
+  }
+
+  .th-cell,
+  .th-cell-right,
+  .td-cell,
+  .td-cell-right {
+    white-space: nowrap;
+  }
+
+  .btn-action {
+    padding: 8px 12px;
+    font-size: 0.78rem;
+  }
+}

@@ -1,0 +1,101 @@
+/* ════════════════════════════════════
+   demandes.css — Mes Congés page styles
+   ════════════════════════════════════ */
+
+.demandes-v2 {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* ─── Page Header ─── */
+.demandes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+/* .btn-primary used for new requests */
+
+/* ─── Card Table ─── */
+.card-no-padding {
+  padding: 0;
+  overflow: hidden;
+}
+
+.table-toolbar-plain {
+  padding: 25px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ─── Table cells (page-specific variants) ─── */
+.td-period {
+  font-weight: 600;
+}
+
+.td-duration {
+  font-weight: 900;
+  font-size: 1.1rem;
+}
+
+.td-duration span {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.td-actions-right {
+  text-align: right;
+}
+
+.cell-icon-label {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.cell-label {
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+.action-group {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* ─── Empty / Loading rows ─── */
+.td-loading {
+  text-align: center;
+  padding: 50px;
+  font-weight: 600;
+}
+
+.td-empty {
+  text-align: center;
+  padding: 50px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+@media (max-width: 1024px) {
+  .demandes-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .btn-primary {
+    width: 100%;
+    max-width: 280px;
+    margin-left: auto;
+    justify-content: center;
+  }
+
+  .table-toolbar-plain {
+    padding: 14px;
+  }
+}

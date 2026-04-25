@@ -71,7 +71,7 @@ const Login: React.FC = () => {
             <img 
               src="/logo.svg" 
               alt="Air Algérie Logo" 
-              style={{ width: '180px', height: 'auto', filter: 'drop-shadow(0 0 10px rgba(218, 0, 39, 0.4))' }} 
+              className="login-logo-img"
             />
           </div>
           <p className="login-subtitle">Connectez-vous à votre espace personnel</p>
@@ -159,7 +159,7 @@ const Login: React.FC = () => {
           {/* Bouton de connexion */}
           <button
             type="submit"
-            className="login-btn"
+            className="btn-primary"
             disabled={submitting || !username.trim() || !password}
             id="login-submit-btn"
           >
