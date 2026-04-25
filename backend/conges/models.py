@@ -12,7 +12,15 @@ class Structure(models.Model):
     parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='sous_structures')
 
     # Le responsable de la structure (Gérable via le panel Admin)
-    responsable = models.ForeignKey('Employe', on_delete=models.SET_NULL, null=True, blank=True, related_name='structures_dirigees', help_text="Le chef / responsable de cette structure")
+    responsable = models.OneToOneField(
+        'Employe', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='structure_dirigee', 
+        help_text="Le chef / responsable de cette structure",
+        limit_choices_to={'compte__role__in': ['responsable_hierarchique', 'responsable_rh', 'directeur_rh']}
+    )
 
     class Meta:
         verbose_name = 'Structure'
@@ -72,8 +80,8 @@ class Employe(models.Model):
     categorie = models.CharField(max_length=20, choices=CATEGORIE_CHOICES, default='sol', help_text="Détermine le quota de congés annuel (30j ou 45j)")
     
     # Liens avec les nomenclatures
-    structure = models.ForeignKey(Structure, on_delete=models.SET_NULL, null=True, blank=True, related_name='employes')
-    fonction = models.ForeignKey(Fonction, on_delete=models.SET_NULL, null=True, blank=True, related_name='employes')
+    structure = models.ForeignKey(Structure, on_delete=models.PROTECT, related_name='employes', verbose_name="Structure")
+    fonction = models.ForeignKey(Fonction, on_delete=models.PROTECT, related_name='employes', verbose_name="Fonction")
     
     class Meta:
         verbose_name = 'Employé'
