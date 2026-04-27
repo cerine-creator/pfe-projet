@@ -205,6 +205,21 @@ export default function Validation() {
                     <div className="detail-value detail-value-accent">{selectedDemande.motif_display}</div>
                   </div>
                 )}
+                {selectedDemande.justificatif_url && (
+                  <div>
+                    <div className="detail-label">Justificatif</div>
+                    <div className="detail-value">
+                      <a 
+                        href={`http://localhost:8000${selectedDemande.justificatif_url}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        style={{ color: 'var(--primary)', textDecoration: 'underline', fontWeight: 500 }}
+                      >
+                        Voir le document
+                      </a>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

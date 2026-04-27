@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
 
 :root {
   --primary: #da0027; /* Air Algerie Red */
@@ -13,8 +13,8 @@
   --text-muted: #64748b;
   --border-color: #e2e8f0;
   
-  --radius-lg: 12px;
-  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-md: 10px;
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
@@ -22,7 +22,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 body {
@@ -35,48 +35,129 @@ body.mobile-menu-open {
   overflow: hidden;
 }
 
-/* ─── L'Architecture globale (Top Navigation) ─── */
+/* ─── L'Architecture globale (Sidebar) ─── */
 .app-layout {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   height: 100vh;
   overflow: hidden;
   background-color: var(--bg-color);
 }
 
-.top-nav {
-  height: 70px;
+.mobile-header {
+  display: none;
+}
+
+.sidebar {
+  width: 260px;
+  height: 100vh;
   background-color: #ffffff;
-  border-bottom: 2px solid var(--primary);
+  border-right: 1px solid var(--border-color);
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: space-between;
-  padding: 0 40px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  padding: 36px 24px;
   z-index: 100;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 4px 0 24px rgba(0,0,0,0.02);
+  flex-shrink: 0;
 }
 
-.nav-left {
+.sidebar-top {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.sidebar-logo {
+  height: 38px;
+  width: auto;
+  align-self: center;
+}
+
+.sidebar-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar-item {
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  color: var(--sidebar-text);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.25s;
   display: flex;
   align-items: center;
-  gap: 40px;
+  justify-content: flex-start;
+  text-align: left;
+  gap: 12px;
 }
 
-.nav-logo {
-  height: 35px;
-  width: auto;
+.sidebar-item:hover {
+  background-color: var(--bg-color);
+  color: var(--primary);
 }
 
-.nav-links {
-  display: flex;
+.sidebar-item.active {
+  background-color: var(--sidebar-active-bg);
+  color: var(--primary);
+  font-weight: 600;
+  border-left: 3px solid var(--primary);
+  padding-left: 13px; /* Compensation de la bordure */
+}
+
+.sidebar-actions {
+  display: grid;
   gap: 10px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 24px;
+}
+
+.sidebar-account,
+.sidebar-logout {
+  width: 100%;
+  border: none;
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.sidebar-account {
+  color: var(--text-main);
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+}
+
+.sidebar-account:hover {
+  background: var(--bg-color);
+  color: var(--primary);
+  border-color: #ffd3db;
+}
+
+.sidebar-logout {
+  color: var(--primary);
+  background: #fff5f7;
+  border: 1px solid #ffd3db;
+}
+
+.sidebar-logout:hover {
+  background: #fee2e2;
+  border-color: #fecdd3;
 }
 
 .mobile-menu-btn {
   display: none;
   border: none;
-  background: linear-gradient(145deg, #da0027, #b30021);
+  background: var(--primary);
   color: #fff;
   border-radius: 12px;
   width: 42px;
@@ -84,91 +165,43 @@ body.mobile-menu-open {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 8px 22px rgba(218, 0, 39, 0.3);
+  box-shadow: 0 4px 14px rgba(218, 0, 39, 0.15);
   transition: transform 0.32s ease, box-shadow 0.25s ease, filter 0.25s ease;
 }
 
 .mobile-menu-btn:hover {
   filter: brightness(1.06);
-  box-shadow: 0 10px 26px rgba(218, 0, 39, 0.38);
+  box-shadow: 0 6px 20px rgba(218, 0, 39, 0.25);
 }
 
 .mobile-menu-btn.is-open {
   transform: rotate(90deg);
 }
 
-.nav-item {
-  padding: 8px 16px;
-  border-radius: var(--radius-md);
-  color: var(--sidebar-text);
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.25s;
+.content-wrapper {
+  flex: 1;
   display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.nav-item:hover {
+  flex-direction: column;
+  overflow: hidden;
   background-color: var(--bg-color);
-  color: var(--primary);
 }
 
-.nav-item.active {
-  background-color: var(--primary);
-  color: #ffffff;
-}
-
-.nav-right {
+.content-header {
+  height: 70px;
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
-  gap: 24px;
-}
-
-.user-badge {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 6px 16px;
-  background: var(--bg-color);
-  border-radius: 50px;
-  border: 1px solid var(--border-color);
-}
-
-.user-badge-info {
-  text-align: right;
-}
-
-.user-badge-name {
-  font-size: 13px;
-  font-weight: 700;
-  display: block;
-  line-height: 1;
-}
-
-.user-badge-role {
-  font-size: 10px;
-  color: var(--primary);
-  font-weight: 800;
-  text-transform: uppercase;
+  justify-content: flex-end;
+  padding: 0 48px;
+  z-index: 90;
 }
 
 .main-content {
   flex: 1;
   overflow-y: auto;
-  padding: 40px;
+  padding: 40px 48px;
   scrollbar-width: thin;
-}
-
-.logout-icon {
-  color: var(--primary);
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.logout-icon:hover {
-  opacity: 0.7;
 }
 
 .mobile-nav-panel {
@@ -181,12 +214,12 @@ body.mobile-menu-open {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 40px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.02);
 }
 
 .title-minimal {
   font-size: 24px;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--text-main);
   margin-bottom: 12px;
   letter-spacing: -0.5px;
@@ -205,16 +238,16 @@ body.mobile-menu-open {
   justify-content: center;
   gap: 10px;
   padding: 12px 28px;
-  background: linear-gradient(135deg, #da0027, #a30018);
+  background: var(--primary);
   border: none;
   border-radius: 12px;
   color: #ffffff;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 500;
   font-family: inherit;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(218, 0, 39, 0.2);
+  box-shadow: 0 4px 14px rgba(218, 0, 39, 0.15);
   text-decoration: none;
   width: fit-content;
   min-width: 80px;
@@ -222,7 +255,7 @@ body.mobile-menu-open {
 }
 
 .btn-primary:hover:not(:disabled) {
-  box-shadow: 0 8px 22px rgba(218, 0, 39, 0.35);
+  box-shadow: 0 6px 20px rgba(218, 0, 39, 0.25);
   transform: translateY(-2px);
   filter: brightness(1.05);
 }
@@ -273,7 +306,7 @@ body.mobile-menu-open {
   background: var(--primary);
   color: #fff;
   font-size: 10px;
-  font-weight: 900;
+  font-weight: 600;
   min-width: 18px;
   height: 18px;
   border-radius: 50px;
@@ -326,13 +359,13 @@ body.mobile-menu-open {
 
 .notif-panel-title {
   font-size: 15px;
-  font-weight: 900;
+  font-weight: 600;
   color: var(--text-main);
 }
 
 .notif-count-badge {
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 600;
   background: var(--sidebar-active-bg);
   color: var(--primary);
   padding: 2px 8px;
@@ -345,7 +378,7 @@ body.mobile-menu-open {
   align-items: center;
   gap: 5px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--text-muted);
   background: none;
   border: none;
@@ -388,7 +421,7 @@ body.mobile-menu-open {
 
 .notif-section-label {
   font-size: 10px;
-  font-weight: 900;
+  font-weight: 600;
   text-transform: uppercase;
   color: var(--text-muted);
   letter-spacing: 0.08em;
@@ -423,7 +456,7 @@ body.mobile-menu-open {
 
 .notif-item-text {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-main);
   line-height: 1.5;
   flex: 1;
@@ -458,7 +491,7 @@ body.mobile-menu-open {
   gap: 10px;
   padding: 8px 20px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-muted);
   line-height: 1.5;
 }
@@ -476,7 +509,7 @@ body.mobile-menu-open {
   padding: 40px 20px;
   color: var(--text-muted);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 /* ── NotificationBell extracted inline styles ── */
@@ -499,16 +532,17 @@ body.mobile-menu-open {
 }
 
 @media (max-width: 1100px) {
-  .top-nav {
-    padding: 0 20px;
+  .sidebar {
+    width: 220px;
+    padding: 24px 16px;
   }
 
-  .nav-left {
-    gap: 20px;
+  .sidebar-top {
+    gap: 36px;
   }
 
-  .nav-item {
-    padding: 8px 12px;
+  .sidebar-item {
+    padding: 10px 12px;
     font-size: 13px;
   }
 
@@ -534,23 +568,37 @@ body.mobile-menu-open {
 }
 
 @media (max-width: 779px) {
-  .top-nav {
-    height: 64px;
-    padding: 0 14px;
-    z-index: 350;
-    border-bottom: 1px solid #e2e8f0;
+  .app-layout {
+    flex-direction: column;
   }
 
-  .nav-links {
+  .sidebar {
     display: none;
   }
 
-  .nav-right {
-    gap: 8px;
+  .mobile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    padding: 0 20px;
+    background: #fff;
+    border-bottom: 1px solid var(--border-color);
+    z-index: 350;
   }
 
-  .nav-right .user-badge,
-  .nav-right .logout-icon {
+  .mobile-logo {
+    height: 28px;
+    width: auto;
+  }
+
+  .mobile-header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .content-header {
     display: none;
   }
 
@@ -593,13 +641,13 @@ body.mobile-menu-open {
     gap: 8px;
   }
 
-  .mobile-nav-links .nav-item {
+  .mobile-nav-links .sidebar-item {
     width: 100%;
     min-height: 48px;
     box-sizing: border-box;
-    padding: 12px 14px 12px 16px;
-    justify-content: flex-end;
-    text-align: right;
+    padding: 12px 16px;
+    justify-content: flex-start;
+    text-align: left;
   }
 
   .mobile-nav-actions {
@@ -618,10 +666,10 @@ body.mobile-menu-open {
     padding: 12px 14px;
     display: inline-flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: flex-start;
     gap: 8px;
     font-size: 0.9rem;
-    font-weight: 700;
+    font-weight: 500;
     cursor: pointer;
     transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
   }

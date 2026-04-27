@@ -15,8 +15,14 @@ router.register('employes', conges_views.EmployeViewSet, basename='employe')
 router.register('demandes', conges_views.DemandeCongeViewSet, basename='demande')
 router.register('notifications', conges_views.NotificationViewSet, basename='notification')
 
+from django.conf import settings
+from django.conf.urls.static import static
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/', include('accounts.urls')),   # Login, Logout, Me, Refresh, Register
     path('api/', include(router.urls)),             # Toutes les autres APIs
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

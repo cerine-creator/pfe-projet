@@ -28,6 +28,9 @@ frontend/.vite/
 *.swp
 *.swo
 
+# Django media (uploaded files - justificatifs, etc.)
+backend/media/
+
 # OS
 .DS_Store
 Thumbs.db

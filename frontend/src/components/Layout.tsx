@@ -34,49 +34,11 @@ export default function Layout() {
 
   return (
     <div className="app-layout">
-      {/* ─── BARRE HORIZONTALE (TOP NAV) ─── */}
-      <header className="top-nav">
-        
-        <div className="nav-left">
-          <img src="/logo.svg" alt="Air Algérie" className="nav-logo" />
-          
-          <nav className="nav-links">
-            <NavLink to="/dashboard" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
-              <Home size={18} /> Tableau de bord
-            </NavLink>
-            
-            <NavLink to="/conges/mes-demandes" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
-              <Send size={18} /> Mes Congés
-            </NavLink>
-            
-            {(user.role !== 'employe') && (
-              <NavLink to="/validation/equipe" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
-                <ShieldCheck size={18} /> Validation
-              </NavLink>
-            )}
-
-            {user.role === 'directeur_rh' && (
-              <NavLink to="/rh/statistiques" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
-                <PieChart size={18} /> Stats RH
-              </NavLink>
-            )}
-          </nav>
-        </div>
-
-        <div className="nav-right">
-          {/* ── Cloche de notifications ── */}
+      {/* ─── EN-TÊTE MOBILE ─── */}
+      <header className="mobile-header">
+        <img src="/logo.svg" alt="Air Algérie" className="mobile-logo" />
+        <div className="mobile-header-right">
           <NotificationBell />
-
-          <div className="user-badge user-badge-clickable" onClick={() => navigate('/mon-compte')}>
-            <div className="user-badge-info">
-              <span className="user-badge-name">{user.first_name} {user.last_name}</span>
-              <span className="user-badge-role">{user.role_display}</span>
-            </div>
-            <UserCircle size={24} color="var(--primary)" />
-          </div>
-
-          <LogOut className="logout-icon" size={22} onClick={logout} />
-
           <button
             type="button"
             className={`mobile-menu-btn ${isMobileMenuOpen ? 'is-open' : ''}`}
@@ -89,26 +51,75 @@ export default function Layout() {
         </div>
       </header>
 
+      {/* ─── BARRE LATÉRALE (SIDEBAR) ─── */}
+      <aside className="sidebar">
+        
+        <div className="sidebar-top">
+          <img src="/logo.svg" alt="Air Algérie" className="sidebar-logo" />
+          
+          <nav className="sidebar-links">
+            <NavLink to="/dashboard" className={({isActive}) => `sidebar-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
+              <Home size={18} /> Accueil
+            </NavLink>
+            
+            <NavLink to="/conges/mes-demandes" className={({isActive}) => `sidebar-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
+              <Send size={18} /> Mes Congés
+            </NavLink>
+            
+            {(user.role !== 'employe') && (
+              <NavLink to="/validation/equipe" className={({isActive}) => `sidebar-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
+                <ShieldCheck size={18} /> Validation
+              </NavLink>
+            )}
+
+            {user.role === 'directeur_rh' && (
+              <NavLink to="/rh/statistiques" className={({isActive}) => `sidebar-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
+                <PieChart size={18} /> Stats RH
+              </NavLink>
+            )}
+          </nav>
+        </div>
+
+        <div className="sidebar-actions">
+          <button
+            type="button"
+            className="sidebar-account"
+            onClick={() => navigate('/mon-compte')}
+          >
+            <UserCircle size={20} />
+            Mon compte
+          </button>
+          <button
+            type="button"
+            className="sidebar-logout"
+            onClick={logout}
+          >
+            <LogOut size={18} />
+            Déconnexion
+          </button>
+        </div>
+      </aside>
+
       {isMobileMenuOpen && (
         <div className="mobile-nav-panel" onClick={closeMobileMenu}>
           <div className="mobile-nav-content" onClick={(e) => e.stopPropagation()}>
             <nav className="mobile-nav-links">
-              <NavLink to="/dashboard" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
+              <NavLink to="/dashboard" className={({isActive}) => `sidebar-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
                 <Home size={18} /> Tableau de bord
               </NavLink>
               
-              <NavLink to="/conges/mes-demandes" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
+              <NavLink to="/conges/mes-demandes" className={({isActive}) => `sidebar-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
                 <Send size={18} /> Mes Congés
               </NavLink>
               
               {(user.role !== 'employe') && (
-                <NavLink to="/validation/equipe" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
+                <NavLink to="/validation/equipe" className={({isActive}) => `sidebar-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
                   <ShieldCheck size={18} /> Validation
                 </NavLink>
               )}
 
               {user.role === 'directeur_rh' && (
-                <NavLink to="/rh/statistiques" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
+                <NavLink to="/rh/statistiques" className={({isActive}) => `sidebar-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
                   <PieChart size={18} /> Stats RH
                 </NavLink>
               )}
@@ -143,9 +154,16 @@ export default function Layout() {
       )}
 
       {/* ─── CONTENU PRINCIPAL ─── */}
-      <main className="main-content">
-        <Outlet />
-      </main>
+      <div className="content-wrapper">
+        <header className="content-header">
+          <div className="content-header-right">
+            <NotificationBell />
+          </div>
+        </header>
+        <main className="main-content">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }
