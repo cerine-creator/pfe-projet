@@ -3,7 +3,8 @@ from .models import Structure, Fonction, Employe, TypeConge, Exercice, DroitCong
 
 @admin.register(Structure)
 class StructureAdmin(admin.ModelAdmin):
-    list_display = ('libelle', 'niveau', 'parent')
+    list_display = ('libelle', 'niveau', 'parent', 'responsable', 'est_structure_rh')
+    list_editable = ('est_structure_rh',)
 
 @admin.register(Fonction)
 class FonctionAdmin(admin.ModelAdmin):

@@ -22,6 +22,11 @@ class Structure(models.Model):
         limit_choices_to={'compte__role__in': ['responsable_hierarchique', 'responsable_rh', 'directeur_rh']}
     )
 
+    est_structure_rh = models.BooleanField(
+        default=False, 
+        help_text="Cochez cette case pour indiquer que c'est le département des Ressources Humaines. Seuls les membres d'une structure RH peuvent avoir le rôle RH."
+    )
+
     class Meta:
         verbose_name = 'Structure'
         verbose_name_plural = 'Structures'
