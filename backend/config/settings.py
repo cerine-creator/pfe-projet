@@ -159,3 +159,8 @@ SIMPLE_JWT = {
     # Claims ajoutés au token
     'UPDATE_LAST_LOGIN': True,
 }
+
+# ─── Media Files (Justificatifs) ──────────────────────────────────────────────
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

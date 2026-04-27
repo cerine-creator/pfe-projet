@@ -122,8 +122,29 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Votre compte n'est lié à un profil employé.")
         
-        # Sauvegarde de la demande
-        demande = serializer.save(employe=employe)
+        # Gestion du justificatif
+        print("--- DEBUG REQUEST DATA ---")
+        print("request.data:", self.request.data)
+        print("request.FILES:", self.request.FILES)
+        
+        justificatif_file = self.request.data.get('justificatif_file') or self.request.FILES.get('justificatif_file')
+        
+        from rest_framework.exceptions import ValidationError as DRFValidationError
+        from django.core.exceptions import ValidationError as DjangoValidationError
+        
+        # Validation : est-ce que c'est un congé maladie ou exceptionnel ?
+        type_conge = serializer.validated_data.get('type_conge')
+        if type_conge and (type_conge.est_exceptionnel or 'maladie' in type_conge.nomType.lower()):
+            if not justificatif_file:
+                raise DRFValidationError({'error': f"Un justificatif est obligatoire pour un congé de type : {type_conge.nomType}."})
+            
+        # Sauvegarde de la demande avec gestion des erreurs de validation du modèle
+        try:
+            demande = serializer.save(employe=employe, justificatif=justificatif_file)
+        except DjangoValidationError as e:
+            if hasattr(e, 'messages'):
+                raise DRFValidationError({'error': e.messages[0]})
+            raise DRFValidationError({'error': str(e)})
         
         # Envoi d'une notification au responsable hiérarchique
         if employe.structure and employe.structure.responsable and employe.structure.responsable.compte:

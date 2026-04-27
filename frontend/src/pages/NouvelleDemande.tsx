@@ -13,7 +13,8 @@ export default function NouvelleDemande() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<{type: 'success'|'error', text: string} | null>(null);
 
-  const [natureConge, setNatureConge] = useState<'annuel'|'exceptionnel'|'sans_solde'|''>('');
+  const [natureConge, setNatureConge] = useState<'annuel'|'exceptionnel'|'sans_solde'|'maladie'|''>('');
+  const [file, setFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     exercice: '',
     date_debut: '',
@@ -30,6 +31,7 @@ export default function NouvelleDemande() {
   ];
 
   const isExceptionnel = natureConge === 'exceptionnel';
+  const requiresJustificatif = natureConge === 'exceptionnel' || natureConge === 'maladie';
 
   useEffect(() => {
     Promise.all([
@@ -72,6 +74,8 @@ export default function NouvelleDemande() {
        typeObj = types.find(t => t.est_exceptionnel === false && t.nomType.toLowerCase().includes('annuel'));
     } else if (natureConge === 'sans_solde') {
        typeObj = types.find(t => t.nomType.toLowerCase().includes('non payé') || t.nomType.toLowerCase().includes('sans solde'));
+    } else if (natureConge === 'maladie') {
+       typeObj = types.find(t => t.nomType.toLowerCase().includes('maladie'));
     }
 
     if (!typeObj) {
@@ -118,7 +122,28 @@ export default function NouvelleDemande() {
     }
 
     try {
-      await api.post('/demandes/', finalData);
+      if (requiresJustificatif) {
+        if (!file) {
+          setMessage({ type: 'error', text: "Un justificatif est obligatoire pour ce type de congé." });
+          setSubmitting(false);
+          return;
+        }
+        
+        const payload = new FormData();
+        Object.keys(finalData).forEach(key => {
+           if (finalData[key] !== '') payload.append(key, finalData[key]);
+        });
+        payload.append('justificatif_file', file, file.name);
+        
+        await api.post('/demandes/', payload, {
+          headers: {
+            'Content-Type': undefined // Laisse le navigateur gérer le boundary
+          }
+        });
+      } else {
+        await api.post('/demandes/', finalData);
+      }
+      
       setMessage({ type: 'success', text: 'Demande soumise avec succès ! Redirection...' });
       setTimeout(() => navigate('/conges/mes-demandes'), 2000);
     } catch (err: any) {
@@ -155,6 +180,7 @@ export default function NouvelleDemande() {
                 <option value="">Sélectionner une nature...</option>
                 <option value="annuel">Congé Annuel (Payé)</option>
                 <option value="exceptionnel">Congé Exceptionnel</option>
+                <option value="maladie">Congé Maladie</option>
                 <option value="sans_solde">Congé Non Payé (Sans Solde)</option>
               </select>
             </div>
@@ -184,7 +210,7 @@ export default function NouvelleDemande() {
               </div>
             )}
 
-            {(natureConge === 'annuel' || natureConge === 'sans_solde') && (
+            {(natureConge === 'annuel' || natureConge === 'sans_solde' || natureConge === 'maladie') && (
               <div className="form-group">
                 <label>Date de fin</label>
                 <input 
@@ -209,6 +235,23 @@ export default function NouvelleDemande() {
                     <option key={m.value} value={m.value}>{m.label}</option>
                   ))}
                 </select>
+              </div>
+            )}
+            
+            {requiresJustificatif && (
+              <div className="form-group">
+                <label>Justificatif (Document ou Image) *</label>
+                <input 
+                  type="file" 
+                  accept=".pdf,image/*"
+                  required
+                  onChange={e => {
+                    if (e.target.files && e.target.files.length > 0) {
+                      setFile(e.target.files[0]);
+                    }
+                  }}
+                  style={{ padding: '8px 0' }}
+                />
               </div>
             )}
           </div>

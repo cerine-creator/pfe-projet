@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     Structure, Fonction, TypeConge, Exercice,
-    Employe, DroitConge, Justificatif, DemandeConge, TitreConge, Notification
+    Employe, DroitConge, DemandeConge, TitreConge, Notification
 )
 
 class StructureSerializer(serializers.ModelSerializer):
@@ -60,15 +60,16 @@ class DemandeCongeSerializer(serializers.ModelSerializer):
     type_conge_nom = serializers.CharField(source='type_conge.nomType', read_only=True)
     motif_display = serializers.CharField(source='get_motif_display', read_only=True)
     statut_display = serializers.CharField(source='get_statut_display', read_only=True)
+    justificatif_url = serializers.FileField(source='justificatif', read_only=True)
     
     class Meta:
         model = DemandeConge
         fields = [
             'id', 'employe', 'employe_noms', 'exercice', 'type_conge', 
             'type_conge_nom', 'date_debut', 'date_fin', 'duree', 
-            'motif', 'motif_display', 'statut', 'statut_display', 'dateDemande'
+            'motif', 'motif_display', 'statut', 'statut_display', 'dateDemande', 'justificatif_url'
         ]
-        read_only_fields = ['duree', 'statut', 'dateDemande', 'employe']
+        read_only_fields = ['duree', 'statut', 'dateDemande', 'employe', 'justificatif_url']
 
     def get_employe_noms(self, obj):
         return f"{obj.employe.prenomEmpl} {obj.employe.nomEmpl}"

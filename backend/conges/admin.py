@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Structure, Fonction, Employe, TypeConge, Exercice, DroitConge, Justificatif, DemandeConge, TitreConge, Notification
+from .models import Structure, Fonction, Employe, TypeConge, Exercice, DroitConge, DemandeConge, TitreConge, Notification
 
 @admin.register(Structure)
 class StructureAdmin(admin.ModelAdmin):
@@ -26,9 +26,6 @@ class ExerciceAdmin(admin.ModelAdmin):
 class DroitCongeAdmin(admin.ModelAdmin):
     list_display = ('employe', 'exercice', 'nbrJConsome', 'nbrJRes', 'nbrJCumule')
 
-@admin.register(Justificatif)
-class JustificatifAdmin(admin.ModelAdmin):
-    list_display = ('id', 'fichierJustificatif')
 
 @admin.register(DemandeConge)
 class DemandeCongeAdmin(admin.ModelAdmin):

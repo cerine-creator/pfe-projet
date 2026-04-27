@@ -87,6 +87,19 @@ class Employe(models.Model):
         verbose_name = 'Employé'
         verbose_name_plural = 'Employés'
 
+    def clean(self):
+        super().clean()
+        from datetime import date
+        if self.dateRecrutement:
+            if self.dateRecrutement.year < 1947:
+                raise ValidationError("La date de recrutement ne peut pas être antérieure à la création d'Air Algérie (1947).")
+            if self.dateRecrutement > date.today():
+                raise ValidationError("La date de recrutement ne peut pas être dans le futur.")
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.prenomEmpl} {self.nomEmpl}"
 
@@ -107,13 +120,6 @@ class DroitConge(models.Model):
         return f"Droits {self.employe} - {self.exercice}"
 
 # --- 3. GESTION DES DEMANDES DE CONGES ---
-
-class Justificatif(models.Model):
-    fichierJustificatif = models.FileField(upload_to='justificatifs/')
-
-    class Meta:
-        verbose_name = 'Justificatif'
-        verbose_name_plural = 'Justificatifs'
 
 class DemandeConge(models.Model):
     MOTIF_CHOICES = [
@@ -140,7 +146,7 @@ class DemandeConge(models.Model):
     employe = models.ForeignKey(Employe, on_delete=models.CASCADE, related_name='demandes')
     exercice = models.ForeignKey(Exercice, on_delete=models.SET_NULL, null=True, blank=True, related_name='demandes')
     type_conge = models.ForeignKey(TypeConge, on_delete=models.SET_NULL, null=True, related_name='demandes')
-    justificatif = models.ForeignKey(Justificatif, on_delete=models.SET_NULL, null=True, blank=True)
+    justificatif = models.FileField(upload_to='justificatifs/', null=True, blank=True)
     
     statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='en_attente_resp')
     motif = models.CharField(max_length=30, choices=MOTIF_CHOICES, null=True, blank=True) 
@@ -156,8 +162,36 @@ class DemandeConge(models.Model):
         
         # 1. Calcul automatique de la durée
         if self.date_debut and self.date_fin:
+            if self.date_debut > self.date_fin:
+                raise ValidationError("La date de début ne peut pas être postérieure à la date de fin.")
+                
+            from datetime import date
+            if self.date_debut < date.today():
+                raise ValidationError("La date de début ne peut pas être dans le passé.")
+                
             calcul_duree = (self.date_fin - self.date_debut).days + 1
             self.duree = calcul_duree
+            
+            # Vérification des chevauchements et demandes en attente
+            if self.employe:
+                # Vérifier s'il y a une demande en attente
+                demandes_en_attente = DemandeConge.objects.filter(
+                    employe=self.employe,
+                    statut__in=['en_attente_resp', 'en_attente_rh']
+                ).exclude(pk=self.pk)
+                
+                if demandes_en_attente.exists():
+                    raise ValidationError("Vous ne pouvez pas soumettre une nouvelle demande tant que vous avez une demande en attente.")
+                    
+                # Vérifier les chevauchements avec d'autres demandes non refusées
+                chevauchements = DemandeConge.objects.filter(
+                    employe=self.employe,
+                    date_debut__lte=self.date_fin,
+                    date_fin__gte=self.date_debut
+                ).exclude(statut='refusee').exclude(pk=self.pk)
+                
+                if chevauchements.exists():
+                    raise ValidationError("Cette demande de congé se chevauche avec une autre demande existante.")
             
         # 2. Validation de l'exercice (Règle Air Algérie : Épuiser le passé d'abord)
         if self.exercice and self.employe:

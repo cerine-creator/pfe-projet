@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axiosConfig';
-import { FileText, Search, PlusCircle, Download, MoreHorizontal } from 'lucide-react';
+import { FileText, Search, PlusCircle, Download, Eye, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './demandes.css';
 
@@ -8,6 +8,10 @@ export default function Demandes() {
   const navigate = useNavigate();
   const [demandes, setDemandes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('Tous');
+  const [durationSort, setDurationSort] = useState('Aucun');
+  const [selectedDemande, setSelectedDemande] = useState<any | null>(null);
 
   useEffect(() => {
     api.get('/demandes/')
@@ -19,6 +23,21 @@ export default function Demandes() {
       .catch(e => console.error(e))
       .finally(() => setLoading(false));
   }, []);
+
+  const filteredDemandes = demandes.filter(d => {
+    const matchSearch = (d.type_conge_nom || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (d.date_debut || '').includes(searchTerm);
+    let matchStatus = true;
+    if (statusFilter === 'approuvee') matchStatus = d.statut === 'approuvee';
+    else if (statusFilter === 'refusee') matchStatus = d.statut === 'refusee';
+    else if (statusFilter === 'en_attente') matchStatus = d.statut === 'en_attente_resp' || d.statut === 'en_attente_rh';
+    
+    return matchSearch && matchStatus;
+  }).sort((a, b) => {
+    if (durationSort === 'Croissant') return a.duree - b.duree;
+    if (durationSort === 'Décroissant') return b.duree - a.duree;
+    return 0;
+  });
 
   return (
     <div className="demandes-v2">
@@ -36,11 +55,38 @@ export default function Demandes() {
       </div>
 
       <div className="card-minimal card-no-padding">
-        <div className="table-toolbar-plain">
-           <div className="search-bar">
+        <div className="table-toolbar-plain" style={{ display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
+           <div className="search-bar" style={{ flex: 1, minWidth: '200px' }}>
               <Search size={18} color="var(--text-muted)" />
-              <input type="text" placeholder="Rechercher par date ou type..." className="search-input" />
+              <input 
+                type="text" 
+                placeholder="Rechercher par date ou type..." 
+                className="search-input"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+              />
            </div>
+           <select 
+             className="filter-select"
+             value={statusFilter}
+             onChange={e => setStatusFilter(e.target.value)}
+             style={{ padding: '8px 12px', border: '1px solid var(--border-color)', borderRadius: '6px', outline: 'none', backgroundColor: 'white' }}
+           >
+             <option value="Tous">Tous les statuts</option>
+             <option value="approuvee">Approuvée</option>
+             <option value="refusee">Refusée</option>
+             <option value="en_attente">En attente</option>
+           </select>
+           <select 
+             className="filter-select"
+             value={durationSort}
+             onChange={e => setDurationSort(e.target.value)}
+             style={{ padding: '8px 12px', border: '1px solid var(--border-color)', borderRadius: '6px', outline: 'none', backgroundColor: 'white' }}
+           >
+             <option value="Aucun">Trier par durée</option>
+             <option value="Croissant">Durée croissante</option>
+             <option value="Décroissant">Durée décroissante</option>
+           </select>
         </div>
 
         <div className="table-body">
@@ -57,9 +103,9 @@ export default function Demandes() {
             <tbody>
               {loading ? (
                 <tr><td colSpan={5} className="td-loading">Chargement de l'historique...</td></tr>
-              ) : demandes.length === 0 ? (
-                <tr><td colSpan={5} className="td-empty">Aucune demande enregistrée.</td></tr>
-              ) : demandes.map(d => (
+              ) : filteredDemandes.length === 0 ? (
+                <tr><td colSpan={5} className="td-empty">Aucune demande trouvée.</td></tr>
+              ) : filteredDemandes.map(d => (
                 <tr key={d.id} className="table-row">
                   <td className="td-cell">
                     <div className="cell-icon-label">
@@ -88,8 +134,8 @@ export default function Demandes() {
                              <Download size={18} />
                           </button>
                         )}
-                        <button className="btn-icon">
-                           <MoreHorizontal size={18} />
+                        <button className="btn-icon" title="Voir les détails" onClick={() => setSelectedDemande(d)}>
+                           <Eye size={18} />
                         </button>
                      </div>
                   </td>
@@ -99,6 +145,54 @@ export default function Demandes() {
           </table>
         </div>
       </div>
+
+      {selectedDemande && (
+        <div className="modal-overlay" onClick={() => setSelectedDemande(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ backgroundColor: 'white', padding: '24px', borderRadius: '12px', width: '400px', maxWidth: '90%', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-color)' }}>Détails de la demande</h3>
+              <button onClick={() => setSelectedDemande(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}>
+                <X size={20} color="var(--text-muted)" />
+              </button>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', color: 'var(--text-color)' }}>
+              <p style={{ margin: 0 }}><strong>Type :</strong> {selectedDemande.type_conge_nom}</p>
+              {selectedDemande.motif && <p style={{ margin: 0 }}><strong>Motif :</strong> {selectedDemande.motif_display || selectedDemande.motif}</p>}
+              <p style={{ margin: 0 }}><strong>Du :</strong> {selectedDemande.date_debut}</p>
+              <p style={{ margin: 0 }}><strong>Au :</strong> {selectedDemande.date_fin}</p>
+              <p style={{ margin: 0 }}><strong>Durée :</strong> {selectedDemande.duree} jour(s)</p>
+              <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <strong>Statut :</strong>
+                <span className={`badge ${
+                  selectedDemande.statut === 'approuvee' ? 'badge-success' : 
+                  selectedDemande.statut === 'refusee' ? 'badge-danger' : 'badge-pending'
+                }`}>
+                  {selectedDemande.statut_display}
+                </span>
+              </p>
+              {selectedDemande.justificatif_url && (
+                <p style={{ margin: 0, marginTop: '8px' }}>
+                  <strong>Justificatif :</strong>{' '}
+                  <a 
+                    href={`http://localhost:8000${selectedDemande.justificatif_url}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    style={{ color: 'var(--primary)', textDecoration: 'underline', fontWeight: 500 }}
+                  >
+                    Voir le document joint
+                  </a>
+                </p>
+              )}
+            </div>
+            
+            <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
+              <button className="btn-primary" onClick={() => setSelectedDemande(null)}>Fermer</button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
