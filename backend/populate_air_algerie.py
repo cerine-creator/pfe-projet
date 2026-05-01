@@ -41,11 +41,11 @@ def run():
     # 4. FONCTIONS
     f_pnc, _ = Fonction.objects.get_or_create(libelle="Hôtesse / Steward")
     f_pilote, _ = Fonction.objects.get_or_create(libelle="Commandant de bord")
-    f_rh, _ = Fonction.objects.get_or_create(libelle="Chargé(e) RH")
+    f_rh, _ = Fonction.objects.get_or_create(libelle="Responsable Ressources Humaines")
     f_drh, _ = Fonction.objects.get_or_create(libelle="Directeur des Ressources Humaines")
     f_mec, _ = Fonction.objects.get_or_create(libelle="Ingénieur Maintenance Aéronautique")
-    # Fonction générique pour les chefs de structure (satisfait la validation rôle/fonction)
-    f_resp, _ = Fonction.objects.get_or_create(libelle="Responsable de Structure")
+    f_resp_tech, _ = Fonction.objects.get_or_create(libelle="Responsable Technique Aéronautique")
+    f_resp_pn, _ = Fonction.objects.get_or_create(libelle="Responsable du Personnel Navigant")
 
     # 5. CRÉATION DES EMPLOYÉS + UTILISATEURS
     employes_data = [
@@ -57,9 +57,9 @@ def run():
         # Responsable de la filiale Technics
         {
             "email": "karim.mansouri@airalgerie.dz", "role": "responsable_hierarchique",
-            "matricule": "AH-1540", "prenom": "Karim", "nom": "Mansouri", "structure": tech, "fonction": f_resp, "categorie": "sol"
+            "matricule": "AH-1540", "prenom": "Karim", "nom": "Mansouri", "structure": tech, "fonction": f_resp_tech, "categorie": "sol"
         },
-        # Un chargé RH (qui va traiter les validations finales)
+        # Responsable RH (validation finale des congés)
         {
             "email": "fatima.belmadi@airalgerie.dz", "role": "responsable_rh",
             "matricule": "AH-0255", "prenom": "Fatima", "nom": "Belmadi", "structure": drh, "fonction": f_rh, "categorie": "sol"
@@ -81,7 +81,7 @@ def run():
         # Responsable du Personnel Navigant
         {
             "email": "redha.boutaleb@airalgerie.dz", "role": "responsable_hierarchique",
-            "matricule": "AH-1002", "prenom": "Redha", "nom": "Boutaleb", "structure": pn, "fonction": f_resp, "categorie": "navigant"
+            "matricule": "AH-1002", "prenom": "Redha", "nom": "Boutaleb", "structure": pn, "fonction": f_resp_pn, "categorie": "navigant"
         }
     ]
 
