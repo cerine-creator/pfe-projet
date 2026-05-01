@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('conges', '0002_structure_responsable'),
+        ('conges', '0002_alter_demandeconge_justificatif_delete_justificatif'),
     ]
 
     operations = [
