@@ -44,6 +44,8 @@ def run():
     f_rh, _ = Fonction.objects.get_or_create(libelle="Chargé(e) RH")
     f_drh, _ = Fonction.objects.get_or_create(libelle="Directeur des Ressources Humaines")
     f_mec, _ = Fonction.objects.get_or_create(libelle="Ingénieur Maintenance Aéronautique")
+    # Fonction générique pour les chefs de structure (satisfait la validation rôle/fonction)
+    f_resp, _ = Fonction.objects.get_or_create(libelle="Responsable de Structure")
 
     # 5. CRÉATION DES EMPLOYÉS + UTILISATEURS
     employes_data = [
@@ -55,7 +57,7 @@ def run():
         # Responsable de la filiale Technics
         {
             "email": "karim.mansouri@airalgerie.dz", "role": "responsable_hierarchique",
-            "matricule": "AH-1540", "prenom": "Karim", "nom": "Mansouri", "structure": tech, "fonction": f_mec, "categorie": "sol"
+            "matricule": "AH-1540", "prenom": "Karim", "nom": "Mansouri", "structure": tech, "fonction": f_resp, "categorie": "sol"
         },
         # Un chargé RH (qui va traiter les validations finales)
         {
@@ -79,7 +81,7 @@ def run():
         # Responsable du Personnel Navigant
         {
             "email": "redha.boutaleb@airalgerie.dz", "role": "responsable_hierarchique",
-            "matricule": "AH-1002", "prenom": "Redha", "nom": "Boutaleb", "structure": pn, "fonction": f_pilote, "categorie": "navigant"
+            "matricule": "AH-1002", "prenom": "Redha", "nom": "Boutaleb", "structure": pn, "fonction": f_resp, "categorie": "navigant"
         }
     ]
 
