@@ -1,3 +1,4 @@
+from django.db.models import Q, F
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -10,11 +11,11 @@ from accounts.permissions import (
 )
 from .models import (
     Structure, Fonction, TypeConge, Exercice,
-    Employe, DroitConge, DemandeConge, TitreConge, Notification
+    Employe, DroitConge, DemandeConge, TitreConge, Notification, CalendarNote
 )
 from .serializers import (
     StructureSerializer, FonctionSerializer, TypeCongeSerializer, ExerciceSerializer,
-    EmployeSerializer, DroitCongeSerializer, DemandeCongeSerializer, TitreCongeSerializer, NotificationSerializer
+    EmployeSerializer, DroitCongeSerializer, DemandeCongeSerializer, TitreCongeSerializer, NotificationSerializer, CalendarNoteSerializer
 )
 from .services import deduire_solde_conge, generer_titre_conge_automatique
 
@@ -100,7 +101,7 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
 
         # DRH / RH voient tout
         if user.is_superuser or user.role in ['responsable_rh', 'directeur_rh']:
-            demandes = DemandeConge.objects.all()
+            demandes = DemandeConge.objects.filter(statut='en_attente_rh')
             serializer = self.get_serializer(demandes, many=True)
             return Response(serializer.data)
 
@@ -108,16 +109,13 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
         if user.role == 'responsable_hierarchique':
             employe = getattr(user, 'employe', None)
             if employe and hasattr(employe, 'structure_dirigee') and employe.structure_dirigee:
-                from django.db.models import F
                 structure_dirigee = employe.structure_dirigee
                 
-                # 1. Employés de sa propre structure (il n'est pas le demandeur)
                 demandes_base = DemandeConge.objects.filter(
-                    employe__structure=structure_dirigee, 
+                    employe__structure=structure_dirigee,
                     statut='en_attente_resp'
                 ).exclude(employe=employe)
                 
-                # 2. Chefs des structures dont lui est le parent (N+1)
                 demandes_filiales = DemandeConge.objects.filter(
                     employe__structure__parent=structure_dirigee,
                     employe__structure__responsable=F('employe'),
@@ -130,6 +128,86 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
 
         return Response([])
 
+    @action(detail=False, methods=['get'])
+    def historique(self, request):
+        """GET /api/demandes/historique/ — Historique pour RH/manager."""
+        user = self.request.user
+        statut_filter = request.query_params.get('statut')
+        demandes = DemandeConge.objects.none()
+
+        if user.is_superuser or user.role in ['responsable_rh', 'directeur_rh']:
+            demandes = DemandeConge.objects.filter(statut__in=['approuvee', 'refusee'])
+        elif user.role == 'responsable_hierarchique':
+            employe = getattr(user, 'employe', None)
+            if employe and hasattr(employe, 'structure_dirigee') and employe.structure_dirigee:
+                structure_dirigee = employe.structure_dirigee
+                demandes = DemandeConge.objects.filter(
+                    Q(employe__structure=structure_dirigee) |
+                    Q(employe__structure__parent=structure_dirigee, employe__structure__responsable=F('employe'))
+                ).filter(statut__in=['approuvee', 'refusee']).distinct()
+
+        if statut_filter in ['approuvee', 'refusee']:
+            demandes = demandes.filter(statut=statut_filter)
+
+        serializer = self.get_serializer(demandes, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsHRStaff])
+    def stats_drh(self, request):
+        """GET /api/demandes/stats_drh/ — Statistiques pour le DRH."""
+        from django.utils import timezone
+        from datetime import datetime
+
+        # Employés en congé actuellement
+        today = timezone.now().date()
+        employes_en_conge = DemandeConge.objects.filter(
+            statut='approuvee',
+            date_debut__lte=today,
+            date_fin__gte=today
+        ).select_related('employe').distinct()
+
+        employes_absents = []
+        for demande in employes_en_conge:
+            employes_absents.append({
+                'id': demande.employe.id,
+                'nom': f"{demande.employe.prenomEmpl} {demande.employe.nomEmpl}",
+                'structure': demande.employe.structure.libelle if demande.employe.structure else 'N/A',
+                'date_debut': demande.date_debut,
+                'date_fin': demande.date_fin,
+                'type_conge': demande.type_conge.nomType if demande.type_conge else 'N/A'
+            })
+
+        # Nombre total d'employés
+        total_employes = Employe.objects.count()
+
+        # Employés présents (total - absents)
+        employes_presents = total_employes - len(employes_absents)
+
+        # Demandes ce mois par structure
+        current_month = timezone.now().month
+        current_year = timezone.now().year
+
+        demandes_par_structure = []
+        structures = Structure.objects.all()
+        for structure in structures:
+            count = DemandeConge.objects.filter(
+                employe__structure=structure,
+                dateDemande__month=current_month,
+                dateDemande__year=current_year
+            ).count()
+            demandes_par_structure.append({
+                'structure': structure.libelle,
+                'demandes': count
+            })
+
+        return Response({
+            'employes_en_conge': len(employes_absents),
+            'employes_absents': employes_absents,
+            'employes_presents': employes_presents,
+            'total_employes': total_employes,
+            'demandes_ce_mois_par_structure': demandes_par_structure
+        })
+
     def perform_create(self, serializer):
         employe = getattr(self.request.user, 'employe', None)
         if not employe:
@@ -141,7 +219,7 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
         print("request.data:", self.request.data)
         print("request.FILES:", self.request.FILES)
         
-        justificatif_file = self.request.data.get('justificatif_file') or self.request.FILES.get('justificatif_file')
+        justificatif_file = self.request.FILES.get('justificatif')
         
         from rest_framework.exceptions import ValidationError as DRFValidationError
         from django.core.exceptions import ValidationError as DjangoValidationError
@@ -159,6 +237,20 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
             if hasattr(e, 'messages'):
                 raise DRFValidationError({'error': e.messages[0]})
             raise DRFValidationError({'error': str(e)})
+        
+        # Cas spécial : Responsable RH - demande va directement au DRH
+        if hasattr(employe, 'compte') and employe.compte and employe.compte.role == 'responsable_rh':
+            demande.statut = 'en_attente_rh'
+            demande.save()
+            # Notifier le DRH
+            drh_employes = Employe.objects.filter(compte__role='directeur_rh')
+            for drh in drh_employes:
+                if hasattr(drh, 'compte') and drh.compte:
+                    Notification.objects.create(
+                        utilisateur=drh.compte,
+                        description=f"Demande de congé du Responsable RH {employe.prenomEmpl} {employe.nomEmpl} en attente de validation."
+                    )
+            return
         
         # Vérifions si cet employé est le chef de sa propre structure
         est_chef_structure = (employe.structure and getattr(employe.structure, 'responsable', None) == employe)
@@ -315,3 +407,13 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
         notif.lu = True
         notif.save()
         return Response({'status': 'Notification marquée comme lue'})
+
+class CalendarNoteViewSet(viewsets.ModelViewSet):
+    serializer_class = CalendarNoteSerializer
+    permission_classes = [IsHRStaff]
+
+    def get_queryset(self):
+        return CalendarNote.objects.all()
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)

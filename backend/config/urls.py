@@ -14,6 +14,7 @@ router.register('exercices', conges_views.ExerciceViewSet, basename='exercice')
 router.register('employes', conges_views.EmployeViewSet, basename='employe')
 router.register('demandes', conges_views.DemandeCongeViewSet, basename='demande')
 router.register('notifications', conges_views.NotificationViewSet, basename='notification')
+router.register('calendar-notes', conges_views.CalendarNoteViewSet, basename='calendarnote')
 
 from django.conf import settings
 from django.conf.urls.static import static
