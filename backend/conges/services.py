@@ -63,12 +63,13 @@ def deduire_solde_conge(demande):
     FONCTION : Déduit les jours de congé demandés du solde de l'employé.
     USAGE : Appelé SEULEMENT quand la demande est approuvée (statut final).
     """
-    # Si le congé est 'exceptionnel' ou 'non payé/sans solde', on ne déduit PAS du solde annuel
+    # Si le congé est exceptionnel ou sans solde, on ne déduit PAS du solde annuel
     if demande.type_conge:
-        nom_type = demande.type_conge.nomType.lower()
-        if 'exceptionnel' in nom_type or 'non payé' in nom_type or 'sans solde' in nom_type:
+        if demande.type_conge.est_exceptionnel:
             return
-
+        nom_type = demande.type_conge.nomType.lower()
+        if 'non payé' in nom_type or 'sans solde' in nom_type:
+            return
     try:
         droit = DroitConge.objects.get(employe=demande.employe, exercice=demande.exercice)
     except DroitConge.DoesNotExist:

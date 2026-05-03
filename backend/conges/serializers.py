@@ -60,19 +60,37 @@ class DemandeCongeSerializer(serializers.ModelSerializer):
     type_conge_nom = serializers.CharField(source='type_conge.nomType', read_only=True)
     motif_display = serializers.CharField(source='get_motif_display', read_only=True)
     statut_display = serializers.CharField(source='get_statut_display', read_only=True)
-    justificatif_url = serializers.FileField(source='justificatif', read_only=True)
+    justificatif_url = serializers.SerializerMethodField()
+    titre_id = serializers.IntegerField(source='titreconge.id', read_only=True)
+    titre_ref = serializers.CharField(source='titreconge.ref', read_only=True)
+    titre_download_url = serializers.SerializerMethodField()
     
     class Meta:
         model = DemandeConge
         fields = [
             'id', 'employe', 'employe_noms', 'exercice', 'type_conge', 
             'type_conge_nom', 'date_debut', 'date_fin', 'duree', 
-            'motif', 'motif_display', 'statut', 'statut_display', 'dateDemande', 'justificatif_url'
+            'motif', 'motif_display', 'statut', 'statut_display', 'dateDemande', 'justificatif', 'justificatif_url',
+            'titre_id', 'titre_ref', 'titre_download_url'
         ]
-        read_only_fields = ['duree', 'statut', 'dateDemande', 'employe', 'justificatif_url']
+        read_only_fields = ['duree', 'statut', 'dateDemande', 'employe', 'justificatif_url', 'titre_id', 'titre_ref', 'titre_download_url']
+
+    def get_justificatif_url(self, obj):
+        if obj.justificatif:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.justificatif.url)
+            return obj.justificatif.url
+        return None
 
     def get_employe_noms(self, obj):
         return f"{obj.employe.prenomEmpl} {obj.employe.nomEmpl}"
+
+    def get_titre_download_url(self, obj):
+        titre = getattr(obj, 'titreconge', None)
+        if titre and titre.id:
+            return f"/titres/{titre.id}/download/"
+        return None
 
 class TitreCongeSerializer(serializers.ModelSerializer):
     class Meta:

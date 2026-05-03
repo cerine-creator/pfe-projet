@@ -1,6 +1,16 @@
+import io
+import os
+from datetime import date
+
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.conf import settings
+from django.core.exceptions import PermissionDenied
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+
+ 
 
 from accounts.permissions import (
     IsEmploye,
@@ -17,6 +27,168 @@ from .serializers import (
     EmployeSerializer, DroitCongeSerializer, DemandeCongeSerializer, TitreCongeSerializer, NotificationSerializer
 )
 from .services import deduire_solde_conge, generer_titre_conge_automatique
+
+try:
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.units import mm
+except ImportError:
+    canvas = None
+    mm = 1
+    A4 = (210 * mm, 297 * mm)
+
+def telecharger_titre_conge(request, titre_id):
+    """
+    Vue principale qui gère les permissions et appelle la génération du PDF.
+    """
+    titre = get_object_or_404(TitreConge, id=titre_id)
+    
+    # --- VÉRIFICATION DES ACCÈS ---
+    # 1. L'utilisateur est-il le propriétaire du titre ? (via le lien Employe -> Compte)
+    is_owner = hasattr(titre.employe, 'compte') and titre.employe.compte == request.user
+    
+    # 2. L'utilisateur est-il un Responsable RH ou Admin ?
+    # On limite strictement au rôle 'responsable_rh' (on exclut directeur_rh et resp_hierarchique)
+    user_role = getattr(request.user, 'role', None)
+    is_rh = request.user.is_superuser or user_role == 'responsable_rh'
+
+    if is_owner or is_rh:
+        return _build_titre_pdf_response(titre)
+    else:
+        raise PermissionDenied("Accès refusé : Vous n'avez pas les droits nécessaires.")
+
+def _build_titre_pdf_response(titre):
+    employe = titre.employe
+    structure = employe.structure
+    responsable = structure.responsable if structure else None
+    responsable_name = f"{responsable.prenomEmpl} {responsable.nomEmpl}" if responsable else ""
+    fonction = employe.fonction.libelle if employe.fonction else ""
+    
+    # --- RÉCUPÉRATION DE LA NATURE DU CONGÉ ---
+    type_du_conge = ""
+    if titre.demande and titre.demande.type_conge:
+        type_du_conge = titre.demande.type_conge.nomType
+    else:
+        type_du_conge = "Congé" 
+
+    buffer = io.BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+    margin = 20 * mm
+    top = height - margin
+
+    # --- LOGO AIR ALGÉRIE ---
+    # Utilisation de BASE_DIR pour pointer vers backend/image/logo.png
+    logo_path = os.path.join(settings.BASE_DIR, 'image', 'logo.png')
+    
+    # --- LIGNES DE TEST (A supprimer après vérification) ---
+    print(f"--- TEST LOGO ---")
+    print(f"BASE_DIR détecté : {settings.BASE_DIR}")
+    print(f"Chemin complet recherché : {logo_path}")
+    print(f"Le fichier existe-t-il ? : {os.path.exists(logo_path)}")
+    
+    if os.path.exists(logo_path):
+        logo_w = 40 * mm
+        # Positionnement en haut à droite (Aligné sur la marge droite)
+        pdf.drawImage(logo_path, width - margin - logo_w, top - 10 * mm, width=logo_w, preserveAspectRatio=True, mask='auto')
+
+    # --- 1. TITRE ---
+    curr_y = top - 15 * mm
+    pdf.setFont("Helvetica-Bold", 14)
+    title_text = "TITRE DE CONGÉ"
+    pdf.drawCentredString(width / 2, curr_y, title_text)
+    text_width = pdf.stringWidth(title_text, "Helvetica-Bold", 14)
+    
+    pdf.line(width/2 - text_width/2, curr_y - 2*mm, width/2 + text_width/2, curr_y - 2*mm)
+
+    # --- 2. RÉFÉRENCE & MATRICULE ---
+    pdf.setFont("Helvetica", 10)
+    curr_y -= 15 * mm
+    pdf.drawString(margin, curr_y, f"Réf. : {titre.ref}")
+    
+    pdf.drawString(width - margin - 55 * mm, curr_y, "N° Matricule :")
+    pdf.rect(width - margin - 25 * mm, curr_y - 2 * mm, 25 * mm, 7 * mm)
+    pdf.drawCentredString(width - margin - 12.5 * mm, curr_y - 1 * mm, employe.matricule or "")
+
+    # --- 3. BLOC INFORMATIONS ---
+    curr_y -= 12 * mm
+    pdf.drawString(margin, curr_y, "Nom & Prénom :")
+    pdf.setFont("Helvetica-Bold", 10)
+    pdf.drawString(margin + 35 * mm, curr_y, f"{employe.prenomEmpl} {employe.nomEmpl}")
+
+    pdf.setFont("Helvetica", 10)
+    curr_y -= 8 * mm
+    pdf.drawString(margin, curr_y, "Qualité :")
+    pdf.drawString(margin + 20 * mm, curr_y, fonction)
+
+    curr_y -= 8 * mm
+    pdf.drawString(margin, curr_y, "Structure :")
+    pdf.drawString(margin + 20 * mm, curr_y, structure.libelle if structure else "")
+    
+    pdf.drawString(width/2 + 5*mm, curr_y, "Responsable :")
+    pdf.drawString(width/2 + 35*mm, curr_y, responsable_name)
+
+    # --- TYPE DE CONGÉ ---
+    curr_y -= 8 * mm
+    pdf.setFont("Helvetica-Bold", 10)
+    pdf.drawString(margin, curr_y, "Type du congé :")
+    pdf.setFont("Helvetica", 10)
+    pdf.drawString(margin + 35 * mm, curr_y, type_du_conge)
+
+    # --- 4. SECTION DÉCOMPTE ---
+    center_block_x = width / 2 - 40 * mm 
+    curr_y -= 18 * mm 
+    pdf.drawString(center_block_x, curr_y, "demande")
+    box_x = center_block_x + 22 * mm
+    for i in range(3):
+        pdf.rect(box_x + i * 8 * mm, curr_y - 2 * mm, 7 * mm, 7 * mm)
+    pdf.drawString(box_x + 26 * mm, curr_y, "jours de congé")
+    
+    dur = str(int(titre.dureeT))
+    pdf.drawCentredString(box_x + 20 * mm, curr_y - 1 * mm, dur)
+
+    curr_y -= 12 * mm
+    pdf.drawString(center_block_x - 10 * mm, curr_y, "au titre de l'année")
+    year_x = center_block_x + 32 * mm
+    for i in range(4):
+        pdf.rect(year_x + i * 8 * mm, curr_y - 2 * mm, 7 * mm, 7 * mm)
+    pdf.drawString(year_x + 35 * mm, curr_y, "Allant")
+    
+    year_str = str(titre.dateDebut.year)
+    for i, digit in enumerate(year_str):
+        pdf.drawCentredString(year_x + i * 8 * mm + 3.5 * mm, curr_y - 1 * mm, digit)
+
+    curr_y -= 12 * mm
+    pdf.drawString(width/2 - 75*mm, curr_y, "du")
+    d1_x = width/2 - 67*mm
+    for i in range(3): pdf.rect(d1_x + i * 11 * mm, curr_y - 2 * mm, 10 * mm, 7 * mm)
+    
+    pdf.drawString(d1_x + 35 * mm, curr_y, "au")
+    d2_x = d1_x + 42 * mm
+    for i in range(3): pdf.rect(d2_x + i * 11 * mm, curr_y - 2 * mm, 10 * mm, 7 * mm)
+    
+    pdf.drawString(d2_x + 35 * mm, curr_y, "pour en jouir à")
+    
+    d1 = [titre.dateDebut.strftime('%d'), titre.dateDebut.strftime('%m'), titre.dateDebut.strftime('%y')]
+    d2 = [titre.dateFin.strftime('%d'), titre.dateFin.strftime('%m'), titre.dateFin.strftime('%y')]
+    for i, v in enumerate(d1): pdf.drawCentredString(d1_x + i*11*mm + 5*mm, curr_y - 1*mm, v)
+    for i, v in enumerate(d2): pdf.drawCentredString(d2_x + i*11*mm + 5*mm, curr_y - 1*mm, v)
+
+    # --- 5. SIGNATURES ---
+    curr_y -= 25 * mm
+    pdf.drawString(width - margin - 50 * mm, curr_y, "le ________________")
+    
+    curr_y -= 15 * mm
+    pdf.setFont("Helvetica-Bold", 9)
+    pdf.drawString(margin + 5 * mm, curr_y, "Le Responsable hiérarchique")
+    pdf.drawRightString(width - margin - 5 * mm, curr_y, "L'intéressé")
+
+    pdf.showPage()
+    pdf.save()
+    buffer.seek(0)
+    return HttpResponse(buffer.getvalue(), content_type='application/pdf')
+
+
 
 class StructureViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Structure.objects.all()
@@ -81,9 +253,14 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         
-        # Pour les actions de validation, le manager/RH a besoin d'accéder à la demande d'un autre employé
-        if self.action in ['valider_responsable', 'refuser_responsable', 'approuver_rh', 'refuser', 'retrieve']:
+        # Actions de gestion et listage global pour le staff RH et Admin
+        if self.action in ['valider_responsable', 'refuser_responsable', 'approuver_rh', 'refuser', 'retrieve', 'list']:
             if user.is_superuser or user.role in ['responsable_rh', 'directeur_rh', 'responsable_hierarchique']:
+                return DemandeConge.objects.all()
+
+        # Action spécifique de téléchargement : Restreint au Staff RH et au Propriétaire
+        if self.action == 'download_titre':
+            if user.is_superuser or user.role == 'responsable_rh':
                 return DemandeConge.objects.all()
 
         # L'endpoint de base /api/demandes/ retourne TOUJOURS les demandes
@@ -130,30 +307,34 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
 
         return Response([])
 
+    @action(detail=True, methods=['get'])
+    def download_titre(self, request, pk=None):
+        demande = self.get_object()
+        try:
+            titre = demande.titreconge
+        except TitreConge.DoesNotExist:
+            return Response({'detail': 'Le titre de congé n’existe pas encore pour cette demande.'}, status=status.HTTP_404_NOT_FOUND)
+
+        return _build_titre_pdf_response(titre)
+
     def perform_create(self, serializer):
         employe = getattr(self.request.user, 'employe', None)
         if not employe:
-            from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Votre compte n'est lié à un profil employé.")
         
-        # Gestion du justificatif
-        print("--- DEBUG REQUEST DATA ---")
-        print("request.data:", self.request.data)
-        print("request.FILES:", self.request.FILES)
-        
-        justificatif_file = self.request.data.get('justificatif_file') or self.request.FILES.get('justificatif_file')
-        
-        from rest_framework.exceptions import ValidationError as DRFValidationError
-        from django.core.exceptions import ValidationError as DjangoValidationError
+        # Extraction du fichier avec vérification des deux clés possibles
+        justificatif_file = self.request.FILES.get('justificatif') or self.request.FILES.get('justificatif_file')
         
         # Validation : est-ce que c'est un congé maladie ou exceptionnel ?
         type_conge = serializer.validated_data.get('type_conge')
         if type_conge and (type_conge.est_exceptionnel or 'maladie' in type_conge.nomType.lower()):
             if not justificatif_file:
-                raise DRFValidationError({'error': f"Un justificatif est obligatoire pour un congé de type : {type_conge.nomType}."})
+                from rest_framework.exceptions import ValidationError as DRFValidationError
+                raise DRFValidationError({'justificatif': f"Un justificatif est obligatoire pour ce type de congé."})
             
-        # Sauvegarde de la demande avec gestion des erreurs de validation du modèle
         try:
+            from django.core.exceptions import ValidationError as DjangoValidationError
+            from rest_framework.exceptions import ValidationError as DRFValidationError
             demande = serializer.save(employe=employe, justificatif=justificatif_file)
         except DjangoValidationError as e:
             if hasattr(e, 'messages'):
@@ -301,6 +482,28 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
             description=f"Votre demande de congé a malheureusement été refusée. Motif : {raison}"
         )
         return Response({'status': 'Demande refusée.'})
+
+class TitreCongeViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = TitreConge.objects.select_related('employe', 'exercice', 'demande').all()
+    serializer_class = TitreCongeSerializer
+    permission_classes = [IsEmploye]
+
+    def get_queryset(self):
+        user = self.request.user
+        # Le staff RH (et l'admin) peut voir tous les titres pour permettre le téléchargement
+        if user.is_superuser or user.role == 'responsable_rh':
+            return self.queryset
+            
+        employe = getattr(user, 'employe', None)
+        if employe:
+            return self.queryset.filter(employe=employe)
+        return TitreConge.objects.none()
+
+    @action(detail=True, methods=['get'])
+    def download(self, request, pk=None):
+        titre = self.get_object()
+        return _build_titre_pdf_response(titre)
+
 
 class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = NotificationSerializer

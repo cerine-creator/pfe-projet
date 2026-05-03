@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axiosConfig';
-import { useAuth } from '../context/AuthContext';
-import { CheckCircle, XCircle, FileText, Search, User, Calendar, Clock } from 'lucide-react';
+import { useAuth } from '../context/AuthContext'; // Correction: Import de useAuth
+import { CheckCircle, XCircle, FileText, Search, User, Calendar, Clock, Download } from 'lucide-react';
 import './validation.css';
 
 export default function Validation() {
@@ -12,9 +12,34 @@ export default function Validation() {
   const [selectedDemande, setSelectedDemande] = useState<any | null>(null);
   const [showRefusalInput, setShowRefusalInput] = useState(false);
   const [refusalReason, setRefusalReason] = useState("");
+  const [justificatifLoading, setJustificatifLoading] = useState(false);
 
   const isRH = user?.role === 'responsable_rh' || user?.role === 'directeur_rh';
   const isManager = user?.role === 'responsable_hierarchique';
+
+  // ✅ On télécharge le fichier directement pour éviter les problèmes d'affichage (page blanche)
+  const downloadJustificatif = async (url: string) => {
+    setJustificatifLoading(true);
+    try {
+      const response = await api.get(url, { responseType: 'blob' });
+      const blob = new Blob([response.data], { type: response.headers['content-type'] || 'application/octet-stream' });
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      
+      const extension = response.headers['content-type']?.split('/')[1] || 'bin';
+      link.download = `justificatif_${selectedDemande?.employe_noms?.replace(/\s+/g, '_') || 'conge'}.${extension}`;
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(downloadUrl);
+    } catch (e) {
+      alert("Impossible de télécharger le document justificatif.");
+    } finally {
+      setJustificatifLoading(false);
+    }
+  };
 
   const fetchDemandes = () => {
     setLoading(true);
@@ -64,7 +89,7 @@ export default function Validation() {
       setProcessingId(null);
     }
   };
-
+   
   return (
     <div className="validation-page">
       <div className="validation-header">
@@ -86,7 +111,7 @@ export default function Validation() {
           </div>
 
           <div className="badge-count">
-            {demandes.length} demande(s) en attente
+            {demandes.length} demande(s) en attente // Correction: Ajout d'un espace
           </div>
         </div>
 
@@ -209,14 +234,17 @@ export default function Validation() {
                   <div>
                     <div className="detail-label">Justificatif</div>
                     <div className="detail-value">
-                      <a 
-                        href={`http://localhost:8000${selectedDemande.justificatif_url}`} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        style={{ color: 'var(--primary)', textDecoration: 'underline', fontWeight: 500 }}
+                      <button
+                        onClick={() => downloadJustificatif(selectedDemande.justificatif_url)}
+                        disabled={justificatifLoading}
+                        style={{ 
+                          background: 'none', border: 'none', padding: 0,
+                          color: 'var(--primary)', textDecoration: 'underline', 
+                          fontWeight: 500, cursor: 'pointer' 
+                        }}
                       >
-                        Voir le document
-                      </a>
+                        {justificatifLoading ? 'Téléchargement...' : 'Télécharger le justificatif'}
+                      </button>
                     </div>
                   </div>
                 )}
@@ -274,6 +302,7 @@ export default function Validation() {
           </div>
         </div>
       )}
+
     </div>
   );
 }

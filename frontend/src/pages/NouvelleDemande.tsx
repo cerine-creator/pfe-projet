@@ -12,6 +12,7 @@ export default function NouvelleDemande() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<{type: 'success'|'error', text: string} | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const [natureConge, setNatureConge] = useState<'annuel'|'exceptionnel'|'sans_solde'|'maladie'|''>('');
   const [file, setFile] = useState<File | null>(null);
@@ -47,7 +48,16 @@ export default function NouvelleDemande() {
       // Auto-sélectionner le premier exercice non clôturé
       const activeEx = exList.find((ex: any) => !ex.est_cloture);
       if (activeEx) setFormData(prev => ({ ...prev, exercice: activeEx.id }));
-    }).catch(e => console.error(e))
+      if (exList.length === 0) {
+        setFetchError("Aucun exercice n'est disponible. Veuillez contacter l'administrateur.");
+      }
+      if (typesList.length === 0) {
+        setFetchError("Aucun type de congé n'est disponible. Veuillez contacter l'administrateur.");
+      }
+    }).catch(e => {
+      console.error(e);
+      setFetchError("Impossible de charger les données du formulaire. Vérifiez votre connexion ou reconnectez-vous.");
+    })
       .finally(() => setLoading(false));
   }, []);
 
@@ -163,6 +173,12 @@ export default function NouvelleDemande() {
         <p className="page-subtitle">Remplissez les informations ci-dessous pour soumettre votre congé.</p>
       </div>
 
+      {fetchError && (
+        <div className="msg-banner msg-error" style={{ marginBottom: '16px' }}>
+          <AlertCircle size={20} /> {fetchError}
+        </div>
+      )}
+
       <div className="card-minimal">
         <form onSubmit={handleSubmit}>
           
@@ -191,7 +207,9 @@ export default function NouvelleDemande() {
                 required
                 value={formData.exercice}
                 onChange={e => setFormData({...formData, exercice: e.target.value})}
+                disabled={exercices.length === 0}
               >
+                <option value="">{exercices.length === 0 ? 'Aucun exercice disponible' : 'Sélectionner un exercice...'}</option>
                 {exercices.map(ex => <option key={ex.id} value={ex.id}>{ex.libelle} {ex.est_cloture ? '(Clôturé)' : '(Actuel)'}</option>)}
               </select>
             </div>

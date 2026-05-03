@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axiosConfig';
-import { FileText, Search, PlusCircle, Download, Eye, X } from 'lucide-react';
+import { FileText, Search, PlusCircle, Download, Eye, X, XCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './demandes.css';
 
@@ -12,7 +12,52 @@ export default function Demandes() {
   const [statusFilter, setStatusFilter] = useState('Tous');
   const [durationSort, setDurationSort] = useState('Aucun');
   const [selectedDemande, setSelectedDemande] = useState<any | null>(null);
+  const [justificatifLoading, setJustificatifLoading] = useState(false);
 
+  const downloadTitre = async (downloadUrl: string, fallbackFilename: string) => {
+    try {
+      const response = await api.get(downloadUrl, { responseType: 'blob' });
+      const blob = new Blob([response.data], { type: response.headers['content-type'] || 'application/pdf' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.href = url;
+      const disposition = response.headers['content-disposition'] || '';
+      const match = disposition.match(/filename="?([^";]+)"?/);
+      const filename = match ? match[1] : fallbackFilename;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erreur téléchargement titre :', error);
+      alert('Impossible de télécharger le titre de congé.');
+    }
+  };
+
+  // ✅ On télécharge le justificatif au lieu de l'afficher pour éviter la "page blanche"
+  const downloadJustificatif = async (url: string) => {
+    setJustificatifLoading(true);
+    try {
+      const response = await api.get(url, { responseType: 'blob' });
+      const blob = new Blob([response.data], { type: response.headers['content-type'] || 'application/octet-stream' });
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      
+      const extension = response.headers['content-type']?.split('/')[1] || 'bin';
+      link.download = `justificatif_conge.${extension}`;
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(downloadUrl);
+    } catch (e) {
+      alert("Erreur lors du téléchargement du justificatif.");
+    } finally {
+      setJustificatifLoading(false);
+    }
+  };
   useEffect(() => {
     api.get('/demandes/')
       .then(res => {
@@ -130,7 +175,14 @@ export default function Demandes() {
                   <td className="td-cell-right">
                      <div className="action-group">
                         {d.statut === 'approuvee' && (
-                          <button className="btn-icon" title="Télécharger le titre">
+                          <button
+                            className="btn-icon"
+                            title={d.titre_download_url || `Télécharger le titre`}
+                            onClick={() => {
+                              const downloadUrl = d.titre_download_url || `/demandes/${d.id}/download_titre/`;
+                              downloadTitre(downloadUrl, `titre-conge-${d.id}.pdf`);
+                            }}
+                          >
                              <Download size={18} />
                           </button>
                         )}
@@ -174,14 +226,17 @@ export default function Demandes() {
               {selectedDemande.justificatif_url && (
                 <p style={{ margin: 0, marginTop: '8px' }}>
                   <strong>Justificatif :</strong>{' '}
-                  <a 
-                    href={`http://localhost:8000${selectedDemande.justificatif_url}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    style={{ color: 'var(--primary)', textDecoration: 'underline', fontWeight: 500 }}
+                  <button 
+                    onClick={() => downloadJustificatif(selectedDemande.justificatif_url)}
+                    disabled={justificatifLoading}
+                    style={{ 
+                      background: 'none', border: 'none', padding: 0,
+                      color: 'var(--primary)', textDecoration: 'underline', 
+                      fontWeight: 500, cursor: 'pointer' 
+                    }}
                   >
-                    Voir le document joint
-                  </a>
+                    {justificatifLoading ? 'Téléchargement...' : 'Télécharger le justificatif'}
+                  </button>
                 </p>
               )}
             </div>

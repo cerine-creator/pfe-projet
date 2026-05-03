@@ -1,3 +1,4 @@
+from django.core.validators import RegexValidator
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.conf import settings
@@ -77,10 +78,23 @@ class Employe(models.Model):
         ('sud', 'Personnel au Sud (45j)'),
     ]
 
-    matricule = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    matricule = models.CharField(
+        max_length=12,
+        unique=True,
+        null=True,
+        blank=True,
+        validators=[RegexValidator(r'^\d{12}$', 'Le matricule doit contenir exactement 12 chiffres.')],
+        help_text='Entrez un matricule de 12 chiffres.',
+    )
     nomEmpl = models.CharField(max_length=100)
     prenomEmpl = models.CharField(max_length=100)
-    numTel = models.CharField(max_length=20, blank=True, null=True)
+    numTel = models.CharField(
+        max_length=10,
+        blank=True,
+        null=True,
+        validators=[RegexValidator(r'^\d{10}$', 'Le numéro doit contenir exactement 10 chiffres.')],
+        help_text='Entrez un numéro de téléphone de 10 chiffres.',
+    )
     dateRecrutement = models.DateField()
     categorie = models.CharField(max_length=20, choices=CATEGORIE_CHOICES, default='sol', help_text="Détermine le quota de congés annuel (30j ou 45j)")
     

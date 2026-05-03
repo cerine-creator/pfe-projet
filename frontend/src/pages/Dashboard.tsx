@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/axiosConfig';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -12,6 +13,7 @@ import './dashboard.css';
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState({ solde: 0, attente: 0, pris: 0 });
   const [loading, setLoading] = useState(true);
 
@@ -97,7 +99,7 @@ export default function Dashboard() {
             <p>Planifiez votre prochaine absence en quelques clics.</p>
           </div>
         </div>
-        <button className="btn-primary" onClick={() => window.location.href='/conges/nouvelle-demande'}>
+        <button className="btn-primary" onClick={() => navigate('/conges/nouvelle-demande')}>
            Soumettre maintenant <ArrowRightCircle size={20} />
         </button>
       </div>

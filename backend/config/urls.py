@@ -13,6 +13,7 @@ router.register('exercices', conges_views.ExerciceViewSet, basename='exercice')
 # Les entités principales
 router.register('employes', conges_views.EmployeViewSet, basename='employe')
 router.register('demandes', conges_views.DemandeCongeViewSet, basename='demande')
+router.register('titres', conges_views.TitreCongeViewSet, basename='titre')
 router.register('notifications', conges_views.NotificationViewSet, basename='notification')
 
 from django.conf import settings
