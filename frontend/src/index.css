@@ -721,4 +721,8 @@ body.mobile-menu-open {
     max-height: 60vh;
   }
 }
+button {
+  background-color: #da0027 !important;
+  color: white !important;
+}
 

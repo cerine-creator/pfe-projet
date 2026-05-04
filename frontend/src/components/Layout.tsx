@@ -72,7 +72,7 @@ export default function Layout() {
               </NavLink>
             )}
 
-            {user.role === 'directeur_rh' && (
+            {(user.role === 'responsable_rh' || user.role === 'directeur_rh') && (
               <NavLink to="/rh/statistiques" className={({isActive}) => `sidebar-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
                 <PieChart size={18} /> Stats RH
               </NavLink>
