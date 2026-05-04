@@ -183,12 +183,12 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
         # Employés présents (total - absents)
         employes_presents = total_employes - len(employes_absents)
 
-        # Demandes ce mois par structure
+        # Demandes ce mois par structure (seulement les Directions)
         current_month = timezone.now().month
         current_year = timezone.now().year
 
         demandes_par_structure = []
-        structures = Structure.objects.all()
+        structures = Structure.objects.filter(niveau__icontains='Direction')
         for structure in structures:
             count = DemandeConge.objects.filter(
                 employe__structure=structure,
@@ -200,12 +200,26 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
                 'demandes': count
             })
 
+        # Employé avec le plus de congés (Exercice actuel)
+        employe_plus_conges = None
+        current_exercice = Exercice.objects.filter(est_cloture=False).first()
+        if current_exercice:
+            top_droit = DroitConge.objects.filter(exercice=current_exercice).order_by('-nbrJConsome').first()
+            if top_droit and top_droit.nbrJConsome > 0:
+                employe_plus_conges = {
+                    'id': top_droit.employe.id,
+                    'nom': f"{top_droit.employe.prenomEmpl} {top_droit.employe.nomEmpl}",
+                    'structure': top_droit.employe.structure.libelle if top_droit.employe.structure else 'N/A',
+                    'jours_consommes': top_droit.nbrJConsome
+                }
+
         return Response({
             'employes_en_conge': len(employes_absents),
             'employes_absents': employes_absents,
             'employes_presents': employes_presents,
             'total_employes': total_employes,
-            'demandes_ce_mois_par_structure': demandes_par_structure
+            'demandes_ce_mois_par_structure': demandes_par_structure,
+            'employe_plus_conges': employe_plus_conges
         })
 
     def perform_create(self, serializer):

@@ -181,7 +181,7 @@
 }
 
 .bar-value {
-  color: white;
+  color: #000;
   font-weight: 600;
   font-size: 0.85rem;
 }
@@ -208,6 +208,14 @@
   background: var(--bg-tertiary);
   border-radius: 8px;
   border-left: 4px solid #f59e0b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.absent-item:hover {
+  background: var(--bg-secondary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
 
 .absent-info {
@@ -305,6 +313,49 @@
   opacity: 0.6;
 }
 
+/* Top Consumer */
+.top-consumer-card {
+  background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+  border-radius: 12px;
+  padding: 1.5rem;
+  color: white;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.top-consumer-icon {
+  background: rgba(255, 255, 255, 0.2);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.top-consumer-info h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.1rem;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.top-consumer-info .top-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+}
+
+.top-consumer-info .top-details {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.95rem;
+  opacity: 0.9;
+}
+
 /* Boutons */
 .btn-primary {
   background: var(--primary-color);
@@ -346,7 +397,8 @@
 }
 
 .modal-content {
-  background: var(--bg-secondary);
+  background: #ffffff;
+  color: #1f2937;
   border-radius: 12px;
   width: 90%;
   max-width: 500px;
@@ -370,7 +422,7 @@
 .modal-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #111827;
   margin: 0;
 }
 
@@ -398,7 +450,7 @@
 .form-group label {
   display: block;
   font-weight: 500;
-  color: var(--text-primary);
+  color: #374151;
   margin-bottom: 0.5rem;
 }
 
@@ -406,10 +458,10 @@
 .form-group textarea {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid #d1d5db;
   border-radius: 8px;
-  background: var(--bg-primary);
-  color: var(--text-primary);
+  background: #f9fafb;
+  color: #111827;
   font-size: 1rem;
 }
 
@@ -463,6 +515,28 @@
 .btn-approve:disabled {
   background: var(--text-muted);
   cursor: not-allowed;
+}
+
+/* Employee Details Modal */
+.employee-details-modal .detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.employee-details-modal .detail-row:last-child {
+  border-bottom: none;
+}
+
+.employee-details-modal .detail-label {
+  color: #4b5563;
+  font-weight: 500;
+}
+
+.employee-details-modal .detail-value {
+  color: #111827;
+  font-weight: 600;
 }
 
 /* État de chargement */

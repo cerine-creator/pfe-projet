@@ -9,7 +9,8 @@ import {
   Calendar,
   Plus,
   Eye,
-  TrendingUp
+  TrendingUp,
+  Award
 } from 'lucide-react';
 import './dashboard-drh.css';
 
@@ -29,6 +30,12 @@ interface StatsDRH {
     structure: string;
     demandes: number;
   }>;
+  employe_plus_conges?: {
+    id: number;
+    nom: string;
+    structure: string;
+    jours_consommes: number;
+  } | null;
 }
 
 interface CalendarNote {
@@ -49,6 +56,7 @@ export default function DashboardDRH() {
   const [selectedDate, setSelectedDate] = useState('');
   const [noteTitle, setNoteTitle] = useState('');
   const [noteDescription, setNoteDescription] = useState('');
+  const [selectedEmploye, setSelectedEmploye] = useState<StatsDRH['employes_absents'][0] | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -120,7 +128,7 @@ export default function DashboardDRH() {
     <div className="dashboard-drh">
       <div className="page-header">
         <h1 className="page-title-lg">
-          Tableau de Bord <span className="text-primary">DRH</span>
+          Tableau de Bord <span className="text-primary">{user?.role === 'directeur_rh' ? 'DRH' : 'RH'}</span>
         </h1>
         <p className="page-subtitle">
           Vue d'ensemble de l'activité des congés et gestion du planning.
@@ -173,29 +181,47 @@ export default function DashboardDRH() {
       </div>
 
       <div className="dashboard-content">
-        {/* --- GRAPHIQUE DES DEMANDES PAR STRUCTURE --- */}
-        <div className="chart-section">
-          <div className="section-header">
-            <h2 className="section-title">Demandes de congé ce mois par structure</h2>
+        {/* --- TOP CONSOMMATEUR DE CONGÉS (DRH uniquement) --- */}
+        {user?.role === 'directeur_rh' && stats?.employe_plus_conges && (
+          <div className="top-consumer-card" style={{ gridColumn: '1 / -1' }}>
+            <div className="top-consumer-icon">
+              <Award size={32} color="white" />
+            </div>
+            <div className="top-consumer-info">
+              <h3>Employé ayant pris le plus de congés (Exercice actuel)</h3>
+              <div className="top-name">{stats.employe_plus_conges.nom}</div>
+              <div className="top-details">
+                <span><Users size={14} style={{display: 'inline', marginRight: '4px', verticalAlign: 'middle'}}/> {stats.employe_plus_conges.structure}</span>
+                <span><Calendar size={14} style={{display: 'inline', marginRight: '4px', verticalAlign: 'middle'}}/> {stats.employe_plus_conges.jours_consommes} jours consommés</span>
+              </div>
+            </div>
           </div>
-          <div className="chart-container">
-            {stats?.demandes_ce_mois_par_structure.map((item, index) => (
-              <div key={index} className="chart-bar">
-                <div className="bar-label">{item.structure}</div>
-                <div className="bar-container">
-                  <div
-                    className="bar-fill"
-                    style={{
-                      width: `${Math.max((item.demandes / Math.max(...stats.demandes_ce_mois_par_structure.map(s => s.demandes))) * 100, 5)}%`
-                    }}
-                  >
-                    <span className="bar-value">{item.demandes}</span>
+        )}
+        {/* --- GRAPHIQUE DES DEMANDES PAR STRUCTURE (Uniquement DRH) --- */}
+        {user?.role === 'directeur_rh' && (
+          <div className="chart-section">
+            <div className="section-header">
+              <h2 className="section-title">Demandes de congé ce mois par structure</h2>
+            </div>
+            <div className="chart-container">
+              {stats?.demandes_ce_mois_par_structure.map((item, index) => (
+                <div key={index} className="chart-bar">
+                  <div className="bar-label">{item.structure}</div>
+                  <div className="bar-container">
+                    <div
+                      className="bar-fill"
+                      style={{
+                        width: `${Math.max((item.demandes / Math.max(...stats.demandes_ce_mois_par_structure.map(s => s.demandes))) * 100, 5)}%`
+                      }}
+                    >
+                      <span className="bar-value">{item.demandes}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* --- EMPLOYÉS ABSENTS --- */}
         <div className="absents-section">
@@ -210,7 +236,11 @@ export default function DashboardDRH() {
               </div>
             ) : (
               stats?.employes_absents.map((emp) => (
-                <div key={emp.id} className="absent-item">
+                <div 
+                  key={emp.id} 
+                  className="absent-item" 
+                  onClick={() => setSelectedEmploye(emp)}
+                >
                   <div className="absent-info">
                     <div className="absent-name">{emp.nom}</div>
                     <div className="absent-details">
@@ -321,6 +351,45 @@ export default function DashboardDRH() {
                 disabled={!noteTitle.trim() || !selectedDate}
               >
                 Ajouter la note
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- MODAL DÉTAILS EMPLOYÉ --- */}
+      {selectedEmploye && (
+        <div className="modal-overlay" onClick={() => setSelectedEmploye(null)}>
+          <div className="modal-content employee-details-modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title">Détails de l'employé</h2>
+              <button onClick={() => setSelectedEmploye(null)} className="modal-close-btn">
+                <UserX size={24} color="var(--text-muted)" />
+              </button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="detail-row">
+                <span className="detail-label">Nom complet</span>
+                <span className="detail-value">{selectedEmploye.nom}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Structure</span>
+                <span className="detail-value">{selectedEmploye.structure}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Type de congé en cours</span>
+                <span className="detail-value">{selectedEmploye.type_conge}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Période d'absence</span>
+                <span className="detail-value">Du {selectedEmploye.date_debut} au {selectedEmploye.date_fin}</span>
+              </div>
+            </div>
+            
+            <div className="modal-actions" style={{ justifyContent: 'center' }}>
+              <button className="btn-action btn-cancel" onClick={() => setSelectedEmploye(null)}>
+                Fermer
               </button>
             </div>
           </div>
