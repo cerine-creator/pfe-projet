@@ -9,8 +9,11 @@ import {
   ShieldCheck, 
   PieChart, 
   LogOut,
-  Menu
+  Menu,
+  Sun,
+  Moon
 } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 import './layout.css';
 
 export default function Layout() {
@@ -18,6 +21,7 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
   
   if (!user) return null;
 
@@ -38,6 +42,14 @@ export default function Layout() {
       <header className="mobile-header">
         <img src="/logo.svg" alt="Air Algérie" className="mobile-logo" />
         <div className="mobile-header-right">
+          <button
+            type="button"
+            className="notif-btn theme-toggle-btn"
+            onClick={toggleTheme}
+            aria-label="Changer le thème"
+          >
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
           <NotificationBell />
           <button
             type="button"
@@ -157,6 +169,14 @@ export default function Layout() {
       <div className="content-wrapper">
         <header className="content-header">
           <div className="content-header-right">
+            <button
+              type="button"
+              className="notif-btn theme-toggle-btn"
+              onClick={toggleTheme}
+              aria-label="Changer le thème"
+            >
+              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
             <NotificationBell />
           </div>
         </header>

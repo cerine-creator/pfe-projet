@@ -54,6 +54,38 @@
   border-top: 1px solid var(--border-color);
 }
 
+/* ─── Solde badge ─── */
+.solde-badge {
+  margin-top: 20px;
+  background: var(--sidebar-active-bg);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.solde-number {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.solde-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ─── Loading state ─── */
+.profil-loading {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  padding: 20px 0;
+}
+
 /* .btn-primary used for editing */
 
 /* ─── Info card ─── */
