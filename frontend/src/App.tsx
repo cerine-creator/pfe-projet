@@ -8,14 +8,22 @@ import Demandes from './pages/Demandes'
 import Profil from './pages/Profil'
 import NouvelleDemande from './pages/NouvelleDemande'
 import Validation from './pages/Validation'
+import DashboardDRH from './pages/DashboardDRH'
 
 /**
- * Redirection de racine : 
- * Tout le monde va vers /dashboard, car le Dashboard s'adapte au rôle.
+ * Redirection de racine :
+ * - DRH (responsable_rh, directeur_rh) → /rh/statistiques
+ * - Autres → /dashboard
  */
 const RoleBasedRedirect = () => {
   const { user } = useAuth()
   if (!user) return <Navigate to="/login" replace />
+
+  // Redirection automatique pour les comptes DRH
+  if (user.role === 'responsable_rh' || user.role === 'directeur_rh') {
+    return <Navigate to="/rh/statistiques" replace />
+  }
+
   return <Navigate to="/dashboard" replace />
 }
 
@@ -40,7 +48,7 @@ export default function App() {
         <Route path="/validation/equipe" element={<Validation />} />
         
         {/* RH (Directeur) */}
-        <Route path="/rh/statistiques" element={<div className="card-minimal"><h1>Statistiques Globales RH</h1><p>En cours de développement...</p></div>} />
+        <Route path="/rh/statistiques" element={<DashboardDRH />} />
         
       </Route>
 

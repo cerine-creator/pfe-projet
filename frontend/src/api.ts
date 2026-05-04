@@ -6,6 +6,16 @@ const api = axios.create({
   baseURL: API_BASE_URL,
 });
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
+});
+
 export interface Employe {
   id: number;
   nom: string;
@@ -15,20 +25,16 @@ export interface Employe {
   role: string;
   service?: string;
   jours_conges_restants: number;
-}
+};
 
 export const fetchEmployees = async () => {
-    // For MVC: bypassing auth headers
-    const response = await api.get<Employe[]>('employes/');
-    return response.data;
+  const response = await api.get<Employe[]>('employes/');
+  return response.data;
 };
 
 export const fetchMyTeam = async () => {
-    // Note: This endpoint normally requires auth and IsResponsable. 
-    // We will bypass actual session auth for this frontend MVC mockup by just fetching all employees 
-    // and filtering them in the frontend so we don't need complex JWT login yet.
-    const response = await api.get<Employe[]>('employes/');
-    return response.data;
+  const response = await api.get<Employe[]>('employes/');
+  return response.data;
 };
 
 export default api;
