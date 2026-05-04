@@ -276,3 +276,19 @@ class Notification(models.Model):
         verbose_name = 'Notification'
         verbose_name_plural = 'Notifications'
         ordering = ['-dateNotif', '-heureNotif']
+
+class CalendarNote(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    date = models.DateField()
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Note de calendrier'
+        verbose_name_plural = 'Notes de calendrier'
+        ordering = ['date', 'created_at']
+
+    def __str__(self):
+        return f"{self.title} - {self.date}"

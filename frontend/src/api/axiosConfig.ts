@@ -35,18 +35,24 @@ export const tokenStore = {
 const api = axios.create({
   baseURL: 'http://127.0.0.1:8000/api',
   withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
-// ─── Intercepteur de requête : injecte le Bearer token ──────────────────────
+// ─── Intercepteur de requête : injecte le Bearer token et gère FormData ───
 
 api.interceptors.request.use((config) => {
   const token = tokenStore.getAccess();
   if (token && config.headers) {
     config.headers['Authorization'] = `Bearer ${token}`;
   }
+
+  if (config.headers) {
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    } else {
+      config.headers['Content-Type'] = 'application/json';
+    }
+  }
+
   return config;
 });
 

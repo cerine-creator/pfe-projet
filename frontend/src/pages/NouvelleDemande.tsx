@@ -141,15 +141,11 @@ export default function NouvelleDemande() {
         
         const payload = new FormData();
         Object.keys(finalData).forEach(key => {
-           if (finalData[key] !== '') payload.append(key, finalData[key]);
+          if (finalData[key] !== '') payload.append(key, finalData[key]);
         });
-        payload.append('justificatif_file', file, file.name);
-        
-        await api.post('/demandes/', payload, {
-          headers: {
-            'Content-Type': undefined // Laisse le navigateur gérer le boundary
-          }
-        });
+        payload.append('justificatif', file, file.name);
+
+        await api.post('/demandes/', payload);
       } else {
         await api.post('/demandes/', finalData);
       }

@@ -13,6 +13,8 @@ export default function Validation() {
   const [showRefusalInput, setShowRefusalInput] = useState(false);
   const [refusalReason, setRefusalReason] = useState("");
   const [justificatifLoading, setJustificatifLoading] = useState(false);
+  const [historiqueDemandes, setHistoriqueDemandes] = useState<any[]>([]);
+  const [historiqueFilter, setHistoriqueFilter] = useState('Tous');
 
   const isRH = user?.role === 'responsable_rh' || user?.role === 'directeur_rh';
   const isManager = user?.role === 'responsable_hierarchique';
@@ -58,8 +60,18 @@ export default function Validation() {
       .finally(() => setLoading(false));
   };
 
+  const fetchHistorique = () => {
+    api.get('/demandes/historique/')
+      .then(res => {
+        const list = Array.isArray(res.data) ? res.data : (res.data?.results ?? []);
+        setHistoriqueDemandes(list);
+      })
+      .catch(e => console.error(e));
+  };
+
   useEffect(() => {
     fetchDemandes();
+    fetchHistorique();
   }, [user]);
 
   const handleAction = async (id: number, action: 'approve' | 'reject') => {
@@ -186,6 +198,82 @@ export default function Validation() {
                   </td>
                 </tr>
               ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="card-minimal card-no-padding" style={{ marginTop: '24px' }}>
+        <div className="table-toolbar-light">
+          <div>
+            <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>Historique des décisions</h2>
+            <p className="page-subtitle" style={{ margin: '8px 0 0 0' }}>
+              Consultez les demandes que vous avez approuvées ou refusées.
+            </p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <label htmlFor="historique-filter" style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Filtrer :</label>
+            <select
+              id="historique-filter"
+              className="filter-select"
+              value={historiqueFilter}
+              onChange={e => setHistoriqueFilter(e.target.value)}
+            >
+              <option value="Tous">Tous les statuts</option>
+              <option value="approuvee">Approuvées</option>
+              <option value="refusee">Refusées</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="table-body">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th className="th-cell">EMPLOYÉ</th>
+                <th className="th-cell">STATUT</th>
+                <th className="th-cell">PÉRIODE</th>
+                <th className="th-cell-right">DATE</th>
+              </tr>
+            </thead>
+            <tbody>
+              {historiqueDemandes.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="td-cell" style={{ textAlign: 'center', padding: '50px', color: 'var(--text-muted)' }}>
+                    <div className="empty-state">
+                      <span className="empty-title">Aucun historique pour le moment.</span>
+                      <span className="empty-sub">Les demandes apparaîtront ici après approbation ou refus.</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : historiqueDemandes
+                  .filter(d => historiqueFilter === 'Tous' ? true : d.statut === historiqueFilter)
+                  .map(d => (
+                    <tr key={d.id} className="table-row row-hover">
+                      <td className="td-cell">
+                        <div className="employee-cell">
+                          <div className="avatar-placeholder">
+                            <User size={20} color="var(--primary)" />
+                          </div>
+                          <div>
+                            <div className="employee-name">{d.employe_noms}</div>
+                            <div className="employee-date">{d.type_conge_nom || 'Congé'}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span className={d.statut === 'approuvee' ? 'badge-success' : 'badge-danger'}>
+                          {d.statut_display}
+                        </span>
+                      </td>
+                      <td>
+                        Du {d.date_debut} au {d.date_fin}
+                      </td>
+                      <td className="td-cell-right">
+                        {d.dateDemande}
+                      </td>
+                    </tr>
+                  ))}
             </tbody>
           </table>
         </div>

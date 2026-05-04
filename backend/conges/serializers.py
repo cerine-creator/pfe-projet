@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     Structure, Fonction, TypeConge, Exercice,
-    Employe, DroitConge, DemandeConge, TitreConge, Notification
+    Employe, DroitConge, DemandeConge, TitreConge, Notification, CalendarNote
 )
 
 class StructureSerializer(serializers.ModelSerializer):
@@ -55,12 +55,12 @@ class DroitCongeSerializer(serializers.ModelSerializer):
         fields = ['id', 'nbrJCumule', 'nbrJConsome', 'nbrJRes', 'exercice', 'exercice_libelle']
 
 class DemandeCongeSerializer(serializers.ModelSerializer):
-    # Affichage riche pour le frontend
-    employe_noms = serializers.SerializerMethodField()
+    justificatif = serializers.FileField(required=False, allow_null=True)
+    justificatif_url = serializers.FileField(source='justificatif', read_only=True)
+    employe_noms = serializers.SerializerMethodField(read_only=True)
     type_conge_nom = serializers.CharField(source='type_conge.nomType', read_only=True)
     motif_display = serializers.CharField(source='get_motif_display', read_only=True)
     statut_display = serializers.CharField(source='get_statut_display', read_only=True)
-    justificatif_url = serializers.SerializerMethodField()
     titre_id = serializers.IntegerField(source='titreconge.id', read_only=True)
     titre_ref = serializers.CharField(source='titreconge.ref', read_only=True)
     titre_download_url = serializers.SerializerMethodField()
@@ -70,10 +70,14 @@ class DemandeCongeSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'employe', 'employe_noms', 'exercice', 'type_conge', 
             'type_conge_nom', 'date_debut', 'date_fin', 'duree', 
-            'motif', 'motif_display', 'statut', 'statut_display', 'dateDemande', 'justificatif', 'justificatif_url',
+            'motif', 'motif_display', 'statut', 'statut_display', 
+            'dateDemande', 'justificatif', 'justificatif_url',
             'titre_id', 'titre_ref', 'titre_download_url'
         ]
-        read_only_fields = ['duree', 'statut', 'dateDemande', 'employe', 'justificatif_url', 'titre_id', 'titre_ref', 'titre_download_url']
+        read_only_fields = [
+            'duree', 'statut', 'dateDemande', 'employe', 
+            'justificatif_url', 'titre_id', 'titre_ref', 'titre_download_url'
+        ]
 
     def get_justificatif_url(self, obj):
         if obj.justificatif:
@@ -101,3 +105,11 @@ class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = '__all__'
+
+class CalendarNoteSerializer(serializers.ModelSerializer):
+    created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
+
+    class Meta:
+        model = CalendarNote
+        fields = ['id', 'title', 'description', 'date', 'created_by', 'created_by_name', 'created_at', 'updated_at']
+        read_only_fields = ['created_by', 'created_at', 'updated_at']
