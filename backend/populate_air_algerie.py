@@ -218,7 +218,7 @@ def run():
     if not DemandeConge.objects.filter(employe=amina, statut='en_attente_resp').exists():
         DemandeConge.objects.create(
             employe=amina, type_conge=annuel,
-            date_debut=date(2026, 5, 1), date_fin=date(2026, 5, 10),
+            date_debut=date(2026, 6, 1), date_fin=date(2026, 6, 10),
             exercice=ex_2024, statut='en_attente_resp'
         )
         print(f"Workflow 1: Amina (PNC) -> En attente de son manager Selma")
@@ -228,7 +228,7 @@ def run():
     if not DemandeConge.objects.filter(employe=samir, statut='en_attente_rh').exists():
         DemandeConge.objects.create(
             employe=samir, type_conge=annuel,
-            date_debut=date(2026, 6, 1), date_fin=date(2026, 6, 10),
+            date_debut=date(2026, 7, 1), date_fin=date(2026, 7, 10),
             exercice=ex_2024, statut='en_attente_rh'
         )
         print(f"Workflow 2: Samir (Technics) -> En attente de validation RH (Fatima/Tarik)")
@@ -238,7 +238,7 @@ def run():
     if not DemandeConge.objects.filter(employe=said, statut='refusee').exists():
         DemandeConge.objects.create(
             employe=said, type_conge=annuel,
-            date_debut=date(2026, 7, 20), date_fin=date(2026, 7, 25),
+            date_debut=date(2026, 8, 20), date_fin=date(2026, 8, 25),
             exercice=ex_2024, statut='refusee'
         )
         print(f"Workflow 3: Said (Cargo) -> Déjà refusé")
