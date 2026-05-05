@@ -5,3 +5,4 @@ djangorestframework-simplejwt
 python-dateutil
 Pillow
 python-decouple
+django-filter
