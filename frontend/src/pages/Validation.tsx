@@ -1,9 +1,38 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axiosConfig';
 import { useAuth } from '../context/AuthContext';
-import { CheckCircle, XCircle, FileText, Search, User, Calendar, Clock } from 'lucide-react';
+import { CheckCircle, XCircle, FileText, Search, User, Calendar, Clock, Zap, AlertTriangle, Filter } from 'lucide-react';
 import './validation.css';
 
+// ─── Badge d'urgence ─────────────────────────────────────────────────────────
+type UrgenceLevel = 'urgent' | 'attention' | 'normal' | 'expiree';
+
+function UrgenceBadge({ level, delai }: { level: UrgenceLevel; delai: number | null }) {
+  if (level === 'urgent') {
+    return (
+      <span className="urgence-badge urgence-urgent">
+        <Zap size={12} />
+        Urgent {delai !== null ? `(J+${delai})` : ''}
+      </span>
+    );
+  }
+  if (level === 'attention') {
+    return (
+      <span className="urgence-badge urgence-attention">
+        <AlertTriangle size={12} />
+        Attention {delai !== null ? `(J+${delai})` : ''}
+      </span>
+    );
+  }
+  return (
+    <span className="urgence-badge urgence-normal">
+      <CheckCircle size={12} />
+      Normal {delai !== null ? `(J+${delai})` : ''}
+    </span>
+  );
+}
+
+// ─── Composant principal ──────────────────────────────────────────────────────
 export default function Validation() {
   const { user } = useAuth();
   const [demandes, setDemandes] = useState<any[]>([]);
@@ -15,15 +44,19 @@ export default function Validation() {
   const [historiqueDemandes, setHistoriqueDemandes] = useState<any[]>([]);
   const [historiqueFilter, setHistoriqueFilter] = useState('Tous');
 
+  // Filtres urgence
+  const [urgenceFilter, setUrgenceFilter] = useState<'' | 'urgent' | 'attention' | 'normal'>('');
+  const [searchQuery, setSearchQuery] = useState('');
+
   const isRH = user?.role === 'responsable_rh' || user?.role === 'directeur_rh';
   const isManager = user?.role === 'responsable_hierarchique';
 
   const fetchDemandes = () => {
     setLoading(true);
-    api.get('/demandes/a_valider/')
+    const params = urgenceFilter ? `?urgence=${urgenceFilter}` : '';
+    api.get(`/demandes/a_valider/${params}`)
       .then(res => {
         const list = Array.isArray(res.data) ? res.data : (res.data?.results ?? []);
-        // On ne montre que ce qui concerne le rôle actif
         const filteredList = list.filter((d: any) => {
           if (isManager) return d.statut === 'en_attente_resp';
           if (isRH) return d.statut === 'en_attente_rh';
@@ -47,7 +80,7 @@ export default function Validation() {
   useEffect(() => {
     fetchDemandes();
     fetchHistorique();
-  }, [user]);
+  }, [user, urgenceFilter]);
 
   const handleAction = async (id: number, action: 'approve' | 'reject') => {
     setProcessingId(id);
@@ -68,14 +101,25 @@ export default function Validation() {
       }
 
       await api.post(endpoint, payload);
-      fetchDemandes(); // Rafraîchir la liste
-      setSelectedDemande(null); // Fermer le modal
+      fetchDemandes();
+      fetchHistorique();
+      setSelectedDemande(null);
     } catch (e: any) {
       alert(e.response?.data?.detail || "Une erreur est survenue lors de l'opération.");
     } finally {
       setProcessingId(null);
     }
   };
+
+  // Filtre de recherche côté client
+  const demandesFiltrees = demandes.filter(d => {
+    if (!searchQuery) return true;
+    return d.employe_noms?.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  // Compteurs d'urgence
+  const urgentCount = demandes.filter(d => d.urgence_badge === 'urgent').length;
+  const attentionCount = demandes.filter(d => d.urgence_badge === 'attention').length;
 
   return (
     <div className="validation-page">
@@ -88,17 +132,59 @@ export default function Validation() {
             Examinez et gérez les demandes de congé de votre équipe.
           </p>
         </div>
+
+        {/* Compteurs résumés urgence */}
+        {(urgentCount > 0 || attentionCount > 0) && (
+          <div className="urgence-summary">
+            {urgentCount > 0 && (
+              <div className="urgence-stat urgence-stat-urgent">
+                <Zap size={16} />
+                <span>{urgentCount} urgent{urgentCount > 1 ? 's' : ''}</span>
+              </div>
+            )}
+            {attentionCount > 0 && (
+              <div className="urgence-stat urgence-stat-attention">
+                <AlertTriangle size={16} />
+                <span>{attentionCount} à surveiller</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="card-minimal card-no-padding">
         <div className="table-toolbar-light">
-          <div className="search-bar-white">
-            <Search size={18} color="var(--text-muted)" />
-            <input type="text" placeholder="Rechercher un employé..." className="search-input" />
+          <div className="toolbar-left">
+            {/* Barre de recherche */}
+            <div className="search-bar-white">
+              <Search size={18} color="var(--text-muted)" />
+              <input
+                type="text"
+                placeholder="Rechercher un employé..."
+                className="search-input"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            {/* Filtre urgence */}
+            <div className="urgence-filter-wrap">
+              <Filter size={16} color="var(--text-muted)" />
+              <select
+                className="filter-select urgence-filter-select"
+                value={urgenceFilter}
+                onChange={e => setUrgenceFilter(e.target.value as any)}
+              >
+                <option value="">Toutes les urgences</option>
+                <option value="urgent">🔴 Urgent (&lt; 7 jours)</option>
+                <option value="attention">🟡 Attention (7-15 jours)</option>
+                <option value="normal">🟢 Normal (&gt; 15 jours)</option>
+              </select>
+            </div>
           </div>
 
           <div className="badge-count">
-            {demandes.length} demande(s) en attente
+            {demandesFiltrees.length} demande(s) en attente
           </div>
         </div>
 
@@ -110,34 +196,39 @@ export default function Validation() {
                 <th className="th-cell">TYPE DE CONGÉ</th>
                 <th className="th-cell">PÉRIODE</th>
                 <th className="th-cell">DURÉE</th>
+                <th className="th-cell">URGENCE</th>
                 <th className="th-cell-right">ACTIONS</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={5} className="td-loading">Recherche des demandes...</td></tr>
-              ) : demandes.length === 0 ? (
+                <tr><td colSpan={6} className="td-loading">Recherche des demandes...</td></tr>
+              ) : demandesFiltrees.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="td-cell" style={{ textAlign: 'center', padding: '80px', color: 'var(--text-muted)' }}>
+                  <td colSpan={6} className="td-cell" style={{ textAlign: 'center', padding: '80px', color: 'var(--text-muted)' }}>
                     <div className="empty-state">
                       <div className="empty-icon-wrap">
                         <CheckCircle size={40} color="#94a3b8" />
                       </div>
-                      <span className="empty-title">Aucune demande en attente.</span>
-                      <span className="empty-sub">Vous êtes à jour dans vos validations !</span>
+                      <span className="empty-title">
+                        {urgenceFilter ? `Aucune demande de niveau "${urgenceFilter}".` : 'Aucune demande en attente.'}
+                      </span>
+                      <span className="empty-sub">
+                        {urgenceFilter ? 'Essayez un autre filtre d\'urgence.' : 'Vous êtes à jour dans vos validations !'}
+                      </span>
                     </div>
                   </td>
                 </tr>
-              ) : demandes.map(d => (
-                <tr key={d.id} className="table-row row-hover">
+              ) : demandesFiltrees.map(d => (
+                <tr key={d.id} className={`table-row row-hover ${d.urgence_badge === 'urgent' ? 'row-urgent' : ''}`}>
                   <td className="td-cell">
                     <div className="employee-cell">
-                      <div className="avatar-placeholder">
+                      <div className={`avatar-placeholder avatar-${d.urgence_badge || 'normal'}`}>
                         <User size={20} color="var(--primary)" />
                       </div>
                       <div>
                         <div className="employee-name">{d.employe_noms}</div>
-                        <div className="employee-date">Date de demande: {d.dateDemande}</div>
+                        <div className="employee-date">Demandé le: {d.dateDemande}</div>
                       </div>
                     </div>
                   </td>
@@ -159,6 +250,9 @@ export default function Validation() {
                       {d.duree} jours
                     </span>
                   </td>
+                  <td>
+                    <UrgenceBadge level={d.urgence_badge || 'normal'} delai={d.delai_jours} />
+                  </td>
                   <td className="td-cell-right">
                     <button
                       className="btn-primary"
@@ -178,6 +272,7 @@ export default function Validation() {
         </div>
       </div>
 
+      {/* ─── Historique ─── */}
       <div className="card-minimal card-no-padding" style={{ marginTop: '24px' }}>
         <div className="table-toolbar-light">
           <div>
@@ -197,6 +292,7 @@ export default function Validation() {
               <option value="Tous">Tous les statuts</option>
               <option value="approuvee">Approuvées</option>
               <option value="refusee">Refusées</option>
+              <option value="expiree">Expirées</option>
             </select>
           </div>
         </div>
@@ -222,7 +318,10 @@ export default function Validation() {
                   </td>
                 </tr>
               ) : historiqueDemandes
-                  .filter(d => historiqueFilter === 'Tous' ? true : d.statut === historiqueFilter)
+                  .filter(d => {
+                    if (historiqueFilter === 'Tous') return true;
+                    return d.statut === historiqueFilter;
+                  })
                   .map(d => (
                     <tr key={d.id} className="table-row row-hover">
                       <td className="td-cell">
@@ -237,16 +336,16 @@ export default function Validation() {
                         </div>
                       </td>
                       <td>
-                        <span className={d.statut === 'approuvee' ? 'badge-success' : 'badge-danger'}>
+                        <span className={
+                          d.statut === 'approuvee' ? 'badge-success' :
+                          d.statut === 'expiree' ? 'badge-expired' :
+                          'badge-danger'
+                        }>
                           {d.statut_display}
                         </span>
                       </td>
-                      <td>
-                        Du {d.date_debut} au {d.date_fin}
-                      </td>
-                      <td className="td-cell-right">
-                        {d.dateDemande}
-                      </td>
+                      <td>Du {d.date_debut} au {d.date_fin}</td>
+                      <td className="td-cell-right">{d.dateDemande}</td>
                     </tr>
                   ))}
             </tbody>
@@ -254,16 +353,29 @@ export default function Validation() {
         </div>
       </div>
 
-      {/* MODAL DE DÉTAILS */}
+      {/* ─── MODAL DE DÉTAILS ─── */}
       {selectedDemande && (
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h2 className="modal-title">Détails de la demande</h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <h2 className="modal-title">Détails de la demande</h2>
+                <UrgenceBadge level={selectedDemande.urgence_badge || 'normal'} delai={selectedDemande.delai_jours} />
+              </div>
               <button onClick={() => setSelectedDemande(null)} className="modal-close-btn">
                 <XCircle size={24} color="var(--text-muted)" />
               </button>
             </div>
+
+            {/* Alerte urgence dans le modal si urgent */}
+            {selectedDemande.urgence_badge === 'urgent' && (
+              <div className="modal-urgence-alert">
+                <Zap size={16} />
+                <span>
+                  Cette demande débute dans <strong>{selectedDemande.delai_jours} jour(s)</strong> — Traitement prioritaire recommandé.
+                </span>
+              </div>
+            )}
 
             <div className="modal-detail-box">
               <div className="modal-detail-grid">
@@ -287,6 +399,10 @@ export default function Validation() {
                   <div className="detail-label">Période</div>
                   <div className="detail-value">Du {selectedDemande.date_debut} au {selectedDemande.date_fin}</div>
                 </div>
+                <div>
+                  <div className="detail-label">Délai de préavis</div>
+                  <div className="detail-value">{selectedDemande.delai_jours !== null ? `${selectedDemande.delai_jours} jour(s)` : 'N/A'}</div>
+                </div>
                 {selectedDemande.motif_display && (
                   <div>
                     <div className="detail-label">Motif spécifique</div>
@@ -297,10 +413,10 @@ export default function Validation() {
                   <div>
                     <div className="detail-label">Justificatif</div>
                     <div className="detail-value">
-                      <a 
-                        href={`http://localhost:8000${selectedDemande.justificatif_url}`} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
+                      <a
+                        href={`http://localhost:8000${selectedDemande.justificatif_url}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         style={{ color: 'var(--primary)', textDecoration: 'underline', fontWeight: 500 }}
                       >
                         Voir le document

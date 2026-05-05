@@ -140,7 +140,8 @@ class DemandeConge(models.Model):
         ('en_attente_resp', 'En attente Responsable'),
         ('en_attente_rh', 'En attente RH'),
         ('approuvee', 'Approuvée'),
-        ('refusee', 'Refusée')
+        ('refusee', 'Refusée'),
+        ('expiree', 'Expirée'),
     ]
 
     dateDemande = models.DateField(auto_now_add=True)
@@ -169,10 +170,6 @@ class DemandeConge(models.Model):
         if self.date_debut and self.date_fin:
             if self.date_debut > self.date_fin:
                 raise ValidationError("La date de début ne peut pas être postérieure à la date de fin.")
-                
-            from datetime import date
-            if self.date_debut < date.today():
-                raise ValidationError("La date de début ne peut pas être dans le passé.")
                 
             calcul_duree = (self.date_fin - self.date_debut).days + 1
             self.duree = calcul_duree
@@ -224,6 +221,25 @@ class DemandeConge(models.Model):
                     raise ValidationError("Le décès d'un enfant limite le congé à 5 jours max.")
             elif self.motif in ['naissance', 'deces_proche', 'mariage_enfant'] and self.duree > 3:
                 raise ValidationError("Ce motif exceptionnel est limité à 3 jours max.")
+
+    @property
+    def delai_jours(self):
+        """Nombre de jours entre la date de demande et la date de début du congé."""
+        if self.dateDemande and self.date_debut:
+            return (self.date_debut - self.dateDemande).days
+        return None
+
+    @property
+    def urgence_badge(self):
+        """Calcule le niveau d'urgence selon le délai de préavis."""
+        delai = self.delai_jours
+        if delai is None:
+            return 'normal'
+        if delai < 7:
+            return 'urgent'
+        if delai <= 15:
+            return 'attention'
+        return 'normal'
 
     def save(self, *args, **kwargs):
         self.clean()

@@ -98,12 +98,16 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
     def a_valider(self, request):
         """GET /api/demandes/a_valider/ — Les demandes que ce compte doit valider."""
         user = self.request.user
+        urgence_filter = request.query_params.get('urgence', None)
 
         # DRH / RH voient tout
         if user.is_superuser or user.role in ['responsable_rh', 'directeur_rh']:
             demandes = DemandeConge.objects.filter(statut='en_attente_rh')
             serializer = self.get_serializer(demandes, many=True)
-            return Response(serializer.data)
+            data = list(serializer.data)
+            if urgence_filter:
+                data = [d for d in data if d.get('urgence_badge') == urgence_filter]
+            return Response(data)
 
         # Le responsable hiérarchique voit les demandes
         if user.role == 'responsable_hierarchique':
@@ -124,9 +128,60 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
                 
                 demandes = (demandes_base | demandes_filiales).distinct()
                 serializer = self.get_serializer(demandes, many=True)
-                return Response(serializer.data)
+                data = list(serializer.data)
+                if urgence_filter:
+                    data = [d for d in data if d.get('urgence_badge') == urgence_filter]
+                return Response(data)
 
         return Response([])
+
+    @action(detail=False, methods=['post'], permission_classes=[IsHRStaffOrAdmin])
+    def expirer_demandes(self, request):
+        """POST /api/demandes/expirer_demandes/ — Expire automatiquement les demandes
+        dont la date_debut est passee et qui sont toujours en attente.
+        Envoie une notification a l'employe concerne et au manager.
+        """
+        from django.utils import timezone
+
+        today = timezone.now().date()
+        demandes_a_expirer = DemandeConge.objects.filter(
+            date_debut__lt=today,
+            statut__in=['en_attente_resp', 'en_attente_rh']
+        )
+
+        count = 0
+        for demande in demandes_a_expirer:
+            statut_avant = demande.statut
+            demande.statut = 'expiree'
+            demande.save()
+            count += 1
+
+            # Notifier l'employe
+            if hasattr(demande.employe, 'compte') and demande.employe.compte:
+                Notification.objects.create(
+                    utilisateur=demande.employe.compte,
+                    description=(
+                        f"Votre demande de conge du {demande.date_debut} au {demande.date_fin} "
+                        f"a expire automatiquement car elle n'a pas ete traitee avant la date de debut."
+                    )
+                )
+
+            # Notifier le responsable si la demande etait encore chez lui
+            if statut_avant == 'en_attente_resp':
+                responsable = getattr(demande.employe.structure, 'responsable', None)
+                if responsable and hasattr(responsable, 'compte') and responsable.compte:
+                    Notification.objects.create(
+                        utilisateur=responsable.compte,
+                        description=(
+                            f"La demande de conge de {demande.employe.prenomEmpl} {demande.employe.nomEmpl} "
+                            f"({demande.date_debut} -> {demande.date_fin}) a expire sans traitement de votre part."
+                        )
+                    )
+
+        return Response({
+            'status': f"{count} demande(s) expiree(s) avec succes.",
+            'count': count
+        })
 
     @action(detail=False, methods=['get'])
     def historique(self, request):
