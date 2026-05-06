@@ -8,7 +8,6 @@ import './nouvelle-demande.css';
 export default function NouvelleDemande() {
   const navigate = useNavigate();
   const [types, setTypes] = useState<any[]>([]);
-  const [exercices, setExercices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<{type: 'success'|'error', text: string} | null>(null);
@@ -16,7 +15,6 @@ export default function NouvelleDemande() {
   const [natureConge, setNatureConge] = useState<'annuel'|'exceptionnel'|'sans_solde'|'maladie'|''>('');
   const [file, setFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
-    exercice: '',
     date_debut: '',
     date_fin: '',
     motif: '', // Dropdown value for exceptional
@@ -34,20 +32,12 @@ export default function NouvelleDemande() {
   const requiresJustificatif = natureConge === 'exceptionnel' || natureConge === 'maladie';
 
   useEffect(() => {
-    Promise.all([
-      api.get('/types-congés/'),
-      api.get('/exercices/'),
-    ]).then(([resTypes, resEx]) => {
-      // DRF pagine les résultats : { count, results: [...] } — on extrait results
-      const typesList = Array.isArray(resTypes.data) ? resTypes.data : (resTypes.data?.results ?? []);
-      const exList    = Array.isArray(resEx.data)    ? resEx.data    : (resEx.data?.results    ?? []);
-
-      setTypes(typesList);
-      setExercices(exList);
-      // Auto-sélectionner le premier exercice non clôturé
-      const activeEx = exList.find((ex: any) => !ex.est_cloture);
-      if (activeEx) setFormData(prev => ({ ...prev, exercice: activeEx.id }));
-    }).catch(e => console.error(e))
+    api.get('/types-congés/')
+      .then(resTypes => {
+        const typesList = Array.isArray(resTypes.data) ? resTypes.data : (resTypes.data?.results ?? []);
+        setTypes(typesList);
+      })
+      .catch(e => console.error(e))
       .finally(() => setLoading(false));
   }, []);
 
@@ -57,16 +47,13 @@ export default function NouvelleDemande() {
     setMessage(null);
 
     let finalData = { ...formData } as any;
-
     let typeObj = null;
 
     if (natureConge === 'exceptionnel') {
-       // Essayer de trouver un type de congé qui correspond au motif spécifique
        if (formData.motif.includes('mariage')) typeObj = types.find(t => t.est_exceptionnel && t.nomType.toLowerCase().includes('mariage'));
        else if (formData.motif.includes('deces')) typeObj = types.find(t => t.est_exceptionnel && t.nomType.toLowerCase().includes('décès'));
        else if (formData.motif.includes('naissance')) typeObj = types.find(t => t.est_exceptionnel && t.nomType.toLowerCase().includes('naissance'));
        
-       // Fallback: Prendre le premier congé exceptionnel disponible si on ne trouve pas de correspondance exacte
        if (!typeObj) {
          typeObj = types.find(t => t.est_exceptionnel === true || t.nomType.toLowerCase().includes('exceptionnel'));
        }
@@ -79,7 +66,7 @@ export default function NouvelleDemande() {
     }
 
     if (!typeObj) {
-      setMessage({ type: 'error', text: `Erreur : Le type de congé "${natureConge}" est introuvable dans la base de données. Veuillez demander à l'administrateur de l'ajouter dans les Types de Congé.` });
+      setMessage({ type: 'error', text: `Erreur : Le type de congé "${natureConge}" est introuvable.` });
       setSubmitting(false);
       return;
     }
@@ -87,7 +74,7 @@ export default function NouvelleDemande() {
 
     if (isExceptionnel) {
       if (!finalData.motif) {
-        setMessage({ type: 'error', text: "Veuillez sélectionner un motif pour ce congé exceptionnel." });
+        setMessage({ type: 'error', text: "Veuillez sélectionner un motif." });
         setSubmitting(false);
         return;
       }
@@ -96,7 +83,6 @@ export default function NouvelleDemande() {
         setSubmitting(false);
         return;
       }
-      // Calcul automatique de la date de fin
       const selectedMotif = MOTIF_CHOICES.find(m => m.value === finalData.motif);
       if (selectedMotif && finalData.date_debut) {
         const start = new Date(finalData.date_debut);
@@ -105,7 +91,7 @@ export default function NouvelleDemande() {
       }
     } else {
       if (!finalData.date_debut || !finalData.date_fin) {
-        setMessage({ type: 'error', text: "Les dates de début et de fin sont requises." });
+        setMessage({ type: 'error', text: "Les dates sont requises." });
         setSubmitting(false);
         return;
       }
@@ -113,18 +99,17 @@ export default function NouvelleDemande() {
       const dDebut = new Date(finalData.date_debut);
       const dFin = new Date(finalData.date_fin);
       if (dFin < dDebut) {
-        setMessage({ type: 'error', text: "Erreur : La date de fin doit être postérieure ou égale à la date de début." });
+        setMessage({ type: 'error', text: "La date de fin doit être après le début." });
         setSubmitting(false);
         return;
       }
-      // Pour un congé normal, on ne transmet pas de motif
       finalData.motif = '';
     }
 
     try {
       if (requiresJustificatif) {
         if (!file) {
-          setMessage({ type: 'error', text: "Un justificatif est obligatoire pour ce type de congé." });
+          setMessage({ type: 'error', text: "Justificatif obligatoire." });
           setSubmitting(false);
           return;
         }
@@ -134,13 +119,12 @@ export default function NouvelleDemande() {
           if (finalData[key] !== '') payload.append(key, finalData[key]);
         });
         payload.append('justificatif', file, file.name);
-
         await api.post('/demandes/', payload);
       } else {
         await api.post('/demandes/', finalData);
       }
       
-      setMessage({ type: 'success', text: 'Demande soumise avec succès ! Redirection...' });
+      setMessage({ type: 'success', text: 'Demande soumise avec succès !' });
       setTimeout(() => navigate('/conges/mes-demandes'), 2000);
     } catch (err: any) {
       const errorMsg = err.response?.data?.detail || err.response?.data?.error || "Une erreur est survenue.";
@@ -162,7 +146,7 @@ export default function NouvelleDemande() {
       <div className="card-minimal">
         <form onSubmit={handleSubmit}>
           
-          <div className="form-grid">
+          <div className="form-grid" style={{ gridTemplateColumns: '1fr' }}>
             <div className="form-group">
               <label>Nature du congé</label>
               <select 
@@ -178,17 +162,6 @@ export default function NouvelleDemande() {
                 <option value="exceptionnel">Congé Exceptionnel</option>
                 <option value="maladie">Congé Maladie</option>
                 <option value="sans_solde">Congé Non Payé (Sans Solde)</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label>Exercice fiscal</label>
-              <select 
-                required
-                value={formData.exercice}
-                onChange={e => setFormData({...formData, exercice: e.target.value})}
-              >
-                {exercices.map(ex => <option key={ex.id} value={ex.id}>{ex.libelle} {ex.est_cloture ? '(Clôturé)' : '(Actuel)'}</option>)}
               </select>
             </div>
           </div>
