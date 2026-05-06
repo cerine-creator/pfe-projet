@@ -32,13 +32,14 @@
   color: var(--primary);
 }
 
-/* ÉLÉMENT ACTIF : STYLE NEUTRE ET ÉLÉGANT */
-.sidebar-item.active {
-  background-color: rgba(var(--primary-rgb), 0.05) !important;
+/* ÉLÉMENT ACTIF : STYLE DEMANDÉ (Barre épaisse + fond rose léger) */
+.sidebar-item.active, .sub-item.active {
+  background-color: #fff1f2 !important; 
   color: var(--primary) !important;
-  border-left: 3px solid var(--primary) !important;
-  border-radius: 0 8px 8px 0;
+  border-left: 6px solid var(--primary) !important; /* Barre rouge bien épaisse */
+  border-radius: 8px;
   font-weight: 600;
+  padding-left: 14px !important;
 }
 
 /* Les menus parents (Mes Congés, Validation) */
@@ -78,12 +79,7 @@
   border-left: none !important;
 }
 
-/* Sous-item actif */
-.sub-item.active {
-  color: var(--primary) !important;
-  background-color: transparent !important;
-  font-weight: 600;
-}
+/* Sous-item actif : (Style géré par la règle commune plus haut) */
 
 .chevron {
   transition: transform 0.3s ease;
