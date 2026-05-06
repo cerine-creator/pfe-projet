@@ -1,4 +1,6 @@
+from django.db import transaction
 from django.db.models import Q, F
+from django.http import HttpResponse
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -18,6 +20,7 @@ from .serializers import (
     EmployeSerializer, DroitCongeSerializer, DemandeCongeSerializer, TitreCongeSerializer, NotificationSerializer, CalendarNoteSerializer
 )
 from .services import deduire_solde_conge, generer_titre_conge_automatique
+from .pdf_utils import generer_pdf_titre
 
 class StructureViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Structure.objects.all()
@@ -196,10 +199,11 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
             employe = getattr(user, 'employe', None)
             if employe and hasattr(employe, 'structure_dirigee') and employe.structure_dirigee:
                 structure_dirigee = employe.structure_dirigee
+                # Le manager voit : ses refusés, ses approuvés, ET ceux qu'il a validés mais qui attendent les RH
                 demandes = DemandeConge.objects.filter(
                     Q(employe__structure=structure_dirigee) |
                     Q(employe__structure__parent=structure_dirigee, employe__structure__responsable=F('employe'))
-                ).filter(statut__in=['approuvee', 'refusee']).distinct()
+                ).filter(statut__in=['approuvee', 'refusee', 'en_attente_rh']).distinct()
 
         if statut_filter in ['approuvee', 'refusee']:
             demandes = demandes.filter(statut=statut_filter)
@@ -343,11 +347,23 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
                             description=f"Demande N+1 directe de {employe.prenomEmpl} {employe.nomEmpl} (Chef de structure). Validée vers RH."
                         )
         else:
-            if employe.structure and getattr(employe.structure, 'responsable', None) and employe.structure.responsable.compte:
+            manager = getattr(employe.structure, 'responsable', None) if employe.structure else None
+            if manager and hasattr(manager, 'compte') and manager.compte:
                 Notification.objects.create(
-                    utilisateur=employe.structure.responsable.compte,
+                    utilisateur=manager.compte,
                     description=f"Nouvelle demande de congé en attente : {employe.prenomEmpl} {employe.nomEmpl} a soumis une demande."
                 )
+            else:
+                # CAS 1.1.12 : Pas de responsable trouvé -> Escalade RH directe pour éviter le blocage
+                demande.statut = 'en_attente_rh'
+                demande.save()
+                rh_employes = Employe.objects.filter(compte__role__in=['responsable_rh', 'directeur_rh'])
+                for rh in rh_employes:
+                    if hasattr(rh, 'compte') and rh.compte:
+                        Notification.objects.create(
+                            utilisateur=rh.compte,
+                            description=f"Demande de {employe.prenomEmpl} {employe.nomEmpl} (Sans responsable direct). Escaladée vers RH."
+                        )
     @action(detail=True, methods=['post'], permission_classes=[IsResponsableHierarchique])
     def valider_responsable(self, request, pk=None):
         demande = self.get_object()
@@ -423,15 +439,16 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
                 return Response({'detail': "Seul le Directeur RH peut certifier la demande d'un Responsable RH."}, status=403)
 
         try:
-            # 1. On donne l'ordre au Service de déduire le solde
-            deduire_solde_conge(demande)
-            
-            # 2. Sauvegarde du nouveau statut
-            demande.statut = 'approuvee'
-            demande.save()
-            
-            # 3. On demande au Service de générer le document de validation (Titre)
-            titre = generer_titre_conge_automatique(demande)
+            with transaction.atomic():
+                # 1. On donne l'ordre au Service de déduire le solde
+                deduire_solde_conge(demande)
+                
+                # 2. Sauvegarde du nouveau statut
+                demande.statut = 'approuvee'
+                demande.save()
+                
+                # 3. On demande au Service de générer le document de validation (Titre)
+                titre = generer_titre_conge_automatique(demande)
 
             Notification.objects.create(
                 utilisateur=demande.employe.compte,
@@ -462,6 +479,23 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
             description=f"Votre demande de congé a malheureusement été refusée. Motif : {raison}"
         )
         return Response({'status': 'Demande refusée.'})
+
+    @action(detail=True, methods=['get'], url_path='exporter_pdf', url_name='exporter_pdf')
+    def exporter_pdf(self, request, pk=None):
+        """Action : Génère et télécharge le titre de congé en PDF."""
+        demande = self.get_object()
+        
+        if demande.statut != 'approuvee':
+            return Response({'detail': "Le PDF n'est disponible que pour les demandes approuvées."}, status=400)
+            
+        pdf_content = generer_pdf_titre(demande)
+        
+        response = HttpResponse(content_type='application/pdf')
+        filename = f"Titre-Conge-{demande.id}.pdf"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        response.write(pdf_content)
+        
+        return response
 
 class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = NotificationSerializer

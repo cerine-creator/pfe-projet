@@ -16,7 +16,6 @@ export default function Demandes() {
   useEffect(() => {
     api.get('/demandes/')
       .then(res => {
-        // DRF retourne { count, results: [...] } en mode paginé
         const list = Array.isArray(res.data) ? res.data : (res.data?.results ?? []);
         setDemandes(list);
       })
@@ -38,6 +37,26 @@ export default function Demandes() {
     if (durationSort === 'Décroissant') return b.duree - a.duree;
     return 0;
   });
+
+  const handleDownloadPDF = async (id: number) => {
+    try {
+      const response = await api.get(`demandes/${id}/exporter_pdf/`, {
+        responseType: 'blob',
+      });
+      
+      // Création d'un lien temporaire pour le téléchargement
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Titre_Conge_${id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Erreur lors du téléchargement du PDF", error);
+      alert("Impossible de télécharger le PDF. Vérifiez votre connexion.");
+    }
+  };
 
   return (
     <div className="demandes-v2">
@@ -122,7 +141,8 @@ export default function Demandes() {
                   <td>
                     <span className={`badge ${
                       d.statut === 'approuvee' ? 'badge-success' : 
-                      d.statut === 'refusee' ? 'badge-danger' : 'badge-pending'
+                      d.statut === 'refusee' ? 'badge-danger' : 
+                      d.statut === 'expiree' ? 'badge-expired' : 'badge-pending'
                     }`}>
                       {d.statut_display}
                     </span>
@@ -130,7 +150,11 @@ export default function Demandes() {
                   <td className="td-cell-right">
                      <div className="action-group">
                         {d.statut === 'approuvee' && (
-                          <button className="btn-icon" title="Télécharger le titre">
+                          <button 
+                            className="btn-icon" 
+                            title="Télécharger le titre"
+                            onClick={() => handleDownloadPDF(d.id)}
+                          >
                              <Download size={18} />
                           </button>
                         )}
@@ -166,7 +190,8 @@ export default function Demandes() {
                 <strong>Statut :</strong>
                 <span className={`badge ${
                   selectedDemande.statut === 'approuvee' ? 'badge-success' : 
-                  selectedDemande.statut === 'refusee' ? 'badge-danger' : 'badge-pending'
+                  selectedDemande.statut === 'refusee' ? 'badge-danger' : 
+                  selectedDemande.statut === 'expiree' ? 'badge-expired' : 'badge-pending'
                 }`}>
                   {selectedDemande.statut_display}
                 </span>
@@ -192,7 +217,6 @@ export default function Demandes() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

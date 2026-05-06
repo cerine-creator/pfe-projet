@@ -68,6 +68,19 @@ class Exercice(models.Model):
     def __str__(self):
         return self.libelle
 
+class JourFerie(models.Model):
+    libelle = models.CharField(max_length=100)
+    date = models.DateField(unique=True)
+    est_fixe = models.BooleanField(default=True, help_text="Si vrai, revient chaque année à la même date (ex: 1er Mai)")
+
+    class Meta:
+        verbose_name = 'Jour Férié'
+        verbose_name_plural = 'Jours Fériés'
+        ordering = ['date']
+
+    def __str__(self):
+        return f"{self.libelle} ({self.date})"
+
 # --- 2. ACTEURS ET DROITS ---
 
 class Employe(models.Model):
@@ -171,8 +184,44 @@ class DemandeConge(models.Model):
             if self.date_debut > self.date_fin:
                 raise ValidationError("La date de début ne peut pas être postérieure à la date de fin.")
                 
-            calcul_duree = (self.date_fin - self.date_debut).days + 1
-            self.duree = calcul_duree
+            # --- NOUVEAU CALCUL PRÉCIS (Cas Air Algérie) ---
+            import datetime
+            from .models import JourFerie
+            
+            temp_date = self.date_debut
+            jours_travailles = 0
+            
+            # Liste des jours fériés pour optimiser
+            feries = JourFerie.objects.all()
+            
+            while temp_date <= self.date_fin:
+                # 1. Vérifier si c'est un week-end (4=Vendredi, 5=Samedi en Python si on suit le standard Algérien)
+                # Attention : ISO weekday est 1=Lundi... 5=Vendredi, 6=Samedi, 7=Dimanche
+                # On utilise .weekday() : 0=Lundi, 4=Vendredi, 5=Samedi
+                is_weekend = temp_date.weekday() in [4, 5]
+                
+                # 2. Vérifier si c'est un jour férié
+                is_ferie = False
+                for f in feries:
+                    if f.est_fixe:
+                        # On compare seulement le jour et le mois (ex: 1er Mai)
+                        if f.date.day == temp_date.day and f.date.month == temp_date.month:
+                            is_ferie = True
+                            break
+                    else:
+                        # On compare la date exacte
+                        if f.date == temp_date:
+                            is_ferie = True
+                            break
+                
+                # On ne compte le jour que si ce n'est NI un week-end NI un férié
+                if not is_weekend and not is_ferie:
+                    jours_travailles += 1
+                
+                temp_date += datetime.timedelta(days=1)
+            
+            self.duree = jours_travailles
+            # -----------------------------------------------
             
             # Vérification des chevauchements et demandes en attente
             if self.employe:
@@ -185,17 +234,30 @@ class DemandeConge(models.Model):
                 if demandes_en_attente.exists():
                     raise ValidationError("Vous ne pouvez pas soumettre une nouvelle demande tant que vous avez une demande en attente.")
                     
-                # Vérifier les chevauchements avec d'autres demandes non refusées
+                # Vérifier les chevauchements avec d'autres demandes non refusées et non expirées
                 chevauchements = DemandeConge.objects.filter(
                     employe=self.employe,
                     date_debut__lte=self.date_fin,
                     date_fin__gte=self.date_debut
-                ).exclude(statut='refusee').exclude(pk=self.pk)
+                ).exclude(statut__in=['refusee', 'expiree']).exclude(pk=self.pk)
                 
                 if chevauchements.exists():
                     raise ValidationError("Cette demande de congé se chevauche avec une autre demande existante.")
             
-        # 2. Validation de l'exercice (Règle Air Algérie : Épuiser le passé d'abord)
+        # 1.bis. Vérification du solde global dès la soumission (si ce n'est pas exceptionnel)
+        if self.type_conge and not self.type_conge.est_exceptionnel and self.employe:
+            from .models import DroitConge
+            from django.db.models import Sum
+            solde_total = DroitConge.objects.filter(employe=self.employe).aggregate(Sum('nbrJRes'))['nbrJRes__sum'] or 0
+            if self.duree > solde_total:
+                raise ValidationError(
+                    f"Solde insuffisant. Globalement disponible : {solde_total}j, Demandé : {self.duree}j."
+                )
+            
+        # 1.ter. Vérification de la borne d'exercice (Désactivée car auto-split)
+        # On ne bloque plus si ça dépasse, le système puisera dans les exercices successifs.
+
+        # 2. Validation de l'exercice (Supprimé car géré par le waterfall RH)
         if self.exercice and self.employe:
             # On cherche s'il existe un exercice plus ancien (début avant l'exercice choisi)
             # où il reste des jours de congé non consommés.

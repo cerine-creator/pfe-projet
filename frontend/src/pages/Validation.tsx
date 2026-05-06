@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axiosConfig';
 import { useAuth } from '../context/AuthContext';
-import { CheckCircle, XCircle, FileText, Search, User, Calendar, Clock, Zap, AlertTriangle, Filter } from 'lucide-react';
+import { CheckCircle, XCircle, FileText, Search, User, Calendar, Clock, Zap, AlertTriangle, Filter, Download } from 'lucide-react';
 import './validation.css';
 
 // ─── Badge d'urgence ─────────────────────────────────────────────────────────
@@ -108,6 +108,25 @@ export default function Validation() {
       alert(e.response?.data?.detail || "Une erreur est survenue lors de l'opération.");
     } finally {
       setProcessingId(null);
+    }
+  };
+
+  const handleDownloadPDF = async (id: number) => {
+    try {
+      const response = await api.get(`demandes/${id}/exporter_pdf/`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Titre_Conge_${id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error: any) {
+      console.error("Erreur lors du téléchargement du PDF", error);
+      alert("Erreur lors du téléchargement. Le PDF n'est peut-être pas encore généré.");
     }
   };
 
@@ -292,6 +311,7 @@ export default function Validation() {
               <option value="Tous">Tous les statuts</option>
               <option value="approuvee">Approuvées</option>
               <option value="refusee">Refusées</option>
+              <option value="en_attente_rh">En attente RH</option>
               <option value="expiree">Expirées</option>
             </select>
           </div>
@@ -304,7 +324,7 @@ export default function Validation() {
                 <th className="th-cell">EMPLOYÉ</th>
                 <th className="th-cell">STATUT</th>
                 <th className="th-cell">PÉRIODE</th>
-                <th className="th-cell-right">DATE</th>
+                <th className="th-cell-right">ACTIONS</th>
               </tr>
             </thead>
             <tbody>
@@ -336,16 +356,29 @@ export default function Validation() {
                         </div>
                       </td>
                       <td>
-                        <span className={
+                        <span className={`badge ${
                           d.statut === 'approuvee' ? 'badge-success' :
-                          d.statut === 'expiree' ? 'badge-expired' :
-                          'badge-danger'
-                        }>
+                          d.statut === 'refusee' ? 'badge-danger' :
+                          d.statut === 'expiree' ? 'badge-expired' : 'badge-pending'
+                        }`}>
                           {d.statut_display}
                         </span>
                       </td>
                       <td>Du {d.date_debut} au {d.date_fin}</td>
-                      <td className="td-cell-right">{d.dateDemande}</td>
+                      <td className="td-cell-right">
+                        <div className="action-group">
+                          {d.statut === 'approuvee' && (
+                            <button 
+                              className="btn-icon" 
+                              title="Télécharger le titre"
+                              onClick={() => handleDownloadPDF(d.id)}
+                            >
+                              <Download size={18} />
+                            </button>
+                          )}
+                          <div className="employee-date" style={{ marginLeft: '10px' }}>{d.dateDemande}</div>
+                        </div>
+                      </td>
                     </tr>
                   ))}
             </tbody>

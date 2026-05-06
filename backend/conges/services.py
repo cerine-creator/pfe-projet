@@ -61,6 +61,7 @@ def verifier_limite_conge_exceptionnel(demande):
 def deduire_solde_conge(demande):
     """
     FONCTION : Déduit les jours de congé demandés du solde de l'employé.
+    LOGIQUE WATERFALL : Puise d'abord dans l'exercice le plus ancien disponible.
     USAGE : Appelé SEULEMENT quand la demande est approuvée (statut final).
     """
     # Si le congé est 'exceptionnel' ou 'non payé/sans solde', on ne déduit PAS du solde annuel
@@ -69,25 +70,46 @@ def deduire_solde_conge(demande):
         if 'exceptionnel' in nom_type or 'non payé' in nom_type or 'sans solde' in nom_type:
             return
 
-    try:
-        droit = DroitConge.objects.get(employe=demande.employe, exercice=demande.exercice)
-    except DroitConge.DoesNotExist:
-        raise ValidationError("Cet employé n'a aucun droit de congé calculé pour cet exercice.")
+    jours_a_deduire = demande.duree
+    
+    # On récupère tous les droits de l'employé, du plus ancien au plus récent
+    droits = DroitConge.objects.filter(
+        employe=demande.employe, 
+        nbrJRes__gt=0
+    ).order_by('exercice__date_debut')
 
-    if demande.duree > droit.nbrJRes:
-        raise ValidationError(f"Solde insuffisant. Le solde est de {droit.nbrJRes} jours mais {demande.duree} ont été demandés.")
+    if not droits.exists():
+        raise ValidationError("Cet employé n'a aucun solde disponible sur aucun exercice.")
 
-    # Mise à jour des compteurs du Droit
-    droit.nbrJConsome += demande.duree
-    droit.nbrJRes -= demande.duree
-    droit.save()
+    total_disponible = sum([d.nbrJRes for d in droits])
+    if jours_a_deduire > total_disponible:
+        raise ValidationError(f"Solde insuffisant. Total disponible : {total_disponible}j, Demandé : {jours_a_deduire}j.")
+
+    # Waterfall : Déduction successive
+    for droit in droits:
+        if jours_a_deduire <= 0:
+            break
+            
+        if droit.nbrJRes >= jours_a_deduire:
+            # L'exercice actuel suffit
+            droit.nbrJConsome += jours_a_deduire
+            droit.nbrJRes -= jours_a_deduire
+            droit.save()
+            jours_a_deduire = 0
+        else:
+            # On vide cet exercice et on passe au suivant
+            jours_a_deduire -= droit.nbrJRes
+            droit.nbrJConsome += droit.nbrJRes
+            droit.nbrJRes = 0
+            droit.save()
 
 def generer_titre_conge_automatique(demande):
     """
     FONCTION : Crée le document officiel "Titre de Congé" quand la demande est validée par les RH.
     USAGE : Appelé automatiquement après un statut 'approuvee'.
     """
-    reference_titre = f"TC-{demande.employe.matricule}-{demande.id}"
+    # Format professionnel : CONGE-ANNEE-ID (ex: CONGE-2026-0042)
+    reference_titre = f"CONGE-{demande.date_debut.year}-{demande.id:04d}"
     
     # On génère le Titre de Congé (L'équivalent d'un certificat validé)
     titre, created = TitreConge.objects.get_or_create(
