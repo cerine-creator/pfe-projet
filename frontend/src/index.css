@@ -762,4 +762,9 @@ body.mobile-menu-open {
   border-color: #6b2a2e;
 }
 
-/* Règle globale supprimée pour éviter les conflits avec le menu */
+/* ─── Boutons rouges globaux (Sauf Sidebar) ─── */
+:root button:not(.notif-btn):not(.modal-close-btn):not(.notif-btn-text):not(.notif-close):not(.mobile-menu-btn):not(.sidebar-account):not(.sidebar-logout):not(.mobile-nav-account):not(.mobile-nav-logout):not(.btn-action):not(.sidebar-item) {
+  background-color: #da0027;
+  color: white;
+  border: none;
+}

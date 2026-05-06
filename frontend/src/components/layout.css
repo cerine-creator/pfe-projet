@@ -6,45 +6,59 @@
   cursor: pointer;
 }
 
-/* ─── Menu Principal Neutre ─── */
+/* ─── Menu Principal ─── */
 .sidebar-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
-  border-radius: 8px; 
+  padding: 12px 18px;
+  border-radius: 12px; 
   color: var(--text-color);
   text-decoration: none;
   font-weight: 500;
   transition: all 0.3s ease;
   background-color: transparent;
-  border: none !important; /* Suppression radicale des bordures */
-  outline: none !important; /* Suppression du contour de focus */
-  margin-bottom: 4px;
+  border: none !important;
+  outline: none !important;
+  margin-bottom: 6px;
   cursor: pointer;
   width: 100%;
-  text-align: left;
+  overflow: hidden; /* Important pour l'effet pillule */
 }
 
-/* Survol discret */
 .sidebar-item:hover {
   background-color: var(--bg-hover);
   color: var(--primary);
 }
 
-/* ÉLÉMENT ACTIF : STYLE DEMANDÉ (Barre épaisse + fond rose léger) */
+/* ÉLÉMENT ACTIF : STYLE PILLULE (Fond rose + Barre rouge incurvée) */
 .sidebar-item.active, .sub-item.active {
   background-color: #fff1f2 !important; 
   color: var(--primary) !important;
-  border-left: 6px solid var(--primary) !important; /* Barre rouge bien épaisse */
-  border-radius: 8px;
   font-weight: 600;
-  padding-left: 14px !important;
+  padding-left: 22px !important;
 }
 
-/* Les menus parents (Mes Congés, Validation) */
+.sidebar-item.active::before, .sub-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background-color: var(--primary);
+  /* Pas d'arrondi à droite pour que la barre soit bien collée */
+  border-radius: 0; 
+}
+
+/* Les menus parents */
 .submenu-trigger {
   justify-content: space-between !important;
+}
+
+.submenu-trigger::before {
+  display: none !important;
 }
 
 /* ─── Sous-menus ─── */
@@ -55,7 +69,7 @@
 
 .submenu-wrapper:hover .submenu-items,
 .submenu-wrapper.is-open .submenu-items {
-  max-height: 250px;
+  max-height: 400px;
   opacity: 1;
   margin-top: 4px;
 }
@@ -64,22 +78,23 @@
   max-height: 0;
   opacity: 0;
   overflow: hidden;
-  transition: all 0.4s ease;
+  transition: all 0.4s ease-in-out;
   display: flex;
   flex-direction: column;
-  padding-left: 10px;
-  margin-left: 20px;
+  padding-left: 6px;
+  margin-left: 26px;
   border-left: 1px solid var(--border-color);
 }
 
 .sub-item {
   font-size: 0.85rem !important;
-  padding: 8px 12px !important;
+  padding: 10px 14px !important;
   color: var(--text-muted) !important;
-  border-left: none !important;
 }
 
-/* Sous-item actif : (Style géré par la règle commune plus haut) */
+.sub-item.active::before {
+  width: 4px;
+}
 
 .chevron {
   transition: transform 0.3s ease;
@@ -91,19 +106,15 @@
   opacity: 1;
 }
 
-/* ─── Ajustement Actions Bas de Page ─── */
+/* ─── Actions Bas de Page ─── */
 .sidebar-account, .sidebar-logout {
-  border: 1px solid var(--border-color) !important; /* Bordure fine et discrète */
-  box-shadow: none !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 12px;
+  margin-top: 8px;
 }
 
 .sidebar-logout {
   color: var(--primary) !important;
-  background-color: rgba(var(--primary-rgb), 0.02) !important;
-  border-color: rgba(var(--primary-rgb), 0.1) !important;
-}
-
-.sidebar-logout:hover {
-  background-color: rgba(var(--primary-rgb), 0.08) !important;
-  border-color: var(--primary) !important;
+  background-color: #fff1f2 !important;
+  border-color: #ffd3db !important;
 }
