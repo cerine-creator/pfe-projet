@@ -24,11 +24,13 @@ export default function Demandes() {
   }, []);
 
   const filteredDemandes = demandes.filter(d => {
+    // On exclut les approuvées car elles vont dans les archives
+    if (d.statut === 'approuvee') return false;
+
     const matchSearch = (d.type_conge_nom || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                         (d.date_debut || '').includes(searchTerm);
     let matchStatus = true;
-    if (statusFilter === 'approuvee') matchStatus = d.statut === 'approuvee';
-    else if (statusFilter === 'refusee') matchStatus = d.statut === 'refusee';
+    if (statusFilter === 'refusee') matchStatus = d.statut === 'refusee';
     else if (statusFilter === 'en_attente') matchStatus = d.statut === 'en_attente_resp' || d.statut === 'en_attente_rh';
     
     return matchSearch && matchStatus;
@@ -62,8 +64,8 @@ export default function Demandes() {
     <div className="demandes-v2">
       <div className="demandes-header">
         <div className="page-header" style={{ marginBottom: 0 }}>
-          <h1 className="page-title">Archives des <span className="text-primary">Congés</span></h1>
-          <p className="page-subtitle">Consultez et exportez l'historique de vos absences.</p>
+          <h1 className="page-title">Mes Congés <span className="text-primary">Actuels</span></h1>
+          <p className="page-subtitle">Suivez l'état de vos demandes en attente ou refusées.</p>
         </div>
         <button 
           className="btn-primary" 

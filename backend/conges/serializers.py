@@ -61,13 +61,14 @@ class DemandeCongeSerializer(serializers.ModelSerializer):
     type_conge_nom = serializers.CharField(source='type_conge.nomType', read_only=True)
     motif_display = serializers.CharField(source='get_motif_display', read_only=True)
     statut_display = serializers.CharField(source='get_statut_display', read_only=True)
+    exercice_libelle = serializers.CharField(source='exercice.libelle', read_only=True)
     delai_jours = serializers.SerializerMethodField(read_only=True)
     urgence_badge = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = DemandeConge
         fields = [
-            'id', 'employe', 'employe_noms', 'exercice', 'type_conge',
+            'id', 'employe', 'employe_noms', 'exercice', 'exercice_libelle', 'type_conge',
             'type_conge_nom', 'date_debut', 'date_fin', 'duree',
             'motif', 'motif_display', 'statut', 'statut_display',
             'dateDemande', 'justificatif', 'justificatif_url',

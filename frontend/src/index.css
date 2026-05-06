@@ -116,11 +116,11 @@ body.mobile-menu-open {
 }
 
 .sidebar-item.active {
-  background-color: var(--sidebar-active-bg);
+  background-color: transparent;
   color: var(--primary);
   font-weight: 600;
   border-left: 3px solid var(--primary);
-  padding-left: 13px; /* Compensation de la bordure */
+  padding-left: 13px;
 }
 
 .sidebar-actions {
@@ -762,9 +762,4 @@ body.mobile-menu-open {
   border-color: #6b2a2e;
 }
 
-/* ─── Boutons rouges globaux (mode clair uniquement) ─── */
-/* On cible tous les boutons SAUF ceux qui ont leurs propres styles spécifiques */
-:root button:not(.notif-btn):not(.modal-close-btn):not(.notif-btn-text):not(.notif-close):not(.mobile-menu-btn):not(.sidebar-account):not(.sidebar-logout):not(.mobile-nav-account):not(.mobile-nav-logout):not(.btn-action) {
-  background-color: #da0027;
-  color: white;
-}
+/* Règle globale supprimée pour éviter les conflits avec le menu */

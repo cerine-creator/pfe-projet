@@ -8,7 +8,9 @@ import Demandes from './pages/Demandes'
 import Profil from './pages/Profil'
 import NouvelleDemande from './pages/NouvelleDemande'
 import Validation from './pages/Validation'
+import ValidationHistorique from './pages/ValidationHistorique'
 import DashboardDRH from './pages/DashboardDRH'
+import Archives from './pages/Archives'
 
 /**
  * Redirection de racine :
@@ -41,11 +43,13 @@ export default function App() {
         
         {/* Gestion des Congés */}
         <Route path="/conges/mes-demandes" element={<Demandes />} />
+        <Route path="/conges/archives" element={<Archives />} />
         <Route path="/conges/nouvelle-demande" element={<NouvelleDemande />} />
         <Route path="/conges/mon-solde" element={<Dashboard />} /> {/* Redirige vers dashboard (solde y est) */}
 
         {/* Validation (Manager/RH) */}
         <Route path="/validation/equipe" element={<Validation />} />
+        <Route path="/validation/historique" element={<ValidationHistorique />} />
         
         {/* RH (Directeur) */}
         <Route path="/rh/statistiques" element={<DashboardDRH />} />

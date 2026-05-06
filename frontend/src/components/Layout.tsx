@@ -11,7 +11,10 @@ import {
   LogOut,
   Menu,
   Sun,
-  Moon
+  Moon,
+  History,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import './layout.css';
@@ -21,6 +24,8 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCongesOpen, setIsCongesOpen] = useState(location.pathname.startsWith('/conges'));
+  const [isValidationOpen, setIsValidationOpen] = useState(location.pathname.startsWith('/validation'));
   const { theme, toggleTheme } = useTheme();
   
   if (!user) return null;
@@ -28,6 +33,16 @@ export default function Layout() {
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
+
+  const toggleConges = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsCongesOpen(!isCongesOpen);
+  };
+
+  const toggleValidation = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsValidationOpen(!isValidationOpen);
+  };
 
   useEffect(() => {
     document.body.classList.toggle('mobile-menu-open', isMobileMenuOpen);
@@ -74,14 +89,38 @@ export default function Layout() {
               <Home size={18} /> Accueil
             </NavLink>
             
-            <NavLink to="/conges/mes-demandes" className={({isActive}) => `sidebar-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
-              <Send size={18} /> Mes Congés
-            </NavLink>
+            <div className={`submenu-wrapper ${isCongesOpen ? 'is-open' : ''}`}>
+              <button type="button" className="sidebar-item submenu-trigger" onClick={toggleConges}>
+                <Send size={18} /> Mes Congés
+                <ChevronDown size={16} className="chevron" />
+              </button>
+              
+              <div className="submenu-items">
+                <NavLink to="/conges/mes-demandes" className={({isActive}) => `sidebar-item sub-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
+                  Congés Actuels
+                </NavLink>
+                <NavLink to="/conges/archives" className={({isActive}) => `sidebar-item sub-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
+                  Archives
+                </NavLink>
+              </div>
+            </div>
             
             {(user.role !== 'employe') && (
-              <NavLink to="/validation/equipe" className={({isActive}) => `sidebar-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
-                <ShieldCheck size={18} /> Validation
-              </NavLink>
+              <div className={`submenu-wrapper ${isValidationOpen ? 'is-open' : ''}`}>
+                <button type="button" className="sidebar-item submenu-trigger" onClick={toggleValidation}>
+                  <ShieldCheck size={18} /> Validation
+                  <ChevronDown size={16} className="chevron" />
+                </button>
+                
+                <div className="submenu-items">
+                  <NavLink to="/validation/equipe" className={({isActive}) => `sidebar-item sub-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
+                    À Traiter
+                  </NavLink>
+                  <NavLink to="/validation/historique" className={({isActive}) => `sidebar-item sub-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
+                    Historique
+                  </NavLink>
+                </div>
+              </div>
             )}
 
             {(user.role === 'responsable_rh' || user.role === 'directeur_rh') && (
@@ -120,14 +159,38 @@ export default function Layout() {
                 <Home size={18} /> Tableau de bord
               </NavLink>
               
-              <NavLink to="/conges/mes-demandes" className={({isActive}) => `sidebar-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
-                <Send size={18} /> Mes Congés
-              </NavLink>
+              <div className={`submenu-wrapper ${isCongesOpen ? 'is-open' : ''}`}>
+                <button type="button" className="sidebar-item submenu-trigger" onClick={toggleConges}>
+                  <Send size={18} /> Mes Congés
+                  <ChevronDown size={16} className="chevron" />
+                </button>
+                
+                <div className="submenu-items">
+                  <NavLink to="/conges/mes-demandes" className={({isActive}) => `sidebar-item sub-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
+                    Congés Actuels
+                  </NavLink>
+                  <NavLink to="/conges/archives" className={({isActive}) => `sidebar-item sub-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
+                    Archives
+                  </NavLink>
+                </div>
+              </div>
               
               {(user.role !== 'employe') && (
-                <NavLink to="/validation/equipe" className={({isActive}) => `sidebar-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
-                  <ShieldCheck size={18} /> Validation
-                </NavLink>
+                <div className={`submenu-wrapper ${isValidationOpen ? 'is-open' : ''}`}>
+                  <button type="button" className="sidebar-item submenu-trigger" onClick={toggleValidation}>
+                    <ShieldCheck size={18} /> Validation
+                    <ChevronDown size={16} className="chevron" />
+                  </button>
+                  
+                  <div className="submenu-items">
+                    <NavLink to="/validation/equipe" className={({isActive}) => `sidebar-item sub-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
+                      À Traiter
+                    </NavLink>
+                    <NavLink to="/validation/historique" className={({isActive}) => `sidebar-item sub-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
+                      Historique
+                    </NavLink>
+                  </div>
+                </div>
               )}
 
               {user.role === 'directeur_rh' && (
