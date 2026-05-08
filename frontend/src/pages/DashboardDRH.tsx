@@ -14,6 +14,17 @@ import {
 } from 'lucide-react';
 import './dashboard-drh.css';
 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell
+} from 'recharts';
+
 interface StatsDRH {
   employes_en_conge: number;
   employes_absents: Array<{
@@ -203,22 +214,39 @@ export default function DashboardDRH() {
             <div className="section-header">
               <h2 className="section-title">Demandes de congé ce mois par structure</h2>
             </div>
-            <div className="chart-container">
-              {stats?.demandes_ce_mois_par_structure.map((item, index) => (
-                <div key={index} className="chart-bar">
-                  <div className="bar-label">{item.structure}</div>
-                  <div className="bar-container">
-                    <div
-                      className="bar-fill"
-                      style={{
-                        width: `${Math.max((item.demandes / Math.max(...stats.demandes_ce_mois_par_structure.map(s => s.demandes))) * 100, 5)}%`
-                      }}
-                    >
-                      <span className="bar-value">{item.demandes}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="chart-container" style={{ height: '350px', marginTop: '20px' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={stats?.demandes_ce_mois_par_structure || []}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
+                  <XAxis 
+                    dataKey="structure" 
+                    angle={-45} 
+                    textAnchor="end" 
+                    interval={0} 
+                    height={70} 
+                    tick={{ fill: 'var(--text-muted)', fontSize: 12, fontWeight: 500 }}
+                  />
+                  <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 12 }} />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'var(--surface)', 
+                      borderColor: 'var(--border-color)',
+                      borderRadius: '12px',
+                      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                      color: 'var(--text-main)'
+                    }}
+                    itemStyle={{ color: 'var(--primary)', fontWeight: 600 }}
+                  />
+                  <Bar dataKey="demandes" radius={[6, 6, 0, 0]}>
+                    {(stats?.demandes_ce_mois_par_structure || []).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={index % 2 === 0 ? 'var(--primary)' : '#be123c'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
         )}

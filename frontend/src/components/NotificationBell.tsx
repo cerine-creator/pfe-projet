@@ -69,14 +69,22 @@ export default function NotificationBell() {
   const panelRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
 
-  // Chargement depuis l'API
+  // Chargement depuis l'API + Temps réel (Polling)
   useEffect(() => {
-    api.get<{ results?: Notif[]; count?: number } | Notif[]>('/notifications/')
-      .then(res => {
-        const list = Array.isArray(res.data) ? res.data : (res.data?.results ?? []);
-        setNotifs(list);
-      })
-      .catch(() => setNotifs([]));
+    const fetchNotifs = () => {
+      api.get<{ results?: Notif[]; count?: number } | Notif[]>('/notifications/')
+        .then(res => {
+          const list = Array.isArray(res.data) ? res.data : (res.data?.results ?? []);
+          setNotifs(list);
+        })
+        .catch(() => setNotifs([]));
+    };
+
+    fetchNotifs();
+
+    // On rafraîchit toutes les 20 secondes pour le "temps réel"
+    const interval = setInterval(fetchNotifs, 20000);
+    return () => clearInterval(interval);
   }, []);
 
   // Fermeture en cliquant dehors

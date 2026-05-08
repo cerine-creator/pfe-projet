@@ -76,8 +76,8 @@ export default function Demandes() {
       </div>
 
       <div className="card-minimal card-no-padding">
-        <div className="table-toolbar-plain" style={{ display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
-           <div className="search-bar" style={{ flex: 1, minWidth: '200px' }}>
+        <div className="table-toolbar-plain">
+           <div className="search-bar">
               <Search size={18} color="var(--text-muted)" />
               <input 
                 type="text" 
@@ -87,27 +87,35 @@ export default function Demandes() {
                 onChange={e => setSearchTerm(e.target.value)}
               />
            </div>
-           <select 
-             className="filter-select"
-             value={statusFilter}
-             onChange={e => setStatusFilter(e.target.value)}
-             style={{ padding: '8px 12px', border: '1px solid var(--border-color)', borderRadius: '6px', outline: 'none', backgroundColor: 'white' }}
-           >
-             <option value="Tous">Tous les statuts</option>
-             <option value="approuvee">Approuvée</option>
-             <option value="refusee">Refusée</option>
-             <option value="en_attente">En attente</option>
-           </select>
-           <select 
-             className="filter-select"
-             value={durationSort}
-             onChange={e => setDurationSort(e.target.value)}
-             style={{ padding: '8px 12px', border: '1px solid var(--border-color)', borderRadius: '6px', outline: 'none', backgroundColor: 'white' }}
-           >
-             <option value="Aucun">Trier par durée</option>
-             <option value="Croissant">Durée croissante</option>
-             <option value="Décroissant">Durée décroissante</option>
-           </select>
+           
+           <div className="filter-group">
+             <div className="filter-wrap">
+               <FileText size={16} color="var(--text-muted)" />
+               <select 
+                 className="filter-select"
+                 value={statusFilter}
+                 onChange={e => setStatusFilter(e.target.value)}
+               >
+                 <option value="Tous">Tous les statuts</option>
+                 <option value="approuvee">Approuvée</option>
+                 <option value="refusee">Refusée</option>
+                 <option value="en_attente">En attente</option>
+               </select>
+             </div>
+
+             <div className="filter-wrap">
+               <PlusCircle size={16} color="var(--text-muted)" style={{ transform: 'rotate(45deg)' }} />
+               <select 
+                 className="filter-select"
+                 value={durationSort}
+                 onChange={e => setDurationSort(e.target.value)}
+               >
+                 <option value="Aucun">Trier par durée</option>
+                 <option value="Croissant">Durée croissante</option>
+                 <option value="Décroissant">Durée décroissante</option>
+               </select>
+             </div>
+           </div>
         </div>
 
         <div className="table-body">

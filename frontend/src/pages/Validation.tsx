@@ -48,7 +48,7 @@ export default function Validation() {
   const [urgenceFilter, setUrgenceFilter] = useState<'' | 'urgent' | 'attention' | 'normal'>('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const isRH = user?.role === 'responsable_rh' || user?.role === 'directeur_rh';
+  const isRH = user?.role === 'responsable_rh' || user?.role === 'directeur_rh' || user?.is_superuser;
   const isManager = user?.role === 'responsable_hierarchique';
 
   const fetchDemandes = () => {
@@ -73,20 +73,25 @@ export default function Validation() {
   }, [user, urgenceFilter]);
 
   const handleAction = async (id: number, action: 'approve' | 'reject') => {
+    if (!user) return;
     setProcessingId(id);
+    
+    // Déterminer le rôle au moment de l'action pour éviter tout décalage d'état
+    const userIsRH = user.role === 'responsable_rh' || user.role === 'directeur_rh' || user.is_superuser;
+
     try {
       let endpoint = '';
       let payload = {};
 
       if (action === 'approve') {
-        endpoint = isRH ? `/demandes/${id}/approuver_rh/` : `/demandes/${id}/valider_responsable/`;
+        endpoint = userIsRH ? `/demandes/${id}/approuver_rh/` : `/demandes/${id}/valider_responsable/`;
       } else {
         if (!refusalReason.trim()) {
           alert("Veuillez saisir un motif pour le refus.");
           setProcessingId(null);
           return;
         }
-        endpoint = isRH ? `/demandes/${id}/refuser/` : `/demandes/${id}/refuser_responsable/`;
+        endpoint = userIsRH ? `/demandes/${id}/refuser/` : `/demandes/${id}/refuser_responsable/`;
         payload = { raison: refusalReason };
       }
 
@@ -94,7 +99,8 @@ export default function Validation() {
       fetchDemandes();
       setSelectedDemande(null);
     } catch (e: any) {
-      alert(e.response?.data?.detail || "Une erreur est survenue.");
+      const msg = e.response?.data?.detail || e.response?.data?.error || "Une erreur est survenue.";
+      alert(msg);
     } finally {
       setProcessingId(null);
     }
