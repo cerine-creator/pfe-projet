@@ -541,3 +541,78 @@
     justify-content: center;
   }
 }
+
+/* ─── Dark Mode Support for Validation Page ─── */
+[data-theme='dark'] .card-minimal {
+  background: var(--bg-color);
+  border-color: var(--border-color);
+  box-shadow: none; /* Effet plat et moderne */
+}
+
+[data-theme='dark'] .table-toolbar-light {
+  background: var(--bg-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+[data-theme='dark'] .search-bar-white,
+[data-theme='dark'] .urgence-filter-wrap {
+  background: var(--surface); /* On garde une légère distinction pour les inputs */
+  border-color: var(--border-color);
+}
+
+[data-theme='dark'] .search-bar-white input,
+[data-theme='dark'] .urgence-filter-select {
+  color: var(--text-main);
+}
+
+[data-theme='dark'] .data-table th {
+  background: var(--bg-color);
+  border-bottom: 2px solid var(--border-color);
+}
+
+[data-theme='dark'] .data-table td {
+  border-bottom: 1px solid var(--border-color);
+}
+
+[data-theme='dark'] .modal-content {
+  background: var(--surface);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+}
+
+[data-theme='dark'] .modal-detail-box {
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+}
+
+[data-theme='dark'] .detail-value {
+  color: var(--text-main);
+}
+
+[data-theme='dark'] .avatar-placeholder,
+[data-theme='dark'] .duration-badge,
+[data-theme='dark'] .justificatif-link,
+[data-theme='dark'] .btn-cancel-refusal,
+[data-theme='dark'] .badge-expired {
+  background: var(--surface);
+  color: var(--text-main);
+  border-color: var(--border-color);
+}
+
+[data-theme='dark'] .refusal-textarea {
+  background: var(--bg-color);
+  color: var(--text-main);
+  border-color: var(--border-color);
+}
+
+[data-theme='dark'] .row-urgent {
+  background: rgba(218, 0, 39, 0.08) !important;
+}
+
+[data-theme='dark'] .row-urgent:hover {
+  background: rgba(218, 0, 39, 0.15) !important;
+}
+
+[data-theme='dark'] .period-cell {
+  color: var(--text-muted);
+}

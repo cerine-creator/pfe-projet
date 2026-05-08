@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from datetime import date
 from dateutil.relativedelta import relativedelta
-from .models import DroitConge
+from .models import DroitConge, TitreConge
 
 def calculer_jours_acquis_par_mois(employe, exercice):
     """
@@ -103,4 +103,37 @@ def deduire_solde_conge(demande):
             droit.nbrJRes = 0
             droit.save()
 
+def generer_titre_conge_automatique(demande):
+    """
+    FONCTION : Crée le document officiel "Titre de Congé" quand la demande est validée par les RH.
+    USAGE : Appelé automatiquement après un statut 'approuvee'.
+    """
+    # 1. Sécurité Exercice : si non défini, on tente de le trouver
+    exercice = demande.exercice
+    if not exercice:
+        from .models import Exercice
+        # On cherche l'exercice couvrant la date de début
+        exercice = Exercice.objects.filter(date_debut__lte=demande.date_debut, date_fin__gte=demande.date_debut).first()
+        if not exercice:
+            # Sinon on prend le dernier exercice disponible
+            exercice = Exercice.objects.order_by('-date_debut').first()
+    
+    if not exercice:
+        raise ValidationError("Impossible de générer le titre : aucun exercice n'est configuré dans le système.")
 
+    # Format professionnel : CONGE-ANNEE-ID (ex: CONGE-2026-0042)
+    reference_titre = f"CONGE-{demande.date_debut.year}-{demande.id:04d}"
+    
+    # On génère le Titre de Congé
+    titre, created = TitreConge.objects.get_or_create(
+        demande=demande,
+        defaults={
+            'ref': reference_titre,
+            'dateDebut': demande.date_debut,
+            'dateFin': demande.date_fin,
+            'dureeT': demande.duree,
+            'exercice': exercice,
+            'employe': demande.employe
+        }
+    )
+    return titre

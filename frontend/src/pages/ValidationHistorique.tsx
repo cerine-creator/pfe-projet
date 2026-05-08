@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axiosConfig';
-import { User, History, Download, Filter } from 'lucide-react';
+import { User, History, Download, Filter, X, Eye } from 'lucide-react';
 import './validation.css';
 
 export default function ValidationHistorique() {
   const [historiqueDemandes, setHistoriqueDemandes] = useState<any[]>([]);
   const [historiqueFilter, setHistoriqueFilter] = useState('Tous');
   const [loading, setLoading] = useState(true);
+  const [selectedDemande, setSelectedDemande] = useState<any | null>(null);
 
   useEffect(() => {
     api.get('/demandes/historique/')
@@ -103,10 +104,10 @@ export default function ValidationHistorique() {
 
       <div className="card-minimal card-no-padding">
         <div className="table-toolbar-light">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div className="urgence-filter-wrap">
             <Filter size={18} color="var(--text-muted)" />
             <select
-              className="filter-select"
+              className="filter-select urgence-filter-select"
               value={historiqueFilter}
               onChange={e => setHistoriqueFilter(e.target.value)}
             >
@@ -139,49 +140,89 @@ export default function ValidationHistorique() {
                     Aucun historique correspondant.
                   </td>
                 </tr>
-              ) : filteredHistory.map(d => (
-                <tr key={d.id} className="table-row row-hover">
-                  <td className="td-cell">
-                    <div className="employee-cell">
-                      <div className="avatar-placeholder">
-                        <User size={20} color="var(--primary)" />
+              ) : (
+                filteredHistory.map(d => (
+                  <tr key={d.id} className="table-row row-hover">
+                    <td className="td-cell">
+                      <div className="employee-cell">
+                        <div className="avatar-placeholder">
+                          <User size={20} color="var(--primary)" />
+                        </div>
+                        <div>
+                          <div className="employee-name">{d.employe_noms}</div>
+                          <div className="employee-date">{d.type_conge_nom || 'Congé'}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="employee-name">{d.employe_noms}</div>
-                        <div className="employee-date">{d.type_conge_nom || 'Congé'}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className={`badge ${
-                      d.statut === 'approuvee' ? 'badge-success' :
-                      d.statut === 'refusee' ? 'badge-danger' :
-                      d.statut === 'expiree' ? 'badge-expired' : 'badge-pending'
-                    }`}>
-                      {d.statut_display}
-                    </span>
-                  </td>
-                  <td>Du {d.date_debut} au {d.date_fin}</td>
-                  <td className="td-cell-right">
-                    <div className="action-group">
-                      {d.statut === 'approuvee' && (
+                    </td>
+                    <td>
+                      <span className={`badge ${
+                        d.statut === 'approuvee' ? 'badge-success' :
+                        d.statut === 'refusee' ? 'badge-danger' :
+                        d.statut === 'expiree' ? 'badge-expired' : 'badge-pending'
+                      }`}>
+                        {d.statut_display}
+                      </span>
+                    </td>
+                    <td>Du {d.date_debut} au {d.date_fin}</td>
+                    <td className="td-cell-right">
+                      <div className="action-group">
+                        {d.statut === 'approuvee' && (
+                          <button 
+                            className="btn-icon" 
+                            title="Télécharger le titre"
+                            onClick={() => handleDownloadPDF(d.id)}
+                          >
+                            <Download size={18} />
+                          </button>
+                        )}
                         <button 
                           className="btn-icon" 
-                          title="Télécharger le titre"
-                          onClick={() => handleDownloadPDF(d.id)}
+                          title="Voir les détails" 
+                          onClick={() => setSelectedDemande(d)}
                         >
-                          <Download size={18} />
+                          <Eye size={18} />
                         </button>
-                      )}
-                      <div className="employee-date" style={{ marginLeft: '10px' }}>{d.dateDemande}</div>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                        <div className="employee-date" style={{ marginLeft: '10px' }}>{d.dateDemande}</div>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
+
+      {selectedDemande && (
+        <div className="modal-overlay" onClick={() => setSelectedDemande(null)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title">Détails de la décision</h2>
+              <button onClick={() => setSelectedDemande(null)} className="modal-close-btn">
+                <X size={24} color="var(--text-muted)" />
+              </button>
+            </div>
+
+            <div className="modal-detail-box">
+              <div className="modal-detail-grid">
+                <div><div className="detail-label">Employé</div><div className="detail-value">{selectedDemande.employe_noms}</div></div>
+                <div><div className="detail-label">Période</div><div className="detail-value">Du {selectedDemande.date_debut} au {selectedDemande.date_fin}</div></div>
+                <div><div className="detail-label">Type</div><div className="detail-value">{selectedDemande.type_conge_nom}</div></div>
+                <div><div className="detail-label">Durée</div><div className="detail-value">{selectedDemande.duree} jours</div></div>
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              {selectedDemande.statut === 'approuvee' && (
+                <button className="btn-primary" onClick={() => handleDownloadPDF(selectedDemande.id)}>
+                   <Download size={18} /> Télécharger le titre
+                </button>
+              )}
+              <button className="btn-secondary" onClick={() => setSelectedDemande(null)}>Fermer</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
