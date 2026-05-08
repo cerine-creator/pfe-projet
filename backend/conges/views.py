@@ -20,7 +20,7 @@ from .serializers import (
     EmployeSerializer, DroitCongeSerializer, DemandeCongeSerializer, NotificationSerializer, CalendarNoteSerializer
 )
 from .services import deduire_solde_conge
-from .pdf_utils import generer_pdf_titre
+from .pdf_utils import generer_pdf_titre, generer_pdf_archive
 
 class StructureViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Structure.objects.all()
@@ -85,8 +85,8 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         
-        # Pour les actions de validation, le manager/RH a besoin d'accéder à la demande d'un autre employé
-        if self.action in ['valider_responsable', 'refuser_responsable', 'approuver_rh', 'refuser', 'retrieve']:
+        # Pour les actions de validation et d'export, le manager/RH a besoin d'accéder à la demande d'un autre employé
+        if self.action in ['valider_responsable', 'refuser_responsable', 'approuver_rh', 'refuser', 'retrieve', 'exporter_pdf']:
             if user.is_superuser or user.role in ['responsable_rh', 'directeur_rh', 'responsable_hierarchique']:
                 return DemandeConge.objects.all()
 
@@ -477,6 +477,8 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
         )
         return Response({'status': 'Demande refusée.'})
 
+        return response
+
     @action(detail=True, methods=['get'], url_path='exporter_pdf', url_name='exporter_pdf')
     def exporter_pdf(self, request, pk=None):
         """Action : Génère et télécharge le titre de congé en PDF."""
@@ -489,6 +491,34 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
         
         response = HttpResponse(content_type='application/pdf')
         filename = f"Titre-Conge-{demande.id}.pdf"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        response.write(pdf_content)
+        
+        return response
+
+    @action(detail=False, methods=['get'], url_path='exporter_archive', url_name='exporter_archive')
+    def exporter_archive(self, request):
+        """Action : Génère un PDF récapitulatif de toutes les demandes approuvées."""
+        user = request.user
+        employe_id = request.query_params.get('employe_id')
+        
+        # Si un ID est fourni, on vérifie si l'utilisateur a le droit (RH ou Manager)
+        if employe_id:
+            if not (user.is_superuser or user.role in ['responsable_rh', 'directeur_rh', 'responsable_hierarchique']):
+                return Response({'detail': "Vous n'avez pas l'autorisation de voir l'archive d'un autre employé."}, status=403)
+            employe = Employe.objects.filter(id=employe_id).first()
+        else:
+            employe = getattr(user, 'employe', None)
+
+        if not employe:
+            return Response({'detail': "Profil employé non trouvé."}, status=400)
+            
+        demandes = DemandeConge.objects.filter(employe=employe, statut='approuvee').order_by('-date_debut')
+        
+        pdf_content = generer_pdf_archive(employe, demandes)
+        
+        response = HttpResponse(content_type='application/pdf')
+        filename = f"Archive-Conges-{employe.nomEmpl}-{employe.prenomEmpl}.pdf"
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         response.write(pdf_content)
         
