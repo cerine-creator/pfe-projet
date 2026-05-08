@@ -1,83 +1,139 @@
-from reportlab.lib.pagesizes import A4
+from reportlab.lib.pagesizes import A4, A5, landscape
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from io import BytesIO
+from datetime import date, timedelta
+import os
 
 def generer_pdf_titre(demande):
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    # Configuration de la page A5 en paysage avec des marges équilibrées
+    doc = SimpleDocTemplate(
+        buffer, 
+        pagesize=landscape(A5), 
+        rightMargin=30, 
+        leftMargin=30, 
+        topMargin=20, 
+        bottomMargin=20
+    )
     styles = getSampleStyleSheet()
     
-    # Styles personnalisés
+    # --- STYLES PERSONNALISÉS ---
     style_titre = ParagraphStyle(
         'TitreStyle',
         parent=styles['Heading1'],
-        fontSize=24,
-        textColor=colors.HexColor('#d32f2f'), # Rouge Air Algérie
-        alignment=1, # Centre
-        spaceAfter=30
-    )
-    
-    style_label = ParagraphStyle(
-        'LabelStyle',
-        parent=styles['Normal'],
-        fontSize=12,
+        fontSize=18,
         fontName='Helvetica-Bold',
-        spaceAfter=6
+        alignment=1,  # Centre
+        spaceAfter=20
     )
     
+    style_normal = ParagraphStyle(
+        'NormalStyle',
+        parent=styles['Normal'],
+        fontSize=11,
+        leading=14
+    )
+
+    style_bold = ParagraphStyle(
+        'BoldStyle',
+        parent=styles['Normal'],
+        fontSize=11,
+        fontName='Helvetica-Bold',
+        leading=14
+    )
+
     elements = []
     
-    # En-tête
-    elements.append(Paragraph("AIR ALGÉRIE", style_titre))
-    elements.append(Paragraph("Direction des Ressources Humaines", styles['Heading3']))
-    elements.append(Spacer(1, 20))
+    # --- 1. EN-TÊTE : RÉF ET LOGO ---
+    ref_text = f"Réf: REF-{demande.date_debut.year}-{demande.id:04d}"
+    logo_path = r"C:\Users\Lenoovo\Desktop\pfe\frontend\public\logo.svg"
     
-    elements.append(Paragraph("TITRE DE CONGÉ", style_titre))
+    try:
+        from svglib.svglib import svg2rlg
+        drawing = svg2rlg(logo_path)
+        if drawing:
+            # On fixe la largeur pour correspondre à l'image (environ 140pt)
+            target_width = 140 
+            scaling_factor = target_width / drawing.width
+            drawing.width *= scaling_factor
+            drawing.height *= scaling_factor
+            drawing.scale(scaling_factor, scaling_factor)
+            drawing.hAlign = 'RIGHT'
+            logo = drawing
+        else:
+            logo = Paragraph("", style_normal)
+    except:
+        logo = Paragraph("<font color='red' size=8>Logo non trouvé</font>", style_normal)
+
+    header_table = Table([[Paragraph(ref_text, style_normal), logo]], colWidths=[350, 150])
+    header_table.setStyle(TableStyle([
+        ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+    ]))
+    elements.append(header_table)
+    elements.append(Spacer(1, 10))
     
-    # Informations de la demande
-    data = [
-        ["Référence :", f"REF-{demande.date_debut.year}-{demande.id:04d}"],
-        ["Date d'émission :", demande.dateDemande.strftime('%d/%m/%Y')],
-        ["", ""],
-        ["EMPLOYÉ :", f"{demande.employe.prenomEmpl} {demande.employe.nomEmpl}"],
-        ["Matricule :", demande.employe.matricule or "N/A"],
-        ["Structure :", demande.employe.structure.libelle if demande.employe.structure else "N/A"],
-        ["Fonction :", demande.employe.fonction.libelle if demande.employe.fonction else "N/A"],
-        ["", ""],
-        ["PÉRIODE DE CONGÉ :", ""],
-        ["Date de début :", demande.date_debut.strftime('%d/%m/%Y')],
-        ["Date de fin :", demande.date_fin.strftime('%d/%m/%Y')],
-        ["Durée :", f"{demande.duree} jour(s)"],
-        ["Type de congé :", demande.type_conge.nomType if demande.type_conge else "N/A"],
-        ["Exercice :", demande.exercice.libelle if demande.exercice else "N/A"],
+    # --- 2. TITRE PRINCIPAL ---
+    elements.append(Paragraph("<u>TITRE DE CONGE</u>", style_titre))
+    elements.append(Spacer(1, 10))
+    
+    # --- 3. MATRICULE (Aligné à droite) ---
+    matricule = demande.employe.matricule if demande.employe.matricule else "N/A"
+    mat_table = Table([["", Paragraph(f"<b>N° Matricule :</b> {matricule}", style_normal)]], colWidths=[330, 170])
+    mat_table.setStyle(TableStyle([('ALIGN', (1, 0), (1, 0), 'LEFT')]))
+    elements.append(mat_table)
+    elements.append(Spacer(1, 15))
+
+    # --- 4. CORPS DU DOCUMENT ---
+    date_reprise = demande.date_fin + timedelta(days=1)
+    droit = demande.employe.droits_conges.filter(exercice=demande.exercice).first()
+    solde_restant = int(droit.nbrJRes) if droit else 0
+
+    body_data = [
+        [Paragraph("Bénéficiaire :", style_bold), Paragraph(f"{demande.employe.prenomEmpl} {demande.employe.nomEmpl}", style_normal), "", ""],
+        [Paragraph("Qualité :", style_bold), Paragraph(demande.employe.fonction.libelle if demande.employe.fonction else "N/A", style_normal), 
+         Paragraph("Affectation :", style_bold), Paragraph(demande.employe.structure.libelle if demande.employe.structure else "N/A", style_normal)],
+        [Paragraph("Congé accordé :", style_bold), Paragraph(f"<b>{int(demande.duree)}</b> jours", style_normal), "", ""],
+        [Paragraph("Valable du :", style_bold), Paragraph(demande.date_debut.strftime('%d/%m/%Y'), style_normal), 
+         Paragraph("au :", style_bold), Paragraph(demande.date_fin.strftime('%d/%m/%Y'), style_normal)],
+    ]
+
+    # Largeurs ajustées pour que "Affectation" et "au" soient bien placés
+    body_table = Table(body_data, colWidths=[110, 160, 80, 150])
+    body_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    elements.append(body_table)
+    elements.append(Spacer(1, 10))
+
+    # --- 5. BAS DE PAGE (Reste à prendre et Reprise) ---
+    # Création du petit rectangle pour le solde
+    box_solde = Table([[Paragraph(f"<b>{solde_restant}</b>", ParagraphStyle('B', fontSize=14, alignment=1))]], 
+                      colWidths=[60], rowHeights=[30], 
+                      style=[('BOX', (0,0), (-1,-1), 1.5, colors.black), ('VALIGN', (0,0), (-1,-1), 'MIDDLE')])
+
+    footer_data = [
+        [Paragraph("<b>Reste a prendre</b>", style_normal), Paragraph("date à laquelle l'intéressé devra reprendre son", style_normal)],
+        [box_solde, Paragraph("poste de travail.", style_normal)],
+        ["", Paragraph(f"<b>{date_reprise.strftime('%d/%m/%Y')}</b>", style_bold)]
     ]
     
-    t = Table(data, colWidths=[150, 300])
-    t.setStyle(TableStyle([
-        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, -1), 12),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
-        ('TEXTCOLOR', (0, 0), (0, -1), colors.black),
+    footer_table = Table(footer_data, colWidths=[150, 350])
+    footer_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('LEFTPADDING', (1, 0), (1, -1), 50), # Décale le texte de reprise vers la droite
     ]))
+    elements.append(footer_table)
     
-    elements.append(t)
-    elements.append(Spacer(1, 50))
+    # --- 6. SIGNATURE (Date du jour) ---
+    elements.append(Spacer(1, 15))
+    date_signature = date.today().strftime('%d/%m/%Y')
+    elements.append(Paragraph(f"Le : <b>{date_signature}</b>", ParagraphStyle('R', parent=styles['Normal'], alignment=2, fontSize=11, rightIndent=40)))
     
-    # Signature (Simulation)
-    signature_data = [
-        ["", "Le Responsable RH"],
-        ["", ""],
-        ["", "(Signature et Cachet)"]
-    ]
-    sig_table = Table(signature_data, colWidths=[300, 150])
-    sig_table.setStyle(TableStyle([
-        ('ALIGN', (1, 0), (1, -1), 'CENTER'),
-        ('FONTNAME', (1, 0), (1, 0), 'Helvetica-Bold'),
-    ]))
-    elements.append(sig_table)
-    
+    # Génération finale
     doc.build(elements)
     pdf = buffer.getvalue()
     buffer.close()

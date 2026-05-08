@@ -16,6 +16,7 @@ python -m venv venv
 # 2. Installer les dépendances
 cd backend
 pip install -r requirements.txt
+pip install svglib  # Requis pour les logos SVG
 
 # 3. Configurer la base de données (Migrations + Données Air Algérie)
 python manage.py migrate

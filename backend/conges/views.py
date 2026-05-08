@@ -477,8 +477,6 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
         )
         return Response({'status': 'Demande refusée.'})
 
-        return response
-
     @action(detail=True, methods=['get'], url_path='exporter_pdf', url_name='exporter_pdf')
     def exporter_pdf(self, request, pk=None):
         """Action : Génère et télécharge le titre de congé en PDF."""
