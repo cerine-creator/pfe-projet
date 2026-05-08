@@ -1,3 +1,5 @@
+from django.utils import timezone
+from datetime import timedelta
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -28,6 +30,23 @@ class LoginView(APIView):
         serializer.is_valid(raise_exception=True)
 
         user = serializer.validated_data['user']
+
+        # Vérification de session active avec Heartbeat
+        # On autorise la connexion si is_logged_in est True MAIS que l'activité date de plus de 60 secondes
+        if user.is_logged_in:
+            now = timezone.now()
+            # Si last_activity est défini et qu'il date de moins de 60 secondes, on bloque
+            if user.last_activity and (now - user.last_activity) < timedelta(seconds=60):
+                return Response({
+                    'detail': f"Session déjà active : Le compte {user.username} est actuellement utilisé sur un autre appareil ou navigateur. Veuillez fermer l'autre session pour continuer."
+                }, status=403)
+            # Sinon (activité trop vieille), on considère que la session est orpheline, on laisse passer
+        
+        # Marquer comme connecté et initialiser last_activity
+        user.is_logged_in = True
+        user.last_activity = timezone.now()
+        user.save(update_fields=['is_logged_in', 'last_activity'])
+
         refresh = RefreshToken.for_user(user)
 
         access_token = str(refresh.access_token)
@@ -76,10 +95,30 @@ class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        # Marquer comme déconnecté
+        user = request.user
+        user.is_logged_in = False
+        user.save(update_fields=['is_logged_in'])
+
         response = Response({'message': 'Déconnexion réussie.'})
         response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'])
         response.delete_cookie(settings.SIMPLE_JWT['REFRESH_COOKIE'])
         return response
+
+
+class HeartbeatView(APIView):
+    """
+    Endpoint pour maintenir la session active (Heartbeat).
+    Met à jour last_activity toutes les 30 secondes côté frontend.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        user.last_activity = timezone.now()
+        user.is_logged_in = True  # Sécurité supplémentaire
+        user.save(update_fields=['last_activity', 'is_logged_in'])
+        return Response({'status': 'active'})
 
 
 class WhoAmIView(APIView):

@@ -42,6 +42,19 @@ class CustomUser(AbstractUser):
         verbose_name='Profil Employé',
     )
 
+    is_logged_in = models.BooleanField(
+        default=False,
+        verbose_name='En ligne',
+        help_text="Indique si l'utilisateur possède une session active. Décocher pour forcer la déconnexion."
+    )
+
+    last_activity = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Dernière activité',
+        help_text="Utilisé pour détecter si la session est toujours active via le heartbeat."
+    )
+
     class Meta:
         verbose_name = 'Utilisateur'
         verbose_name_plural = 'Utilisateurs'

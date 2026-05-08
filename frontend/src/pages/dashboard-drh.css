@@ -1,6 +1,6 @@
 /* Dashboard DRH Styles */
 .dashboard-drh {
-  padding: 2rem;
+  padding: 1.25rem;
   max-width: 1400px;
   margin: 0 auto;
   background: var(--bg-primary);
@@ -8,19 +8,19 @@
 }
 
 .page-header {
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
 }
 
 .page-title-lg {
-  font-size: 2.5rem;
+  font-size: 1.8rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .page-subtitle {
   color: var(--text-muted);
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   margin-bottom: 0;
 }
 
@@ -31,18 +31,18 @@
 /* Statistiques principales */
 .stats-grid-drh {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .stat-card {
   background: var(--bg-secondary);
-  border-radius: 12px;
-  padding: 1.5rem;
+  border-radius: 10px;
+  padding: 1rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -69,9 +69,9 @@
 }
 
 .stat-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -99,7 +99,7 @@
 }
 
 .stat-value {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1;
@@ -115,14 +115,14 @@
 .dashboard-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+  gap: 1.25rem;
 }
 
 /* Section graphique */
 .chart-section {
   background: var(--bg-secondary);
-  border-radius: 12px;
-  padding: 1.5rem;
+  border-radius: 10px;
+  padding: 1rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -494,28 +494,7 @@
   border: none;
 }
 
-.btn-cancel {
-  background: var(--bg-tertiary);
-  color: var(--text-secondary);
-}
 
-.btn-cancel:hover {
-  background: var(--bg-primary);
-}
-
-.btn-approve {
-  background: var(--primary-color);
-  color: white;
-}
-
-.btn-approve:hover:not(:disabled) {
-  background: var(--primary-color-dark);
-}
-
-.btn-approve:disabled {
-  background: var(--text-muted);
-  cursor: not-allowed;
-}
 
 /* Employee Details Modal */
 .employee-details-modal .detail-row {

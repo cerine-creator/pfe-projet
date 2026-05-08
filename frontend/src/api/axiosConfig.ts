@@ -11,22 +11,19 @@ import axios from 'axios';
  *   sur les navigateurs/environnements où ils fonctionnent (same-origin).
  */
 
-// ─── Token store en mémoire ──────────────────────────────────────────────────
-// Ces variables sont inaccessibles depuis l'extérieur du module.
-
-let _accessToken: string | null = null;
-let _refreshToken: string | null = null;
+// ─── Token store persistant (localStorage) ───────────────────────────────────
+// On utilise localStorage pour que la session survive au rafraîchissement (F5).
 
 export const tokenStore = {
-  getAccess: () => _accessToken,
-  getRefresh: () => _refreshToken,
+  getAccess: () => localStorage.getItem('pfe_access_token'),
+  getRefresh: () => localStorage.getItem('pfe_refresh_token'),
   set: (access: string, refresh: string) => {
-    _accessToken = access;
-    _refreshToken = refresh;
+    localStorage.setItem('pfe_access_token', access);
+    localStorage.setItem('pfe_refresh_token', refresh);
   },
   clear: () => {
-    _accessToken = null;
-    _refreshToken = null;
+    localStorage.removeItem('pfe_access_token');
+    localStorage.removeItem('pfe_refresh_token');
   },
 };
 
@@ -80,8 +77,7 @@ api.interceptors.response.use(
       // Endpoints qui ne doivent pas déclencher de refresh
       const skipRefresh =
         originalRequest.url?.includes('/auth/login/') ||
-        originalRequest.url?.includes('/auth/token/refresh/') ||
-        originalRequest.url?.includes('/auth/me/');
+        originalRequest.url?.includes('/auth/token/refresh/');
 
       if (skipRefresh) {
         return Promise.reject(error);
@@ -127,8 +123,8 @@ api.interceptors.response.use(
       }
     }
 
-    // 403 : accès interdit
-    if (error.response?.status === 403) {
+    // 403 : accès interdit (on ne redirige pas si c'est une tentative de login pour laisser afficher l'erreur)
+    if (error.response?.status === 403 && !originalRequest.url?.includes('/auth/login/')) {
       window.location.href = '/non-autorise';
     }
 

@@ -11,6 +11,8 @@ export default function NouvelleDemande() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<{type: 'success'|'error', text: string} | null>(null);
+  
+  const today = new Date().toISOString().split('T')[0];
 
   const [natureConge, setNatureConge] = useState<'annuel'|'exceptionnel'|'sans_solde'|'maladie'|''>('');
   const [file, setFile] = useState<File | null>(null);
@@ -173,6 +175,7 @@ export default function NouvelleDemande() {
                 <input 
                   type="date" 
                   required 
+                  min={today}
                   value={formData.date_debut}
                   onChange={e => setFormData({...formData, date_debut: e.target.value})}
                 />
@@ -185,6 +188,7 @@ export default function NouvelleDemande() {
                 <input 
                   type="date" 
                   required
+                  min={formData.date_debut || today}
                   value={formData.date_fin}
                   onChange={e => setFormData({...formData, date_fin: e.target.value})}
                 />
@@ -233,7 +237,7 @@ export default function NouvelleDemande() {
           )}
 
           <div className="form-footer">
-            <button type="button" className="nav-item" onClick={() => navigate(-1)}>Annuler</button>
+            <button type="button" className="btn-secondary" onClick={() => navigate(-1)}>Annuler</button>
             <button 
               type="submit" 
               className="btn-primary" 

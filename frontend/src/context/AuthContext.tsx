@@ -94,6 +94,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const clearError = () => setError(null);
 
+  // ─── Heartbeat (Battement de cœur) ──────────────────────────────────────────
+  // Envoie un signal au serveur toutes les 30 secondes pour dire "je suis toujours là"
+  // Cela permet au backend de savoir si la fenêtre est toujours ouverte.
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+
+    if (user) {
+      // Premier ping immédiat
+      api.post('/auth/heartbeat/').catch(() => {});
+
+      // Puis toutes les 30 secondes
+      interval = setInterval(() => {
+        api.post('/auth/heartbeat/').catch(() => {});
+      }, 30000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [user]);
+
   return (
     <AuthContext.Provider value={{ user, loading, error, login, logout, clearError }}>
       {children}

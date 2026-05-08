@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axiosConfig';
 import { useAuth } from '../context/AuthContext';
-import { CheckCircle, XCircle, FileText, Search, User, Calendar, Clock, Zap, AlertTriangle, Filter } from 'lucide-react';
+import { CheckCircle, XCircle, FileText, Search, User, Calendar, Clock, Zap, AlertTriangle, Filter, Paperclip, ExternalLink } from 'lucide-react';
 import './validation.css';
 
 // ─── Badge d'urgence ─────────────────────────────────────────────────────────
@@ -33,6 +33,8 @@ function UrgenceBadge({ level, delai }: { level: UrgenceLevel; delai: number | n
 }
 
 // ─── Composant principal ──────────────────────────────────────────────────────
+const BACKEND_URL = 'http://127.0.0.1:8000';
+
 export default function Validation() {
   const { user } = useAuth();
   const [demandes, setDemandes] = useState<any[]>([]);
@@ -239,6 +241,32 @@ export default function Validation() {
                 <div><div className="detail-label">Période</div><div className="detail-value">Du {selectedDemande.date_debut} au {selectedDemande.date_fin}</div></div>
                 <div><div className="detail-label">Type</div><div className="detail-value">{selectedDemande.motif ? 'Congé Exceptionnel' : selectedDemande.type_conge_nom}</div></div>
                 <div><div className="detail-label">Durée</div><div className="detail-value">{selectedDemande.duree} jours</div></div>
+                {/* Justificatif */}
+                {selectedDemande.justificatif_url && (() => {
+                  let url = selectedDemande.justificatif_url;
+                  if (!url.startsWith('http')) {
+                    url = `${BACKEND_URL}${url}`;
+                  }
+                  const isPdf = url.toLowerCase().includes('.pdf');
+                  return (
+                    <div style={{ gridColumn: '1 / -1', marginTop: '10px', paddingTop: '15px', borderTop: '1px solid #e2e8f0' }}>
+                      <div className="detail-label" style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'10px' }}>
+                        <Paperclip size={14} /> Justificatif joint
+                      </div>
+                      {isPdf ? (
+                        <a href={url} target="_blank" rel="noreferrer" className="justificatif-link">
+                          <FileText size={20} />
+                          Ouvrir le document PDF
+                          <ExternalLink size={14} />
+                        </a>
+                      ) : (
+                        <a href={url} target="_blank" rel="noreferrer" style={{ display: 'block', width: 'fit-content' }}>
+                          <img src={url} alt="Justificatif" className="justificatif-img" />
+                        </a>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 

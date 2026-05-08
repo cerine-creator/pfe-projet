@@ -292,6 +292,37 @@ body.mobile-menu-open {
   box-shadow: none;
 }
 
+/* ─── Bouton Secondaire Global (Gris / Annuler) ─── */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 28px;
+  background: #e2e8f0;
+  border: none;
+  border-radius: 12px;
+  color: #334155;
+  font-size: 15px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  width: fit-content;
+  min-width: 80px;
+  max-width: 300px;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #cbd5e1;
+  transform: translateY(-2px);
+}
+
+.btn-secondary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
 /* ─── Notification Bell ──────────────────────────────────────────────────── */
 
 .notif-wrapper {

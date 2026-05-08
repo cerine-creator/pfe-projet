@@ -24,8 +24,9 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [justLoggedIn, setJustLoggedIn] = useState(false);
 
-  // Si déjà authentifié → redirection immédiate
+  // Redirection immédiate si l'utilisateur est déjà authentifié
   useEffect(() => {
     if (!loading && user) {
       const returnTo = (location.state as { from?: Location })?.from?.pathname;
@@ -40,7 +41,7 @@ const Login: React.FC = () => {
     setSubmitting(true);
     try {
       await login(username.trim(), password);
-      // La redirection est gérée par le useEffect ci-dessus
+      setJustLoggedIn(true);
     } catch {
       // L'erreur est déjà dans le contexte via setError
     } finally {
@@ -82,7 +83,7 @@ const Login: React.FC = () => {
           {/* Message d'erreur */}
           {error && (
             <div className="login-error" role="alert">
-              <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
               <span>{error}</span>
@@ -104,7 +105,7 @@ const Login: React.FC = () => {
                 type="email"
                 className="login-input"
                 value={username}
-                onChange={(e) => { setUsername(e.target.value); handleInputChange(); }}
+                onChange={(e) => setUsername(e.target.value)}
                 placeholder="prenom.nom@airalgerie.dz"
                 autoComplete="email"
                 autoFocus
@@ -128,7 +129,7 @@ const Login: React.FC = () => {
                 type={showPassword ? 'text' : 'password'}
                 className="login-input login-input--password"
                 value={password}
-                onChange={(e) => { setPassword(e.target.value); handleInputChange(); }}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 autoComplete="current-password"
                 disabled={submitting}

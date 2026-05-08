@@ -381,8 +381,8 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
             if not demande.employe.structure or getattr(demande.employe.structure, 'responsable', None) != responsable_employe:
                 return Response({'detail': "Vous n'êtes pas le responsable désigné de la structure de cet employé."}, status=403)
 
-        demande.statut = 'en_attente_rh'
-        demande.save()
+        DemandeConge.objects.filter(pk=demande.pk).update(statut='en_attente_rh')
+        demande.refresh_from_db()
         
         # Récupérer les employés RH pour les notifier (ceux dont l'user lié a un rôle RH)
         rh_employes = Employe.objects.filter(compte__role__in=['responsable_rh', 'directeur_rh'])
@@ -412,8 +412,8 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
                 return Response({'detail': "Vous n'êtes pas le responsable désigné de la structure de cet employé."}, status=403)
 
         raison = request.data.get('raison', 'Raison non spécifiée par le responsable')
-        demande.statut = 'refusee'
-        demande.save()
+        DemandeConge.objects.filter(pk=demande.pk).update(statut='refusee')
+        demande.refresh_from_db()
         
         Notification.objects.create(
             utilisateur=demande.employe.compte,
@@ -443,9 +443,9 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
                 # 1. On donne l'ordre au Service de déduire le solde
                 deduire_solde_conge(demande)
                 
-                # 2. Sauvegarde du nouveau statut
-                demande.statut = 'approuvee'
-                demande.save()
+                # 2. Sauvegarde du nouveau statut (sans déclencher clean())
+                DemandeConge.objects.filter(pk=demande.pk).update(statut='approuvee')
+                demande.refresh_from_db()
                 
                 # 3. On demande au Service de générer le document de validation (Titre)
                 titre = generer_titre_conge_automatique(demande)
@@ -471,8 +471,8 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
                 return Response({'detail': "Seul le Directeur RH peut refuser la demande d'un Responsable RH."}, status=403)
 
         raison = request.data.get('raison', 'Raison non spécifiée')
-        demande.statut = 'refusee'
-        demande.save()
+        DemandeConge.objects.filter(pk=demande.pk).update(statut='refusee')
+        demande.refresh_from_db()
 
         Notification.objects.create(
             utilisateur=demande.employe.compte,
