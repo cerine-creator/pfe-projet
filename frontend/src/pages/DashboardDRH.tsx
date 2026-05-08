@@ -105,7 +105,35 @@ export default function DashboardDRH() {
   if (loading) {
     return (
       <div className="dashboard-drh">
-        <div className="loading-state">Chargement du tableau de bord...</div>
+        <div className="page-header">
+          <div className="skeleton-block" style={{ width: '300px', height: '35px', marginBottom: '10px' }}></div>
+          <div className="skeleton-block" style={{ width: '400px', height: '15px' }}></div>
+        </div>
+        <div className="stats-grid-drh" style={{ marginTop: '30px' }}>
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="stat-card" style={{ padding: '25px', display: 'flex', gap: '15px', alignItems: 'center' }}>
+              <div className="skeleton-avatar" style={{ width: '50px', height: '50px', borderRadius: '50%', flexShrink: 0 }}></div>
+              <div style={{ flex: 1 }}>
+                <div className="skeleton-block" style={{ width: '40px', height: '24px', marginBottom: '8px' }}></div>
+                <div className="skeleton-block" style={{ width: '100px', height: '12px' }}></div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="dashboard-content" style={{ marginTop: '30px' }}>
+          <div className="absents-section">
+            <div className="skeleton-block" style={{ width: '250px', height: '24px', marginBottom: '20px' }}></div>
+            {[...Array(3)].map((_, i) => (
+              <div key={i} style={{ marginBottom: '15px' }}>
+                <div className="skeleton-block" style={{ width: '100%', height: '70px', borderRadius: '12px' }}></div>
+              </div>
+            ))}
+          </div>
+          <div className="calendar-section">
+            <div className="skeleton-block" style={{ width: '250px', height: '24px', marginBottom: '20px' }}></div>
+            <div className="skeleton-block" style={{ width: '100%', height: '150px', borderRadius: '12px' }}></div>
+          </div>
+        </div>
       </div>
     );
   }

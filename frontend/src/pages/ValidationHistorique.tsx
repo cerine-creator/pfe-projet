@@ -41,7 +41,53 @@ export default function ValidationHistorique() {
     return d.statut === historiqueFilter;
   });
 
-  if (loading) return <div className="td-loading">Chargement de l'historique...</div>;
+  if (loading) {
+    return (
+      <div className="validation-page">
+        <div className="validation-header">
+          <div>
+            <h1 className="page-title">Historique des <span className="text-primary">Décisions</span></h1>
+            <p className="page-subtitle">Consultez les demandes que vous avez précédemment approuvées ou refusées.</p>
+          </div>
+          <div className="icon-box-large">
+             <History size={32} color="var(--primary)" />
+          </div>
+        </div>
+        <div className="card-minimal card-no-padding">
+          <div className="table-body">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th className="th-cell">EMPLOYÉ</th>
+                  <th className="th-cell">STATUT</th>
+                  <th className="th-cell">PÉRIODE</th>
+                  <th className="th-cell-right">ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...Array(4)].map((_, i) => (
+                  <tr key={`skel-vh-${i}`} className="table-row skeleton-row">
+                    <td className="td-cell">
+                      <div className="employee-cell">
+                        <div className="skeleton-avatar" style={{ width: '40px', height: '40px', borderRadius: '12px' }}></div>
+                        <div>
+                          <div className="skeleton-block" style={{ width: '120px', marginBottom: '8px' }}></div>
+                          <div className="skeleton-block" style={{ width: '80px', height: '12px' }}></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td><div className="skeleton-block" style={{ width: '90px', borderRadius: '20px' }}></div></td>
+                    <td><div className="skeleton-block" style={{ width: '150px' }}></div></td>
+                    <td className="td-cell-right"><div className="skeleton-block" style={{ width: '35px', height: '35px', borderRadius: '8px', marginLeft: 'auto' }}></div></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="validation-page">

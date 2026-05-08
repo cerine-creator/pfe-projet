@@ -46,7 +46,50 @@ export default function Archives() {
 
   const yearsSorted = Object.keys(groupedArchives).sort().reverse();
 
-  if (loading) return <div className="td-loading">Chargement de vos archives...</div>;
+  if (loading) {
+    return (
+      <div className="demandes-v2">
+        <div className="demandes-header">
+          <div className="page-header" style={{ marginBottom: 0 }}>
+            <h1 className="page-title">Archives des <span className="text-primary">Congés Approuvés</span></h1>
+            <p className="page-subtitle">Retrouvez ici tous vos titres de congés officiels classés par année.</p>
+          </div>
+          <div className="icon-box-large">
+             <History size={32} color="var(--primary)" />
+          </div>
+        </div>
+        <div className="card-minimal card-no-padding" style={{ marginTop: '30px' }}>
+            <div className="table-body">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th className="th-cell">TYPE DE CONGÉ</th>
+                    <th className="th-cell">PÉRIODE</th>
+                    <th className="th-cell">DURÉE</th>
+                    <th className="th-cell-right">DOCUMENT</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...Array(3)].map((_, i) => (
+                    <tr key={`skel-arch-${i}`} className="table-row skeleton-row">
+                      <td className="td-cell">
+                        <div className="cell-icon-label">
+                           <div className="skeleton-avatar" style={{ width: '30px', height: '30px', borderRadius: '8px' }}></div>
+                           <div className="skeleton-block" style={{ width: '120px' }}></div>
+                        </div>
+                      </td>
+                      <td><div className="skeleton-block" style={{ width: '180px' }}></div></td>
+                      <td><div className="skeleton-block" style={{ width: '50px' }}></div></td>
+                      <td className="td-cell-right"><div className="skeleton-block" style={{ width: '120px', height: '30px', borderRadius: '8px', marginLeft: 'auto' }}></div></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+      </div>
+    );
+  }
 
   return (
     <div className="demandes-v2">

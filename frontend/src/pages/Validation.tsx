@@ -186,7 +186,28 @@ export default function Validation() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} className="td-loading">Chargement...</td></tr>
+                <>
+                  {[...Array(4)].map((_, i) => (
+                    <tr key={`skel-${i}`} className="table-row skeleton-row">
+                      <td className="td-cell">
+                        <div className="employee-cell">
+                          <div className="skeleton-avatar"></div>
+                          <div>
+                            <div className="skeleton-block" style={{ width: '120px', marginBottom: '8px' }}></div>
+                            <div className="skeleton-block" style={{ width: '80px', height: '12px' }}></div>
+                          </div>
+                        </div>
+                      </td>
+                      <td><div className="skeleton-block" style={{ width: '100px' }}></div></td>
+                      <td><div className="skeleton-block" style={{ width: '150px' }}></div></td>
+                      <td><div className="skeleton-block" style={{ width: '60px' }}></div></td>
+                      <td><div className="skeleton-block" style={{ width: '90px', borderRadius: '20px' }}></div></td>
+                      <td className="td-cell-right">
+                        <div className="skeleton-block" style={{ width: '100px', height: '36px', borderRadius: '8px', marginLeft: 'auto' }}></div>
+                      </td>
+                    </tr>
+                  ))}
+                </>
               ) : demandesFiltrees.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="td-cell" style={{ textAlign: 'center', padding: '80px', color: 'var(--text-muted)' }}>

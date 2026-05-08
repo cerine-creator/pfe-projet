@@ -49,7 +49,35 @@ export default function Dashboard() {
     fetchStats();
   }, []);
 
-  if (loading) return <div className="loading-state">Chargement de vos statistiques...</div>;
+  if (loading) {
+    return (
+      <div className="dashboard-v2">
+        <div className="page-header">
+          <div className="skeleton-block" style={{ width: '250px', height: '35px', marginBottom: '10px' }}></div>
+          <div className="skeleton-block" style={{ width: '350px', height: '15px' }}></div>
+        </div>
+        <div className="stats-grid" style={{ marginTop: '30px' }}>
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="card-minimal" style={{ padding: '25px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              <div className="skeleton-block" style={{ width: '120px', height: '14px' }}></div>
+              <div className="skeleton-block" style={{ width: '80px', height: '32px' }}></div>
+              <div className="skeleton-block" style={{ width: '150px', height: '12px', marginTop: '10px' }}></div>
+            </div>
+          ))}
+        </div>
+        <div className="card-minimal info-section" style={{ marginTop: '30px' }}>
+          <div className="info-section-left">
+            <div className="skeleton-avatar" style={{ width: '56px', height: '56px', borderRadius: '14px' }}></div>
+            <div className="info-text">
+              <div className="skeleton-block" style={{ width: '250px', height: '22px', marginBottom: '10px' }}></div>
+              <div className="skeleton-block" style={{ width: '300px', height: '14px' }}></div>
+            </div>
+          </div>
+          <div className="skeleton-block" style={{ width: '200px', height: '48px', borderRadius: '12px' }}></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard-v2">

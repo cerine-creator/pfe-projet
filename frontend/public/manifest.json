@@ -1,0 +1,16 @@
+{
+  "short_name": "Congés AH",
+  "name": "Portail Congés Air Algérie",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#d32f2f",
+  "background_color": "#0f172a"
+}

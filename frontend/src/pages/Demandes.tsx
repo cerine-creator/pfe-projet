@@ -123,7 +123,22 @@ export default function Demandes() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={5} className="td-loading">Chargement de l'historique...</td></tr>
+                <>
+                  {[...Array(4)].map((_, i) => (
+                    <tr key={`skel-${i}`} className="table-row skeleton-row">
+                      <td className="td-cell">
+                        <div className="cell-icon-label">
+                           <div className="skeleton-avatar" style={{ width: '35px', height: '35px', borderRadius: '8px' }}></div>
+                           <div className="skeleton-block" style={{ width: '120px' }}></div>
+                        </div>
+                      </td>
+                      <td><div className="skeleton-block" style={{ width: '180px' }}></div></td>
+                      <td><div className="skeleton-block" style={{ width: '50px' }}></div></td>
+                      <td><div className="skeleton-block" style={{ width: '80px', borderRadius: '20px' }}></div></td>
+                      <td className="td-cell-right"><div className="skeleton-block" style={{ width: '35px', height: '35px', borderRadius: '8px', marginLeft: 'auto' }}></div></td>
+                    </tr>
+                  ))}
+                </>
               ) : filteredDemandes.length === 0 ? (
                 <tr><td colSpan={5} className="td-empty">Aucune demande trouvée.</td></tr>
               ) : filteredDemandes.map(d => (

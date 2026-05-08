@@ -85,16 +85,18 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         
+        base_qs = DemandeConge.objects.select_related('employe', 'type_conge', 'exercice')
+
         # Pour les actions de validation et d'export, le manager/RH a besoin d'accéder à la demande d'un autre employé
         if self.action in ['valider_responsable', 'refuser_responsable', 'approuver_rh', 'refuser', 'retrieve', 'exporter_pdf']:
             if user.is_superuser or user.role in ['responsable_rh', 'directeur_rh', 'responsable_hierarchique']:
-                return DemandeConge.objects.all()
+                return base_qs.all()
 
         # L'endpoint de base /api/demandes/ retourne TOUJOURS les demandes
         # du compte connecté (ses propres congés), par défaut.
         employe = getattr(user, 'employe', None)
         if employe:
-            return DemandeConge.objects.filter(employe=employe)
+            return base_qs.filter(employe=employe)
         return DemandeConge.objects.none()
 
     @action(detail=False, methods=['get'])
@@ -105,7 +107,7 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
 
         # DRH / RH voient tout
         if user.is_superuser or user.role in ['responsable_rh', 'directeur_rh']:
-            demandes = DemandeConge.objects.filter(statut='en_attente_rh')
+            demandes = DemandeConge.objects.select_related('employe', 'type_conge', 'exercice').filter(statut='en_attente_rh')
             serializer = self.get_serializer(demandes, many=True)
             data = list(serializer.data)
             if urgence_filter:
@@ -118,12 +120,12 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
             if employe and hasattr(employe, 'structure_dirigee') and employe.structure_dirigee:
                 structure_dirigee = employe.structure_dirigee
                 
-                demandes_base = DemandeConge.objects.filter(
+                demandes_base = DemandeConge.objects.select_related('employe', 'type_conge', 'exercice').filter(
                     employe__structure=structure_dirigee,
                     statut='en_attente_resp'
                 ).exclude(employe=employe)
                 
-                demandes_filiales = DemandeConge.objects.filter(
+                demandes_filiales = DemandeConge.objects.select_related('employe', 'type_conge', 'exercice').filter(
                     employe__structure__parent=structure_dirigee,
                     employe__structure__responsable=F('employe'),
                     statut='en_attente_resp'

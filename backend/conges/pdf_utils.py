@@ -46,30 +46,12 @@ def generer_pdf_titre(demande):
 
     elements = []
     
-    # --- 1. EN-TÊTE : RÉF ET LOGO ---
+    # --- 1. EN-TÊTE : RÉFÉRENCE ---
     ref_text = f"Réf: REF-{demande.date_debut.year}-{demande.id:04d}"
-    logo_path = r"C:\Users\Lenoovo\Desktop\pfe\frontend\public\logo.svg"
     
-    try:
-        from svglib.svglib import svg2rlg
-        drawing = svg2rlg(logo_path)
-        if drawing:
-            # On fixe la largeur pour correspondre à l'image (environ 140pt)
-            target_width = 140 
-            scaling_factor = target_width / drawing.width
-            drawing.width *= scaling_factor
-            drawing.height *= scaling_factor
-            drawing.scale(scaling_factor, scaling_factor)
-            drawing.hAlign = 'RIGHT'
-            logo = drawing
-        else:
-            logo = Paragraph("", style_normal)
-    except:
-        logo = Paragraph("<font color='red' size=8>Logo non trouvé</font>", style_normal)
-
-    header_table = Table([[Paragraph(ref_text, style_normal), logo]], colWidths=[350, 150])
+    header_table = Table([[Paragraph(ref_text, style_normal)]], colWidths=[500])
     header_table.setStyle(TableStyle([
-        ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
         ('VALIGN', (0, 0), (-1, -1), 'TOP'),
     ]))
     elements.append(header_table)
