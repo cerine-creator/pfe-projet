@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Structure, Fonction, Employe, TypeConge, Exercice, DroitConge, DemandeConge, TitreConge, Notification, JourFerie
+from .models import Structure, Fonction, Employe, TypeConge, Exercice, DroitConge, DemandeConge, Notification, JourFerie
 
 @admin.register(JourFerie)
 class JourFerieAdmin(admin.ModelAdmin):
@@ -37,9 +37,7 @@ class DemandeCongeAdmin(admin.ModelAdmin):
     list_display = ('employe', 'date_debut', 'date_fin', 'duree', 'statut', 'type_conge', 'motif')
     list_filter = ('statut', 'type_conge')
 
-@admin.register(TitreConge)
-class TitreCongeAdmin(admin.ModelAdmin):
-    list_display = ('ref', 'employe', 'dateDebut', 'dateFin', 'exercice')
+
 
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):

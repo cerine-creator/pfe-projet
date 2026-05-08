@@ -13,13 +13,13 @@ from accounts.permissions import (
 )
 from .models import (
     Structure, Fonction, TypeConge, Exercice,
-    Employe, DroitConge, DemandeConge, TitreConge, Notification, CalendarNote
+    Employe, DroitConge, DemandeConge, Notification, CalendarNote
 )
 from .serializers import (
     StructureSerializer, FonctionSerializer, TypeCongeSerializer, ExerciceSerializer,
-    EmployeSerializer, DroitCongeSerializer, DemandeCongeSerializer, TitreCongeSerializer, NotificationSerializer, CalendarNoteSerializer
+    EmployeSerializer, DroitCongeSerializer, DemandeCongeSerializer, NotificationSerializer, CalendarNoteSerializer
 )
-from .services import deduire_solde_conge, generer_titre_conge_automatique
+from .services import deduire_solde_conge
 from .pdf_utils import generer_pdf_titre
 
 class StructureViewSet(viewsets.ReadOnlyModelViewSet):
@@ -446,15 +446,12 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
                 # 2. Sauvegarde du nouveau statut (sans déclencher clean())
                 DemandeConge.objects.filter(pk=demande.pk).update(statut='approuvee')
                 demande.refresh_from_db()
-                
-                # 3. On demande au Service de générer le document de validation (Titre)
-                titre = generer_titre_conge_automatique(demande)
 
             Notification.objects.create(
                 utilisateur=demande.employe.compte,
-                description=f"Félicitations, votre demande a été approuvée (Réf: {titre.ref})"
+                description=f"Félicitations, votre demande a été approuvée."
             )
-            return Response({'status': 'Totalement approuvée, Titre de congé généré', 'ref': titre.ref})
+            return Response({'status': 'Totalement approuvée.'})
         except Exception as e:
             return Response({'error': str(e)}, status=400)
 

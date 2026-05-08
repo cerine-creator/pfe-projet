@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     Structure, Fonction, TypeConge, Exercice,
-    Employe, DroitConge, DemandeConge, TitreConge, Notification, CalendarNote
+    Employe, DroitConge, DemandeConge, Notification, CalendarNote
 )
 
 class StructureSerializer(serializers.ModelSerializer):
@@ -87,10 +87,7 @@ class DemandeCongeSerializer(serializers.ModelSerializer):
     def get_urgence_badge(self, obj):
         return obj.urgence_badge
 
-class TitreCongeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TitreConge
-        fields = '__all__'
+
 
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:

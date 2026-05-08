@@ -310,22 +310,7 @@ class DemandeConge(models.Model):
     def __str__(self):
         return f"Demande {self.employe} ({self.duree}j)"
 
-class TitreConge(models.Model):
-    ref = models.CharField(max_length=50, unique=True)
-    dateDebut = models.DateField()
-    dateFin = models.DateField()
-    dureeT = models.FloatField()
-    
-    exercice = models.ForeignKey(Exercice, on_delete=models.CASCADE)
-    employe = models.ForeignKey(Employe, on_delete=models.CASCADE, related_name='titres')
-    demande = models.OneToOneField(DemandeConge, on_delete=models.CASCADE, null=True, blank=True)
 
-    class Meta:
-        verbose_name = 'Titre de congé'
-        verbose_name_plural = 'Titres de congé'
-
-    def __str__(self):
-        return f"Titre {self.ref} - {self.employe}"
 
 class Notification(models.Model):
     dateNotif = models.DateField(auto_now_add=True)

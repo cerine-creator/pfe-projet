@@ -38,7 +38,7 @@ def generer_pdf_titre(demande):
     
     # Informations de la demande
     data = [
-        ["Référence :", getattr(demande, 'titreconge', None).ref if hasattr(demande, 'titreconge') else "N/A"],
+        ["Référence :", f"REF-{demande.date_debut.year}-{demande.id:04d}"],
         ["Date d'émission :", demande.dateDemande.strftime('%d/%m/%Y')],
         ["", ""],
         ["EMPLOYÉ :", f"{demande.employe.prenomEmpl} {demande.employe.nomEmpl}"],
