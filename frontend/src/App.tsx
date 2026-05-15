@@ -23,6 +23,9 @@ const RoleBasedRedirect = () => {
   const { user } = useAuth()
   if (!user) return <Navigate to="/login" replace />
 
+  // Superuser Django → page d'admin (pas de profil employé attendu)
+  if (user.is_superuser) return <Navigate to="/rh/statistiques" replace />
+
   // Redirection automatique pour les comptes DRH
   if (user.role === 'responsable_rh' || user.role === 'directeur_rh') {
     return <Navigate to="/rh/statistiques" replace />
@@ -78,22 +81,42 @@ export default function App() {
 
         <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           
-          {/* Routes Communes */}
+          {/* Routes Communes — tout utilisateur authentifié */}
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/mon-compte" element={<Profil />} />
           
-          {/* Gestion des Congés */}
+          {/* Gestion des Congés — tout utilisateur authentifié */}
           <Route path="/conges/mes-demandes" element={<Demandes />} />
           <Route path="/conges/archives" element={<Archives />} />
           <Route path="/conges/nouvelle-demande" element={<NouvelleDemande />} />
-          <Route path="/conges/mon-solde" element={<Dashboard />} /> {/* Redirige vers dashboard (solde y est) */}
+          <Route path="/conges/mon-solde" element={<Dashboard />} />
 
-          {/* Validation (Manager/RH) */}
-          <Route path="/validation/equipe" element={<Validation />} />
-          <Route path="/validation/historique" element={<ValidationHistorique />} />
+          {/* Validation — Manager et RH uniquement */}
+          <Route path="/validation/equipe" element={
+            <ProtectedRoute allowedRoles={['responsable_hierarchique', 'responsable_rh', 'directeur_rh']}>
+              <Validation />
+            </ProtectedRoute>
+          } />
+          <Route path="/validation/historique" element={
+            <ProtectedRoute allowedRoles={['responsable_hierarchique', 'responsable_rh', 'directeur_rh']}>
+              <ValidationHistorique />
+            </ProtectedRoute>
+          } />
           
-          {/* RH (Directeur) */}
-          <Route path="/rh/statistiques" element={<DashboardDRH />} />
+          {/* Stats RH — RH uniquement */}
+          <Route path="/rh/statistiques" element={
+            <ProtectedRoute allowedRoles={['responsable_rh', 'directeur_rh']}>
+              <DashboardDRH />
+            </ProtectedRoute>
+          } />
+
+          {/* Page accès refusé */}
+          <Route path="/non-autorise" element={
+            <div style={{ padding: '60px', textAlign: 'center' }}>
+              <h2 style={{ color: 'var(--primary)', fontSize: '2rem', marginBottom: '12px' }}>⛔ Accès Refusé</h2>
+              <p style={{ color: 'var(--text-muted)' }}>Vous n'avez pas les droits nécessaires pour accéder à cette page.</p>
+            </div>
+          } />
           
         </Route>
 

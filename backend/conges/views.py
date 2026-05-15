@@ -289,11 +289,7 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Votre compte n'est lié à un profil employé.")
         
-        # Gestion du justificatif
-        print("--- DEBUG REQUEST DATA ---")
-        print("request.data:", self.request.data)
-        print("request.FILES:", self.request.FILES)
-        
+
         justificatif_file = self.request.FILES.get('justificatif')
         
         from rest_framework.exceptions import ValidationError as DRFValidationError
