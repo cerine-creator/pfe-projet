@@ -95,11 +95,13 @@ STATIC_URL = 'static/'
 # ─── CORS ─────────────────────────────────────────────────────────────────────
 # CORS_ALLOW_CREDENTIALS = True est OBLIGATOIRE pour que le navigateur
 # envoie les cookies HttpOnly avec chaque requête cross-origin.
+# Les origines autorisées sont lues depuis .env (jamais hardcodées en production).
 
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-]
+CORS_ALLOWED_ORIGINS = config(
+    'DJANGO_CORS_ORIGINS',
+    default='http://localhost:5173,http://127.0.0.1:5173',
+    cast=Csv()
+)
 CORS_ALLOW_CREDENTIALS = True
 
 # Autorise le header Authorization (Bearer token) depuis le frontend cross-origin
@@ -149,8 +151,10 @@ SIMPLE_JWT = {
     'AUTH_COOKIE': 'access',
     'REFRESH_COOKIE': 'refresh',
     # Durées de vie des tokens
+    # Access : 8h → renouvellement silencieux par le frontend
+    # Refresh : 24h → déconnexion automatique après 24h sans activité (cohérent avec le rapport)
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=8),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'REFRESH_TOKEN_LIFETIME': timedelta(hours=24),
     'ROTATE_REFRESH_TOKENS': True,      # Génère un nouveau refresh à chaque usage
     'BLACKLIST_AFTER_ROTATION': False,  # Pas de blacklist pour l'instant (SQLite)
     # Algorithme de signature
