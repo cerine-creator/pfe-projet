@@ -97,11 +97,15 @@ STATIC_URL = 'static/'
 # envoie les cookies HttpOnly avec chaque requête cross-origin.
 # Les origines autorisées sont lues depuis .env (jamais hardcodées en production).
 
-CORS_ALLOWED_ORIGINS = config(
-    'DJANGO_CORS_ORIGINS',
-    default='http://localhost:5173,http://127.0.0.1:5173',
-    cast=Csv()
+import os
+
+# Lecture depuis l'environnement ou fallback par défaut
+cors_origins_str = os.environ.get(
+    'DJANGO_CORS_ORIGINS', 
+    'http://localhost:5173,http://127.0.0.1:5173'
 )
+CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins_str.split(',')]
+
 CORS_ALLOW_CREDENTIALS = True
 
 # Autorise le header Authorization (Bearer token) depuis le frontend cross-origin
