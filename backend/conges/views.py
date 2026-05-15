@@ -107,7 +107,15 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
 
         # DRH / RH voient tout
         if user.is_superuser or user.role in ['responsable_rh', 'directeur_rh']:
-            demandes = DemandeConge.objects.select_related('employe', 'type_conge', 'exercice').filter(statut='en_attente_rh')
+            employe = getattr(user, 'employe', None)
+            demandes = DemandeConge.objects.select_related('employe', 'type_conge', 'exercice').filter(
+                statut='en_attente_rh'
+            ).exclude(employe=employe)
+            
+            # Un responsable RH ne valide pas un autre responsable RH (c'est le rôle du DRH)
+            if user.role == 'responsable_rh':
+                demandes = demandes.exclude(employe__compte__role='responsable_rh')
+                
             serializer = self.get_serializer(demandes, many=True)
             data = list(serializer.data)
             if urgence_filter:
@@ -127,7 +135,7 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
                 
                 demandes_filiales = DemandeConge.objects.select_related('employe', 'type_conge', 'exercice').filter(
                     employe__structure__parent=structure_dirigee,
-                    employe__structure__responsable=F('employe'),
+                    employe__structure__responsable_id=F('employe_id'),
                     statut='en_attente_resp'
                 )
                 
@@ -204,7 +212,7 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
                 # Le manager voit : ses refusés, ses approuvés, ET ceux qu'il a validés mais qui attendent les RH
                 demandes = DemandeConge.objects.filter(
                     Q(employe__structure=structure_dirigee) |
-                    Q(employe__structure__parent=structure_dirigee, employe__structure__responsable=F('employe'))
+                    Q(employe__structure__parent=structure_dirigee, employe__structure__responsable_id=F('employe_id'))
                 ).filter(statut__in=['approuvee', 'refusee', 'en_attente_rh']).distinct()
 
         if statut_filter in ['approuvee', 'refusee']:
@@ -331,7 +339,7 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
             if structure_parent and getattr(structure_parent, 'responsable', None) and structure_parent.responsable.compte:
                 Notification.objects.create(
                     utilisateur=structure_parent.responsable.compte,
-                    description=f"Nouvelle demande de votre N-1 : {employe.prenomEmpl} {employe.nomEmpl} a soumis une demande."
+                    description=f"Nouvelle demande de votre collaborateur : {employe.prenomEmpl} {employe.nomEmpl} a soumis une demande."
                 )
             else:
                 # Il est au sommet, sa demande passe directement à RH
@@ -342,7 +350,7 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
                     if hasattr(rh, 'compte') and rh.compte:
                         Notification.objects.create(
                             utilisateur=rh.compte,
-                            description=f"Demande N+1 directe de {employe.prenomEmpl} {employe.nomEmpl} (Chef de structure). Validée vers RH."
+                            description=f"Demande du responsable {employe.prenomEmpl} {employe.nomEmpl} (Chef de structure). Validée vers RH."
                         )
         else:
             manager = getattr(employe.structure, 'responsable', None) if employe.structure else None

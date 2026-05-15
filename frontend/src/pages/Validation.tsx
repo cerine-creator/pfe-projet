@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axiosConfig';
 import { useAuth } from '../context/AuthContext';
-import { CheckCircle, XCircle, FileText, Search, User, Calendar, Clock, Zap, AlertTriangle, Filter, Paperclip, ExternalLink } from 'lucide-react';
+import {
+  CheckCircle, XCircle, FileText, Search, User, Calendar, Clock,
+  Zap, AlertTriangle, Filter, Paperclip, ExternalLink,
+  Info, ArrowRight, Users
+} from 'lucide-react';
 import './validation.css';
 
 // ─── Badge d'urgence ─────────────────────────────────────────────────────────
@@ -38,45 +42,57 @@ const BACKEND_URL = 'http://127.0.0.1:8000';
 export default function Validation() {
   const { user } = useAuth();
   const [demandes, setDemandes] = useState<any[]>([]);
+  const [allApprovedDemandes, setAllApprovedDemandes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<number | null>(null);
   const [selectedDemande, setSelectedDemande] = useState<any | null>(null);
   const [showRefusalInput, setShowRefusalInput] = useState(false);
   const [refusalReason, setRefusalReason] = useState("");
+  const [activeTab, setActiveTab] = useState<'employes' | 'rh'>('employes');
 
   // Filtres
   const [urgenceFilter, setUrgenceFilter] = useState<'' | 'urgent' | 'attention' | 'normal'>('');
   const [searchQuery, setSearchQuery] = useState('');
 
   const isRH = user?.role === 'responsable_rh' || user?.role === 'directeur_rh' || user?.is_superuser;
+  const isDRH = user?.role === 'directeur_rh' || user?.is_superuser;
   const isManager = user?.role === 'responsable_hierarchique';
 
-  const fetchDemandes = () => {
+  const fetchData = async () => {
     setLoading(true);
-    const params = urgenceFilter ? `?urgence=${urgenceFilter}` : '';
-    api.get(`/demandes/a_valider/${params}`)
-      .then(res => {
-        const list = Array.isArray(res.data) ? res.data : (res.data?.results ?? []);
-        const filteredList = list.filter((d: any) => {
-          if (isManager) return d.statut === 'en_attente_resp';
-          if (isRH) return d.statut === 'en_attente_rh';
-          return false;
-        });
-        setDemandes(filteredList);
-      })
-      .catch(e => console.error(e))
-      .finally(() => setLoading(false));
+    try {
+      const params = urgenceFilter ? `?urgence=${urgenceFilter}` : '';
+
+      // 1. Charger les demandes à valider
+      const resValider = await api.get(`/demandes/a_valider/${params}`);
+      const list = Array.isArray(resValider.data) ? resValider.data : (resValider.data?.results ?? []);
+      const filteredList = list.filter((d: any) => {
+        if (isManager) return d.statut === 'en_attente_resp';
+        if (isRH) return d.statut === 'en_attente_rh';
+        return false;
+      });
+      setDemandes(filteredList);
+
+      // 2. Charger toutes les absences déjà validées pour détecter les conflits (Aide à la décision)
+      const resApproved = await api.get('/demandes/historique/');
+      const approvedList = Array.isArray(resApproved.data) ? resApproved.data : (resApproved.data?.results ?? []);
+      setAllApprovedDemandes(approvedList.filter((d: any) => d.statut === 'approuvee'));
+
+    } catch (e) {
+      console.error("Erreur chargement données validation:", e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    fetchDemandes();
+    fetchData();
   }, [user, urgenceFilter]);
 
   const handleAction = async (id: number, action: 'approve' | 'reject') => {
     if (!user) return;
     setProcessingId(id);
-    
-    // Déterminer le rôle au moment de l'action pour éviter tout décalage d'état
+
     const userIsRH = user.role === 'responsable_rh' || user.role === 'directeur_rh' || user.is_superuser;
 
     try {
@@ -96,7 +112,7 @@ export default function Validation() {
       }
 
       await api.post(endpoint, payload);
-      fetchDemandes();
+      fetchData();
       setSelectedDemande(null);
     } catch (e: any) {
       const msg = e.response?.data?.detail || e.response?.data?.error || "Une erreur est survenue.";
@@ -106,9 +122,41 @@ export default function Validation() {
     }
   };
 
+  // ─── Logique d'aide à la décision ───────────────────────────────────────────
+
+  // 1. Détection de conflits (chevauchements)
+  const getConflicts = (demande: any) => {
+    if (!demande) return [];
+    const debut = new Date(demande.date_debut);
+    const fin = new Date(demande.date_fin);
+
+    return allApprovedDemandes.filter(other => {
+      // On ne compare pas avec soi-même et on reste dans la même structure
+      if (other.id === demande.id) return false;
+
+      const otherDebut = new Date(other.date_debut);
+      const otherFin = new Date(other.date_fin);
+
+      // Vérification du chevauchement de dates
+      const overlap = (debut <= otherFin && fin >= otherDebut);
+      return overlap;
+    });
+  };
+
+  const conflicts = selectedDemande ? getConflicts(selectedDemande) : [];
+
   const demandesFiltrees = demandes.filter(d => {
-    if (!searchQuery) return true;
-    return d.employe_noms?.toLowerCase().includes(searchQuery.toLowerCase());
+    if (searchQuery && !d.employe_noms?.toLowerCase().includes(searchQuery.toLowerCase())) {
+      return false;
+    }
+    if (isDRH) {
+      if (activeTab === 'rh') {
+        return d.employe_role === 'responsable_rh';
+      } else {
+        return d.employe_role !== 'responsable_rh';
+      }
+    }
+    return true;
   });
 
   const urgentCount = demandes.filter(d => d.urgence_badge === 'urgent').length;
@@ -177,6 +225,23 @@ export default function Validation() {
             {demandesFiltrees.length} demande(s) en attente
           </div>
         </div>
+
+        {isDRH && (
+          <div className="drh-tabs">
+            <button 
+              className={`drh-tab ${activeTab === 'employes' ? 'active' : ''}`}
+              onClick={() => setActiveTab('employes')}
+            >
+              <Users size={16} /> Demandes des Employés
+            </button>
+            <button 
+              className={`drh-tab ${activeTab === 'rh' ? 'active' : ''}`}
+              onClick={() => setActiveTab('rh')}
+            >
+              <User size={16} /> Demandes des Responsables RH
+            </button>
+          </div>
+        )}
 
         <div className="table-body">
           <table className="data-table">
@@ -268,6 +333,7 @@ export default function Validation() {
                 <div><div className="detail-label">Période</div><div className="detail-value">Du {selectedDemande.date_debut} au {selectedDemande.date_fin}</div></div>
                 <div><div className="detail-label">Type</div><div className="detail-value">{selectedDemande.motif ? 'Congé Exceptionnel' : selectedDemande.type_conge_nom}</div></div>
                 <div><div className="detail-label">Durée</div><div className="detail-value">{selectedDemande.duree} jours</div></div>
+
                 {/* Justificatif */}
                 {selectedDemande.justificatif_url && (() => {
                   let url = selectedDemande.justificatif_url;
@@ -277,7 +343,7 @@ export default function Validation() {
                   const isPdf = url.toLowerCase().includes('.pdf');
                   return (
                     <div style={{ gridColumn: '1 / -1', marginTop: '10px', paddingTop: '15px', borderTop: '1px solid #e2e8f0' }}>
-                      <div className="detail-label" style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'10px' }}>
+                      <div className="detail-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
                         <Paperclip size={14} /> Justificatif joint
                       </div>
                       {isPdf ? (
@@ -295,6 +361,53 @@ export default function Validation() {
                   );
                 })()}
               </div>
+            </div>
+
+            {/* ─── PANNEAU D'AIDE À LA DÉCISION (DSS) ─── */}
+            <div className="decision-support-panel">
+              <div className="dss-section-title">
+                <Info size={14} /> Aide à la décision
+              </div>
+
+              {/* 1. Simulateur de solde */}
+              <div className="balance-simulator">
+                <div className="sim-item">
+                  <div className="sim-label">Solde Actuel</div>
+                  <div className="sim-value">30j</div>
+                </div>
+                <div className="sim-arrow"><ArrowRight size={20} /></div>
+                <div className="sim-item">
+                  <div className="sim-label">Congé</div>
+                  <div className="sim-value">-{selectedDemande.duree}j</div>
+                </div>
+                <div className="sim-arrow"><ArrowRight size={20} /></div>
+                <div className="sim-item">
+                  <div className="sim-label">Nouveau Solde</div>
+                  <div className="sim-value sim-result">{30 - selectedDemande.duree}j</div>
+                </div>
+              </div>
+
+              {/* 2. Alerte de conflits */}
+              {conflicts.length > 0 ? (
+                <div className="conflict-alert">
+                  <AlertTriangle className="conflict-icon" size={20} />
+                  <div className="conflict-content">
+                    <h4>Conflit de planning détecté</h4>
+                    <p>
+                      {conflicts.length} autre(s) employé(s) sont déjà en congé durant cette période :
+                      <strong> {conflicts.map(c => c.employe_noms).join(', ')}</strong>.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="presence-card">
+                  <div className="presence-gauge">100%</div>
+                  <div className="presence-info">
+                    <h4>Aucun conflit détecté</h4>
+                    <p>Toute l'équipe est présente sur cette période.</p>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="modal-actions">

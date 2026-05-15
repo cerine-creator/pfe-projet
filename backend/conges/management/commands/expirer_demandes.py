@@ -47,8 +47,8 @@ class Command(BaseCommand):
                     utilisateur=demande.employe.compte,
                     description=(
                         f"⚠️ Votre demande de congé du {demande.date_debut} au {demande.date_fin} "
-                        f"a expiré automatiquement car elle n'a pas été traitée avant la date de début. "
-                        f"Veuillez soumettre une nouvelle demande."
+                        f"a expiré. Nous vous prions de nous excuser pour le désagrément. "
+                        f"Nous vous invitons à soumettre une nouvelle demande ou à contacter votre responsable."
                     )
                 )
 

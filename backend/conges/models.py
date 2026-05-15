@@ -116,6 +116,20 @@ class Employe(models.Model):
 
     def save(self, *args, **kwargs):
         self.clean()
+        if not self.matricule:
+            import datetime
+            year = datetime.date.today().year
+            # On cherche le dernier matricule de cette année pour incrémenter
+            last_emp = Employe.objects.filter(matricule__startswith=f'AH-{year}-').order_by('id').last()
+            if last_emp and last_emp.matricule:
+                try:
+                    last_num = int(last_emp.matricule.split('-')[-1])
+                    new_num = last_num + 1
+                except (ValueError, IndexError):
+                    new_num = 1
+            else:
+                new_num = 1
+            self.matricule = f'AH-{year}-{new_num:04d}'
         super().save(*args, **kwargs)
 
     def __str__(self):

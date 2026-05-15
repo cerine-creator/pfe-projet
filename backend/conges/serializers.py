@@ -29,6 +29,7 @@ class EmployeSerializer(serializers.ModelSerializer):
     structure_libelle = serializers.CharField(source='structure.libelle', read_only=True)
     fonction_libelle = serializers.CharField(source='fonction.libelle', read_only=True)
     email = serializers.CharField(source='compte.email', read_only=True)
+    role = serializers.CharField(source='compte.role', read_only=True)
     categorie_display = serializers.CharField(source='get_categorie_display', read_only=True)
     
     # Récupérer les droits du compte pour affichage résumé si besoin
@@ -39,7 +40,7 @@ class EmployeSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'matricule', 'prenomEmpl', 'nomEmpl', 'numTel', 
             'dateRecrutement', 'categorie', 'categorie_display', 'structure', 'structure_libelle', 
-            'fonction', 'fonction_libelle', 'email', 'solde_affichage'
+            'fonction', 'fonction_libelle', 'email', 'role', 'solde_affichage'
         ]
 
     def get_solde_affichage(self, obj):
@@ -58,6 +59,7 @@ class DemandeCongeSerializer(serializers.ModelSerializer):
     justificatif = serializers.FileField(required=False, allow_null=True)
     justificatif_url = serializers.FileField(source='justificatif', read_only=True)
     employe_noms = serializers.SerializerMethodField(read_only=True)
+    employe_role = serializers.CharField(source='employe.compte.role', read_only=True, default='')
     type_conge_nom = serializers.CharField(source='type_conge.nomType', read_only=True)
     motif_display = serializers.CharField(source='get_motif_display', read_only=True)
     statut_display = serializers.CharField(source='get_statut_display', read_only=True)
@@ -68,7 +70,7 @@ class DemandeCongeSerializer(serializers.ModelSerializer):
     class Meta:
         model = DemandeConge
         fields = [
-            'id', 'employe', 'employe_noms', 'exercice', 'exercice_libelle', 'type_conge',
+            'id', 'employe', 'employe_noms', 'employe_role', 'exercice', 'exercice_libelle', 'type_conge',
             'type_conge_nom', 'date_debut', 'date_fin', 'duree',
             'motif', 'motif_display', 'statut', 'statut_display',
             'dateDemande', 'justificatif', 'justificatif_url',

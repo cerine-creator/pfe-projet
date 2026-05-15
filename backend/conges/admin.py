@@ -16,8 +16,9 @@ class FonctionAdmin(admin.ModelAdmin):
 
 @admin.register(Employe)
 class EmployeAdmin(admin.ModelAdmin):
-    list_display = ('nomEmpl', 'prenomEmpl', 'structure', 'fonction', 'dateRecrutement')
+    list_display = ('matricule', 'nomEmpl', 'prenomEmpl', 'structure', 'fonction', 'dateRecrutement')
     list_filter = ('structure', 'fonction')
+    readonly_fields = ('matricule',)
 
 @admin.register(TypeConge)
 class TypeCongeAdmin(admin.ModelAdmin):

@@ -150,6 +150,52 @@
   font-family: inherit;
 }
 
+/* ─── DRH Tabs (Premium Segmented Control) ─── */
+.drh-tabs {
+  display: inline-flex;
+  background: rgba(30, 41, 59, 0.5); /* Semi-transparent slate */
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  padding: 6px;
+  margin: 0 20px 20px 20px;
+  border-radius: 12px;
+  gap: 4px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.drh-tab {
+  background: transparent;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.drh-tab:hover {
+  color: var(--text-primary);
+}
+
+.drh-tab.active {
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.drh-tab.active svg {
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+}
+
 /* ─── Urgence Badges ─── */
 .urgence-badge {
   display: inline-flex;
@@ -615,4 +661,138 @@
 
 [data-theme='dark'] .period-cell {
   color: var(--text-muted);
+}
+
+/* ─── Decision Support System (DSS) ─── */
+.decision-support-panel {
+  margin-top: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.dss-section-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+/* Balance Simulator */
+.balance-simulator {
+  background: #f1f5f9;
+  border-radius: 12px;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #e2e8f0;
+}
+
+.sim-item {
+  text-align: center;
+  flex: 1;
+}
+
+.sim-value {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.sim-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.sim-arrow {
+  color: #94a3b8;
+  padding: 0 10px;
+}
+
+.sim-result {
+  color: var(--primary);
+}
+
+/* Conflict Alert */
+.conflict-alert {
+  background: #fff1f2;
+  border: 1px dashed #f43f5e;
+  border-radius: 12px;
+  padding: 15px;
+  display: flex;
+  gap: 12px;
+}
+
+.conflict-icon {
+  color: #e11d48;
+  flex-shrink: 0;
+}
+
+.conflict-content h4 {
+  color: #9f1239;
+  font-size: 0.9rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.conflict-content p {
+  color: #be123c;
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* Presence Indicator */
+.presence-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 15px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.presence-gauge {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 4px solid #f1f5f9;
+  border-top-color: #22c55e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.8rem;
+  color: #15803d;
+}
+
+.presence-info h4 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.presence-info p {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+[data-theme='dark'] .balance-simulator,
+[data-theme='dark'] .presence-card {
+  background: var(--bg-color);
+  border-color: var(--border-color);
+}
+
+[data-theme='dark'] .sim-value,
+[data-theme='dark'] .presence-info h4 {
+  color: var(--text-main);
 }
