@@ -11,19 +11,24 @@ import axios from 'axios';
  *   sur les navigateurs/environnements où ils fonctionnent (same-origin).
  */
 
-// ─── Token store persistant (localStorage) ───────────────────────────────────
-// On utilise localStorage pour que la session survive au rafraîchissement (F5).
+// ─── Token store EN MÉMOIRE (sécurisé contre XSS) ──────────────────────────────────
+// Stockage volatil : le token disparaît au rafraîchissement (F5).
+// La session est restaurée via GET /auth/me/ (cookie HttpOnly) au chargement de l'app.
+// Cela garantit qu'aucun token ne traîne dans le DOM ni localStorage (anti-XSS).
+
+let _accessToken: string | null = null;
+let _refreshToken: string | null = null;
 
 export const tokenStore = {
-  getAccess: () => localStorage.getItem('pfe_access_token'),
-  getRefresh: () => localStorage.getItem('pfe_refresh_token'),
+  getAccess: () => _accessToken,
+  getRefresh: () => _refreshToken,
   set: (access: string, refresh: string) => {
-    localStorage.setItem('pfe_access_token', access);
-    localStorage.setItem('pfe_refresh_token', refresh);
+    _accessToken = access;
+    _refreshToken = refresh;
   },
   clear: () => {
-    localStorage.removeItem('pfe_access_token');
-    localStorage.removeItem('pfe_refresh_token');
+    _accessToken = null;
+    _refreshToken = null;
   },
 };
 

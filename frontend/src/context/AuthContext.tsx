@@ -52,6 +52,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (initialized.current) return;
     initialized.current = true;
 
+    // Nettoyage des anciens tokens localStorage (migration vers tokenStore en mémoire)
+    localStorage.removeItem('pfe_access_token');
+    localStorage.removeItem('pfe_refresh_token');
+
     api.get<User>('/auth/me/')
       .then((res) => setUser(res.data))
       .catch(() => {

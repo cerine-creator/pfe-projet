@@ -52,6 +52,9 @@ class LoginView(APIView):
         access_token = str(refresh.access_token)
         refresh_token = str(refresh)
 
+        # Stratégie double :
+        # - body : access + refresh pour le tokenStore en mémoire (frontend cross-origin)
+        # - cookies HttpOnly : fallback pour les clients same-origin (anti-XSS natif)
         response = Response({
             'message': 'Connexion réussie.',
             'user': UserSerializer(user).data,
