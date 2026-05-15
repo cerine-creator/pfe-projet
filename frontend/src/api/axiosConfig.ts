@@ -82,6 +82,7 @@ api.interceptors.response.use(
       // Endpoints qui ne doivent pas déclencher de refresh
       const skipRefresh =
         originalRequest.url?.includes('/auth/login/') ||
+        originalRequest.url?.includes('/auth/me/') ||
         originalRequest.url?.includes('/auth/token/refresh/');
 
       if (skipRefresh) {
