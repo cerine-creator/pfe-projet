@@ -531,7 +531,7 @@
 }
 
 .cal-note-delete {
-  background: transparent;
+  background-color: transparent;
   border: none;
   color: var(--text-muted);
   cursor: pointer;

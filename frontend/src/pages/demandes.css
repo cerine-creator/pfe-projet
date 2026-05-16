@@ -126,7 +126,7 @@
 
 .filter-select {
   border: none;
-  background: transparent;
+  background-color: transparent;
   font-size: 0.9rem;
   color: var(--text-main);
   font-weight: 600;

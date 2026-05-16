@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../api/axiosConfig';
 import { FileText, Search, PlusCircle, Download, Eye, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import CustomSelect from '../components/CustomSelect';
 import './demandes.css';
 
 const BACKEND_URL = 'http://127.0.0.1:8000';
@@ -93,29 +94,33 @@ export default function Demandes() {
           <div className="filter-group">
             <div className="filter-wrap">
               <FileText size={16} color="var(--text-muted)" />
-              <select
+              <CustomSelect
                 className="filter-select"
                 value={statusFilter}
-                onChange={e => setStatusFilter(e.target.value)}
-              >
-                <option value="Tous">Tous les statuts</option>
-                <option value="approuvee">Approuvée</option>
-                <option value="refusee">Refusée</option>
-                <option value="en_attente">En attente</option>
-              </select>
+                onChange={(val) => setStatusFilter(val)}
+                placeholder="Tous les statuts"
+                options={[
+                  { value: 'Tous', label: 'Tous les statuts' },
+                  { value: 'approuvee', label: 'Approuvée' },
+                  { value: 'refusee', label: 'Refusée' },
+                  { value: 'en_attente', label: 'En attente' }
+                ]}
+              />
             </div>
 
             <div className="filter-wrap">
               <PlusCircle size={16} color="var(--text-muted)" style={{ transform: 'rotate(45deg)' }} />
-              <select
+              <CustomSelect
                 className="filter-select"
                 value={durationSort}
-                onChange={e => setDurationSort(e.target.value)}
-              >
-                <option value="Aucun">Trier par durée</option>
-                <option value="Croissant">Durée croissante</option>
-                <option value="Décroissant">Durée décroissante</option>
-              </select>
+                onChange={(val) => setDurationSort(val)}
+                placeholder="Trier par durée"
+                options={[
+                  { value: 'Aucun', label: 'Trier par durée' },
+                  { value: 'Croissant', label: 'Durée croissante' },
+                  { value: 'Décroissant', label: 'Durée décroissante' }
+                ]}
+              />
             </div>
           </div>
         </div>
@@ -198,15 +203,15 @@ export default function Demandes() {
 
       {selectedDemande && (
         <div className="modal-overlay" onClick={() => setSelectedDemande(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ backgroundColor: 'white', padding: '24px', borderRadius: '12px', width: '400px', maxWidth: '90%', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ backgroundColor: 'var(--surface)', padding: '24px', borderRadius: '12px', width: '400px', maxWidth: '90%', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-color)' }}>Détails de la demande</h3>
+              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-main)' }}>Détails de la demande</h3>
               <button onClick={() => setSelectedDemande(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}>
                 <X size={20} color="var(--text-muted)" />
               </button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', color: 'var(--text-color)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', color: 'var(--text-main)' }}>
               <p style={{ margin: 0 }}><strong>Type :</strong> {selectedDemande.type_conge_nom}</p>
               {selectedDemande.motif && <p style={{ margin: 0 }}><strong>Motif :</strong> {selectedDemande.motif_display || selectedDemande.motif}</p>}
               <p style={{ margin: 0 }}><strong>Du :</strong> {selectedDemande.date_debut}</p>

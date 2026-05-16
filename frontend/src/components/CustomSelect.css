@@ -1,0 +1,137 @@
+.custom-select-container {
+  position: relative;
+  width: 100%;
+  font-family: inherit;
+  user-select: none;
+}
+
+.custom-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 1rem;
+  color: #111827;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.custom-select-trigger:hover,
+.custom-select-trigger.open {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(218, 0, 39, 0.1);
+}
+
+.custom-select-trigger.placeholder {
+  color: #94a3b8;
+}
+
+.custom-select-icon {
+  color: #64748b;
+  transition: transform 0.2s ease;
+}
+
+.custom-select-icon.open {
+  transform: rotate(180deg);
+}
+
+.custom-select-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: max-content;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  z-index: 1000;
+  max-height: 250px;
+  overflow-y: auto;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.custom-select-option {
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #334155;
+  transition: background 0.15s ease;
+}
+
+.custom-select-option:hover {
+  background: #f1f5f9;
+  color: var(--primary-color);
+}
+
+.custom-select-option.selected {
+  background: rgba(218, 0, 39, 0.05);
+  color: var(--primary-color);
+  font-weight: 600;
+  border-left: 3px solid var(--primary-color);
+}
+
+.custom-select-option.placeholder-option {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* ─── Dark Mode Support ─── */
+[data-theme='dark'] .custom-select-trigger {
+  background-color: #1e2538;
+  border-color: #2d3748;
+  color: var(--text-main);
+}
+
+[data-theme='dark'] .custom-select-trigger:hover,
+[data-theme='dark'] .custom-select-trigger.open {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(218, 0, 39, 0.2);
+}
+
+[data-theme='dark'] .custom-select-menu {
+  background: var(--surface);
+  border-color: var(--border-color);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme='dark'] .custom-select-option {
+  color: var(--text-main);
+}
+
+[data-theme='dark'] .custom-select-option:hover {
+  background: var(--bg-color);
+  color: var(--text-primary);
+}
+
+[data-theme='dark'] .custom-select-option.selected {
+  background: rgba(218, 0, 39, 0.15);
+  color: var(--text-primary);
+  border-left: 3px solid var(--primary-color);
+}
+
+/* Modifier pour les select de filtre sans bordure (ex: .filter-select) */
+.custom-select-container.filter-select .custom-select-trigger {
+  background: transparent;
+  border: none;
+  padding: 8px;
+  box-shadow: none;
+  font-weight: 600;
+}
+
+[data-theme='dark'] .custom-select-container.filter-select .custom-select-trigger {
+  background: transparent;
+}

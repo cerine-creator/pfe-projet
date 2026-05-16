@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axiosConfig';
 import { User, History, Download, Filter, X, Eye } from 'lucide-react';
+import CustomSelect from '../components/CustomSelect';
 import './validation.css';
 
 export default function ValidationHistorique() {
@@ -106,17 +107,19 @@ export default function ValidationHistorique() {
         <div className="table-toolbar-light">
           <div className="urgence-filter-wrap">
             <Filter size={18} color="var(--text-muted)" />
-            <select
+            <CustomSelect
               className="filter-select urgence-filter-select"
               value={historiqueFilter}
-              onChange={e => setHistoriqueFilter(e.target.value)}
-            >
-              <option value="Tous">Tous les statuts</option>
-              <option value="approuvee">Approuvées</option>
-              <option value="refusee">Refusées</option>
-              <option value="en_attente_rh">En attente RH (Validation Responsable faite)</option>
-              <option value="expiree">Expirées</option>
-            </select>
+              onChange={(val) => setHistoriqueFilter(val)}
+              placeholder="Tous les statuts"
+              options={[
+                { value: 'Tous', label: 'Tous les statuts' },
+                { value: 'approuvee', label: 'Approuvées' },
+                { value: 'refusee', label: 'Refusées' },
+                { value: 'en_attente_rh', label: 'En attente RH (Validation Responsable faite)' },
+                { value: 'expiree', label: 'Expirées' }
+              ]}
+            />
           </div>
           <div className="badge-count">
             {filteredHistory.length} décision(s) archivée(s)

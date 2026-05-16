@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axiosConfig';
+import CustomSelect from '../components/CustomSelect';
 import { CheckCircle, AlertCircle } from 'lucide-react';
 import './nouvelle-demande.css';
 
@@ -173,20 +174,21 @@ export default function NouvelleDemande() {
           <div className="form-grid" style={{ gridTemplateColumns: '1fr' }}>
             <div className="form-group">
               <label>Nature du congé</label>
-              <select 
+              <CustomSelect 
                 required
                 value={natureConge}
-                onChange={e => {
-                  setNatureConge(e.target.value as any);
+                onChange={(val) => {
+                  setNatureConge(val as any);
                   setFormData(prev => ({ ...prev, date_debut: '', date_fin: '', motif: '' }));
                 }}
-              >
-                <option value="">Sélectionner une nature...</option>
-                <option value="annuel">Congé Annuel (Payé)</option>
-                <option value="exceptionnel">Congé Exceptionnel</option>
-                <option value="maladie">Congé Maladie</option>
-                <option value="sans_solde">Congé Non Payé (Sans Solde)</option>
-              </select>
+                placeholder="Sélectionner une nature..."
+                options={[
+                  { value: 'annuel', label: 'Congé Annuel (Payé)' },
+                  { value: 'exceptionnel', label: 'Congé Exceptionnel' },
+                  { value: 'maladie', label: 'Congé Maladie' },
+                  { value: 'sans_solde', label: 'Congé Non Payé (Sans Solde)' }
+                ]}
+              />
             </div>
           </div>
 
@@ -220,16 +222,13 @@ export default function NouvelleDemande() {
             {natureConge === 'exceptionnel' && (
               <div className="form-group">
                 <label>Motif (Congé exceptionnel)</label>
-                <select 
+                <CustomSelect 
                   required
                   value={formData.motif}
-                  onChange={e => setFormData({...formData, motif: e.target.value})}
-                >
-                  <option value="">Sélectionner le motif...</option>
-                  {MOTIF_CHOICES.map(m => (
-                    <option key={m.value} value={m.value}>{m.label}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setFormData({...formData, motif: val})}
+                  placeholder="Sélectionner le motif..."
+                  options={MOTIF_CHOICES}
+                />
               </div>
             )}
             

@@ -6,6 +6,7 @@ import {
   Zap, AlertTriangle, Filter, Paperclip, ExternalLink,
   Info, ArrowRight, Users
 } from 'lucide-react';
+import CustomSelect from '../components/CustomSelect';
 import './validation.css';
 
 // ─── Badge d'urgence ─────────────────────────────────────────────────────────
@@ -209,16 +210,17 @@ export default function Validation() {
 
             <div className="urgence-filter-wrap">
               <Filter size={16} color="var(--text-muted)" />
-              <select
+              <CustomSelect
                 className="filter-select urgence-filter-select"
                 value={urgenceFilter}
-                onChange={e => setUrgenceFilter(e.target.value as any)}
-              >
-                <option value="">Toutes les urgences</option>
-                <option value="urgent">🔴 Urgent (&lt; 7 jours)</option>
-                <option value="attention">🟡 Attention (7-15 jours)</option>
-                <option value="normal">🟢 Normal (&gt; 15 jours)</option>
-              </select>
+                onChange={(val) => setUrgenceFilter(val as any)}
+                placeholder="Toutes les urgences"
+                options={[
+                  { value: 'urgent', label: '🔴 Urgent (< 7 jours)' },
+                  { value: 'attention', label: '🟡 Attention (7-15 jours)' },
+                  { value: 'normal', label: '🟢 Normal (> 15 jours)' }
+                ]}
+              />
             </div>
           </div>
 

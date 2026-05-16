@@ -271,3 +271,40 @@
   30%, 50%, 70% { transform: translateX(-5px); }
   40%, 60%  { transform: translateX(5px); }
 }
+
+/* ─── Dark Mode Support ──────────────────────────────────────────────────────── */
+
+[data-theme='dark'] .login-page::before {
+  background: rgba(13, 17, 23, 0.75);
+}
+
+[data-theme='dark'] .login-container {
+  background: rgba(22, 27, 39, 0.75);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(218, 0, 39, 0.1);
+}
+
+[data-theme='dark'] .login-input {
+  background: rgba(30, 37, 56, 0.8) !important;
+  color: #e2eaf4 !important;
+  border-color: #2d3748 !important;
+}
+
+[data-theme='dark'] .login-input:focus {
+  background: rgba(30, 37, 56, 1) !important;
+  border-color: #da0027 !important;
+  box-shadow: 0 0 0 3px rgba(218, 0, 39, 0.2) !important;
+}
+
+[data-theme='dark'] .login-label {
+  color: #e2eaf4;
+}
+
+[data-theme='dark'] .login-subtitle,
+[data-theme='dark'] .login-footer {
+  color: #8b9cb3;
+}
+
+[data-theme='dark'] .login-input-icon {
+  color: #6b7fa0;
+}

@@ -141,7 +141,7 @@
 
 .urgence-filter-select {
   border: none;
-  background: transparent;
+  background-color: transparent;
   font-size: 0.9rem;
   color: #334155;
   font-weight: 600;
@@ -164,7 +164,7 @@
 }
 
 .drh-tab {
-  background: transparent;
+  background-color: transparent;
   border: none;
   padding: 10px 24px;
   border-radius: 8px;
@@ -618,6 +618,15 @@
 
 [data-theme='dark'] .data-table td {
   border-bottom: 1px solid var(--border-color);
+  color: var(--text-main) !important;
+}
+
+[data-theme='dark'] .employee-name {
+  color: var(--text-main) !important;
+}
+
+[data-theme='dark'] .period-cell {
+  color: var(--text-muted) !important;
 }
 
 [data-theme='dark'] .modal-content {
@@ -635,7 +644,22 @@
   color: var(--text-main);
 }
 
-[data-theme='dark'] .avatar-placeholder,
+[data-theme='dark'] .avatar-placeholder {
+  background: var(--surface);
+  color: var(--text-main);
+  border-color: var(--border-color);
+}
+
+[data-theme='dark'] .avatar-urgent {
+  background: rgba(225, 29, 72, 0.15) !important;
+  color: #fb7185 !important;
+}
+
+[data-theme='dark'] .avatar-attention {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #fbbf24 !important;
+}
+
 [data-theme='dark'] .duration-badge,
 [data-theme='dark'] .justificatif-link,
 [data-theme='dark'] .btn-cancel-refusal,
@@ -809,4 +833,25 @@
 [data-theme='dark'] .sim-value,
 [data-theme='dark'] .presence-info h4 {
   color: var(--text-main);
+}
+
+[data-theme='dark'] .sim-label {
+  color: var(--text-muted);
+}
+
+[data-theme='dark'] .conflict-alert {
+  background: rgba(225, 29, 72, 0.1);
+  border-color: rgba(225, 29, 72, 0.3);
+}
+
+[data-theme='dark'] .conflict-content h4 {
+  color: #fb7185;
+}
+
+[data-theme='dark'] .conflict-content p {
+  color: #fecdd3;
+}
+
+[data-theme='dark'] .dss-section-title {
+  color: var(--text-muted);
 }
