@@ -4,6 +4,8 @@ import { FileText, Search, PlusCircle, Download, Eye, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './demandes.css';
 
+const BACKEND_URL = 'http://127.0.0.1:8000';
+
 export default function Demandes() {
   const navigate = useNavigate();
   const [demandes, setDemandes] = useState<any[]>([]);
@@ -28,11 +30,11 @@ export default function Demandes() {
     if (d.statut === 'approuvee') return false;
 
     const matchSearch = (d.type_conge_nom || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        (d.date_debut || '').includes(searchTerm);
+      (d.date_debut || '').includes(searchTerm);
     let matchStatus = true;
     if (statusFilter === 'refusee') matchStatus = d.statut === 'refusee';
     else if (statusFilter === 'en_attente') matchStatus = d.statut === 'en_attente_resp' || d.statut === 'en_attente_rh';
-    
+
     return matchSearch && matchStatus;
   }).sort((a, b) => {
     if (durationSort === 'Croissant') return a.duree - b.duree;
@@ -45,7 +47,7 @@ export default function Demandes() {
       const response = await api.get(`demandes/${id}/exporter_pdf/`, {
         responseType: 'blob',
       });
-      
+
       // Création d'un lien temporaire pour le téléchargement
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
@@ -67,8 +69,8 @@ export default function Demandes() {
           <h1 className="page-title">Mes Congés <span className="text-primary">Actuels</span></h1>
           <p className="page-subtitle">Suivez l'état de vos demandes en attente ou refusées.</p>
         </div>
-        <button 
-          className="btn-primary" 
+        <button
+          className="btn-primary"
           onClick={() => navigate('/conges/nouvelle-demande')}
         >
           <PlusCircle size={20} /> Nouvelle demande
@@ -77,45 +79,45 @@ export default function Demandes() {
 
       <div className="card-minimal card-no-padding">
         <div className="table-toolbar-plain">
-           <div className="search-bar">
-              <Search size={18} color="var(--text-muted)" />
-              <input 
-                type="text" 
-                placeholder="Rechercher par date ou type..." 
-                className="search-input"
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-              />
-           </div>
-           
-           <div className="filter-group">
-             <div className="filter-wrap">
-               <FileText size={16} color="var(--text-muted)" />
-               <select 
-                 className="filter-select"
-                 value={statusFilter}
-                 onChange={e => setStatusFilter(e.target.value)}
-               >
-                 <option value="Tous">Tous les statuts</option>
-                 <option value="approuvee">Approuvée</option>
-                 <option value="refusee">Refusée</option>
-                 <option value="en_attente">En attente</option>
-               </select>
-             </div>
+          <div className="search-bar">
+            <Search size={18} color="var(--text-muted)" />
+            <input
+              type="text"
+              placeholder="Rechercher par date ou type..."
+              className="search-input"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+            />
+          </div>
 
-             <div className="filter-wrap">
-               <PlusCircle size={16} color="var(--text-muted)" style={{ transform: 'rotate(45deg)' }} />
-               <select 
-                 className="filter-select"
-                 value={durationSort}
-                 onChange={e => setDurationSort(e.target.value)}
-               >
-                 <option value="Aucun">Trier par durée</option>
-                 <option value="Croissant">Durée croissante</option>
-                 <option value="Décroissant">Durée décroissante</option>
-               </select>
-             </div>
-           </div>
+          <div className="filter-group">
+            <div className="filter-wrap">
+              <FileText size={16} color="var(--text-muted)" />
+              <select
+                className="filter-select"
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value)}
+              >
+                <option value="Tous">Tous les statuts</option>
+                <option value="approuvee">Approuvée</option>
+                <option value="refusee">Refusée</option>
+                <option value="en_attente">En attente</option>
+              </select>
+            </div>
+
+            <div className="filter-wrap">
+              <PlusCircle size={16} color="var(--text-muted)" style={{ transform: 'rotate(45deg)' }} />
+              <select
+                className="filter-select"
+                value={durationSort}
+                onChange={e => setDurationSort(e.target.value)}
+              >
+                <option value="Aucun">Trier par durée</option>
+                <option value="Croissant">Durée croissante</option>
+                <option value="Décroissant">Durée décroissante</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         <div className="table-body">
@@ -136,8 +138,8 @@ export default function Demandes() {
                     <tr key={`skel-${i}`} className="table-row skeleton-row">
                       <td className="td-cell">
                         <div className="cell-icon-label">
-                           <div className="skeleton-avatar" style={{ width: '35px', height: '35px', borderRadius: '8px' }}></div>
-                           <div className="skeleton-block" style={{ width: '120px' }}></div>
+                          <div className="skeleton-avatar" style={{ width: '35px', height: '35px', borderRadius: '8px' }}></div>
+                          <div className="skeleton-block" style={{ width: '120px' }}></div>
                         </div>
                       </td>
                       <td><div className="skeleton-block" style={{ width: '180px' }}></div></td>
@@ -153,40 +155,39 @@ export default function Demandes() {
                 <tr key={d.id} className="table-row">
                   <td className="td-cell">
                     <div className="cell-icon-label">
-                       <div className="icon-box">
-                          <FileText size={20} color="var(--primary)" />
-                       </div>
-                       <span className="cell-label">{d.type_conge_nom}</span>
+                      <div className="icon-box">
+                        <FileText size={20} color="var(--primary)" />
+                      </div>
+                      <span className="cell-label">{d.type_conge_nom}</span>
                     </div>
                   </td>
                   <td className="td-period">
-                     Du <span className="text-primary">{d.date_debut}</span> au <span className="text-primary">{d.date_fin}</span>
+                    Du <span className="text-primary">{d.date_debut}</span> au <span className="text-primary">{d.date_fin}</span>
                   </td>
                   <td className="td-duration">{d.duree} <span>j</span></td>
                   <td>
-                    <span className={`badge ${
-                      d.statut === 'approuvee' ? 'badge-success' : 
-                      d.statut === 'refusee' ? 'badge-danger' : 
-                      d.statut === 'expiree' ? 'badge-expired' : 'badge-pending'
-                    }`}>
+                    <span className={`badge ${d.statut === 'approuvee' ? 'badge-success' :
+                        d.statut === 'refusee' ? 'badge-danger' :
+                          d.statut === 'expiree' ? 'badge-expired' : 'badge-pending'
+                      }`}>
                       {d.statut_display}
                     </span>
                   </td>
                   <td className="td-cell-right">
-                     <div className="action-group">
-                        {d.statut === 'approuvee' && (
-                          <button 
-                            className="btn-icon" 
-                            title="Télécharger le titre"
-                            onClick={() => handleDownloadPDF(d.id)}
-                          >
-                             <Download size={18} />
-                          </button>
-                        )}
-                        <button className="btn-icon" title="Voir les détails" onClick={() => setSelectedDemande(d)}>
-                           <Eye size={18} />
+                    <div className="action-group">
+                      {d.statut === 'approuvee' && (
+                        <button
+                          className="btn-icon"
+                          title="Télécharger le titre"
+                          onClick={() => handleDownloadPDF(d.id)}
+                        >
+                          <Download size={18} />
                         </button>
-                     </div>
+                      )}
+                      <button className="btn-icon" title="Voir les détails" onClick={() => setSelectedDemande(d)}>
+                        <Eye size={18} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -204,7 +205,7 @@ export default function Demandes() {
                 <X size={20} color="var(--text-muted)" />
               </button>
             </div>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', color: 'var(--text-color)' }}>
               <p style={{ margin: 0 }}><strong>Type :</strong> {selectedDemande.type_conge_nom}</p>
               {selectedDemande.motif && <p style={{ margin: 0 }}><strong>Motif :</strong> {selectedDemande.motif_display || selectedDemande.motif}</p>}
@@ -213,21 +214,20 @@ export default function Demandes() {
               <p style={{ margin: 0 }}><strong>Durée :</strong> {selectedDemande.duree} jour(s)</p>
               <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <strong>Statut :</strong>
-                <span className={`badge ${
-                  selectedDemande.statut === 'approuvee' ? 'badge-success' : 
-                  selectedDemande.statut === 'refusee' ? 'badge-danger' : 
-                  selectedDemande.statut === 'expiree' ? 'badge-expired' : 'badge-pending'
-                }`}>
+                <span className={`badge ${selectedDemande.statut === 'approuvee' ? 'badge-success' :
+                    selectedDemande.statut === 'refusee' ? 'badge-danger' :
+                      selectedDemande.statut === 'expiree' ? 'badge-expired' : 'badge-pending'
+                  }`}>
                   {selectedDemande.statut_display}
                 </span>
               </p>
               {selectedDemande.justificatif_url && (
                 <p style={{ margin: 0, marginTop: '8px' }}>
                   <strong>Justificatif :</strong>{' '}
-                  <a 
-                    href={`http://localhost:8000${selectedDemande.justificatif_url}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
+                  <a
+                    href={`${BACKEND_URL}${selectedDemande.justificatif_url}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     style={{ color: 'var(--primary)', textDecoration: 'underline', fontWeight: 500 }}
                   >
                     Voir le document joint
@@ -235,7 +235,7 @@ export default function Demandes() {
                 </p>
               )}
             </div>
-            
+
             <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
               <button className="btn-primary" onClick={() => setSelectedDemande(null)}>Fermer</button>
             </div>

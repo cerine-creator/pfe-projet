@@ -718,7 +718,21 @@
 }
 
 .sim-result {
-  color: var(--primary);
+  color: #10b981;
+}
+
+.text-accent {
+  color: #f43f5e;
+}
+
+.text-success {
+  color: #10b981;
+}
+
+.text-danger {
+  color: #ef4444;
+  font-weight: 900;
+  text-decoration: underline;
 }
 
 /* Conflict Alert */

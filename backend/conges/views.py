@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from accounts.permissions import (
     IsEmploye,
@@ -98,6 +99,22 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
         if employe:
             return base_qs.filter(employe=employe)
         return DemandeConge.objects.none()
+
+    def perform_create(self, serializer):
+        """Affecte l'employé connecté et l'exercice correspondant à la date de début."""
+        employe = getattr(self.request.user, 'employe', None)
+        date_debut = self.request.data.get('date_debut')
+        
+        exercice = None
+        if date_debut:
+            # On cherche l'exercice qui couvre cette date
+            exercice = Exercice.objects.filter(
+                date_debut__lte=date_debut,
+                date_fin__gte=date_debut,
+                est_cloture=False
+            ).first()
+
+        serializer.save(employe=employe, exercice=exercice)
 
     @action(detail=False, methods=['get'])
     def a_valider(self, request):
@@ -390,7 +407,14 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
         DemandeConge.objects.filter(pk=demande.pk).update(statut='en_attente_rh')
         demande.refresh_from_db()
         
-        # Récupérer les employés RH pour les notifier (ceux dont l'user lié a un rôle RH)
+        # Notifier l'employé
+        if hasattr(demande.employe, 'compte') and demande.employe.compte:
+            Notification.objects.create(
+                utilisateur=demande.employe.compte,
+                description=f"Votre responsable hiérarchique a approuvé votre demande. Elle est maintenant en cours de traitement au niveau des RH."
+            )
+
+        # Notifier les RH
         rh_employes = Employe.objects.filter(compte__role__in=['responsable_rh', 'directeur_rh'])
         for rh in rh_employes:
             if hasattr(rh, 'compte') and rh.compte:
@@ -398,6 +422,7 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
                     utilisateur=rh.compte,
                     description=f"La demande de {demande.employe} a été validée par la hiérarchie. En attente de traitement."
                 )
+
         return Response({'status': 'Validée par le responsable'})
 
     @action(detail=True, methods=['post'], permission_classes=[IsResponsableHierarchique])
@@ -551,3 +576,39 @@ class CalendarNoteViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+
+class PlanningView(APIView):
+    permission_classes = [IsEmploye]
+
+    def get(self, request):
+        """Unifie les notes de calendrier et les absences approuvées."""
+        # 1. Notes manuelles
+        notes = CalendarNote.objects.all()
+        notes_data = CalendarNoteSerializer(notes, many=True).data
+        
+        # On ajoute un type pour le frontend
+        for n in notes_data:
+            n['type'] = 'note'
+
+        # 2. Absences approuvées
+        # On peut filtrer par plage de dates si besoin, ici on prend tout pour le démo
+        absences = DemandeConge.objects.filter(statut='approuvee').select_related('employe', 'type_conge')
+        
+        absences_data = []
+        for ab in absences:
+            # Pour chaque jour du congé, on crée une entrée ou on gère ça côté front.
+            # Plus simple : on renvoie l'absence et le front l'affiche sur la plage.
+            # Mais pour que ça rentre dans la grille actuelle (par jour), on va tricher un peu 
+            # ou adapter le front.
+            # OPTION : On renvoie l'absence avec date_debut/date_fin
+            absences_data.append({
+                'id': f"abs-{ab.id}",
+                'title': f"ABS: {ab.employe.prenomEmpl} {ab.employe.nomEmpl}",
+                'description': f"Congé {ab.type_conge.nomType if ab.type_conge else ''}",
+                'date': ab.date_debut.isoformat(),
+                'date_fin': ab.date_fin.isoformat(),
+                'type': 'absence',
+                'created_by_name': 'Système'
+            })
+
+        return Response(notes_data + absences_data)

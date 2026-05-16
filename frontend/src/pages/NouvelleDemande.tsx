@@ -129,7 +129,29 @@ export default function NouvelleDemande() {
       setMessage({ type: 'success', text: 'Demande soumise avec succès !' });
       setTimeout(() => navigate('/conges/mes-demandes'), 2000);
     } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || err.response?.data?.error || "Une erreur est survenue.";
+      let errorMsg = "Une erreur est survenue.";
+      const data = err.response?.data;
+
+      if (data) {
+        if (typeof data === 'string') {
+          errorMsg = data;
+        } else if (data.detail) {
+          errorMsg = data.detail;
+        } else if (data.non_field_errors) {
+          errorMsg = Array.isArray(data.non_field_errors) ? data.non_field_errors[0] : data.non_field_errors;
+        } else if (typeof data === 'object') {
+          // Prendre la première erreur trouvée dans les champs
+          const firstKey = Object.keys(data)[0];
+          const firstErr = data[firstKey];
+          errorMsg = Array.isArray(firstErr) ? firstErr[0] : firstErr;
+        }
+      }
+
+      // "Nettoyage" des messages techniques du backend pour l'utilisateur
+      if (errorMsg.includes("Solde insuffisant") || errorMsg.includes("Votre solde")) {
+        errorMsg = "Votre solde ne suffit pas pour effectuer cette demande.";
+      }
+      
       setMessage({ type: 'error', text: errorMsg });
     } finally {
       setSubmitting(false);

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axiosConfig';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { 
   BarChart3, 
   CalendarCheck, 
@@ -12,6 +13,7 @@ import './dashboard.css';
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState({ solde: 0, attente: 0, pris: 0 });
   const [loading, setLoading] = useState(true);
 
@@ -83,7 +85,6 @@ export default function Dashboard() {
     <div className="dashboard-v2">
       <div className="page-header">
         <h1 className="page-title-lg">Bonjour, <span className="text-primary">{user?.first_name}</span></h1>
-        <p className="page-subtitle page-subtitle-lg">Voici l'état de vos congés pour l'exercice en cours.</p>
       </div>
 
       {/* --- CARDS GRID --- */}
@@ -125,7 +126,7 @@ export default function Dashboard() {
             <p>Planifiez votre prochaine absence en quelques clics.</p>
           </div>
         </div>
-        <button className="btn-primary" onClick={() => window.location.href='/conges/nouvelle-demande'}>
+        <button className="btn-primary" onClick={() => navigate('/conges/nouvelle-demande')}>
            Soumettre maintenant <ArrowRightCircle size={20} />
         </button>
       </div>

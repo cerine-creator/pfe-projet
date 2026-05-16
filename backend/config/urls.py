@@ -22,6 +22,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/', include('accounts.urls')),   # Login, Logout, Me, Refresh, Register
+    path('api/planning/', conges_views.PlanningView.as_view(), name='planning'),
     path('api/', include(router.urls)),             # Toutes les autres APIs
 ]
 

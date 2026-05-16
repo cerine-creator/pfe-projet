@@ -133,6 +133,7 @@ export default function Validation() {
     return allApprovedDemandes.filter(other => {
       // On ne compare pas avec soi-même et on reste dans la même structure
       if (other.id === demande.id) return false;
+      if (other.structure !== demande.structure) return false;
 
       const otherDebut = new Date(other.date_debut);
       const otherFin = new Date(other.date_fin);
@@ -228,13 +229,13 @@ export default function Validation() {
 
         {isDRH && (
           <div className="drh-tabs">
-            <button 
+            <button
               className={`drh-tab ${activeTab === 'employes' ? 'active' : ''}`}
               onClick={() => setActiveTab('employes')}
             >
               <Users size={16} /> Demandes des Employés
             </button>
-            <button 
+            <button
               className={`drh-tab ${activeTab === 'rh' ? 'active' : ''}`}
               onClick={() => setActiveTab('rh')}
             >
@@ -373,17 +374,19 @@ export default function Validation() {
               <div className="balance-simulator">
                 <div className="sim-item">
                   <div className="sim-label">Solde Actuel</div>
-                  <div className="sim-value">30j</div>
+                  <div className="sim-value">{(selectedDemande.employe_solde || 0).toFixed(1)}j</div>
                 </div>
                 <div className="sim-arrow"><ArrowRight size={20} /></div>
                 <div className="sim-item">
                   <div className="sim-label">Congé</div>
-                  <div className="sim-value">-{selectedDemande.duree}j</div>
+                  <div className="sim-value text-accent">-{selectedDemande.duree}j</div>
                 </div>
                 <div className="sim-arrow"><ArrowRight size={20} /></div>
                 <div className="sim-item">
-                  <div className="sim-label">Nouveau Solde</div>
-                  <div className="sim-value sim-result">{30 - selectedDemande.duree}j</div>
+                  <div className="sim-label">Solde après</div>
+                  <div className={`sim-value sim-result ${((selectedDemande.employe_solde || 0) - selectedDemande.duree) < 0 ? 'text-danger' : 'text-success'}`}>
+                    {((selectedDemande.employe_solde || 0) - selectedDemande.duree).toFixed(1)}j
+                  </div>
                 </div>
               </div>
 

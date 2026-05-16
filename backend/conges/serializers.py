@@ -44,9 +44,9 @@ class EmployeSerializer(serializers.ModelSerializer):
         ]
 
     def get_solde_affichage(self, obj):
-        # Chercher le droit de l'exercice non cloturé
-        droit = obj.droits_conges.filter(exercice__est_cloture=False).first()
-        return droit.nbrJRes if droit else 0
+        # Pour une cohérence totale, on affiche le SOLDE TOTAL (Cumul de tous les exercices)
+        from django.db.models import Sum
+        return obj.droits_conges.aggregate(Sum('nbrJRes'))['nbrJRes__sum'] or 0
 
 class DroitCongeSerializer(serializers.ModelSerializer):
     exercice_libelle = serializers.CharField(source='exercice.libelle', read_only=True)
@@ -66,6 +66,7 @@ class DemandeCongeSerializer(serializers.ModelSerializer):
     exercice_libelle = serializers.CharField(source='exercice.libelle', read_only=True)
     delai_jours = serializers.SerializerMethodField(read_only=True)
     urgence_badge = serializers.SerializerMethodField(read_only=True)
+    employe_solde = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = DemandeConge
@@ -74,7 +75,7 @@ class DemandeCongeSerializer(serializers.ModelSerializer):
             'type_conge_nom', 'date_debut', 'date_fin', 'duree',
             'motif', 'motif_display', 'statut', 'statut_display',
             'dateDemande', 'justificatif', 'justificatif_url',
-            'delai_jours', 'urgence_badge'
+            'delai_jours', 'urgence_badge', 'employe_solde'
         ]
         read_only_fields = [
             'duree', 'statut', 'dateDemande', 'employe', 'justificatif_url'
@@ -89,20 +90,19 @@ class DemandeCongeSerializer(serializers.ModelSerializer):
     def get_urgence_badge(self, obj):
         return obj.urgence_badge
 
+    def get_employe_solde(self, obj):
+        # Pour l'aide à la décision, on affiche le SOLDE TOTAL (Cumul de tous les exercices)
+        # car c'est ce qui importe pour savoir si l'employé peut partir.
+        from django.db.models import Sum
+        total = obj.employe.droits_conges.aggregate(Sum('nbrJRes'))['nbrJRes__sum'] or 0
+        return total
+
 
 
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = '__all__'
-
-class CalendarNoteSerializer(serializers.ModelSerializer):
-    created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
-
-    class Meta:
-        model = CalendarNote
-        fields = ['id', 'title', 'description', 'date', 'created_by', 'created_by_name', 'created_at', 'updated_at']
-        read_only_fields = ['created_by', 'created_at', 'updated_at']
 
 class CalendarNoteSerializer(serializers.ModelSerializer):
     created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
