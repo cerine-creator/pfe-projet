@@ -38,7 +38,7 @@ export default function Archives() {
 
   // Groupement des demandes par Exercice
   const groupedArchives = archives.reduce((groups: any, d: any) => {
-    const ex = d.exercice_libelle || "Exercice Inconnu";
+    const ex = d.exercice_libelle || "Inconnu";
     if (!groups[ex]) groups[ex] = [];
     groups[ex].push(d);
     return groups;
