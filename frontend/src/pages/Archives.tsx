@@ -36,15 +36,15 @@ export default function Archives() {
     }
   };
 
-  // Groupement des demandes par Année (basé sur la date de début)
+  // Groupement des demandes par Exercice
   const groupedArchives = archives.reduce((groups: any, d: any) => {
-    const year = d.date_debut ? d.date_debut.split('-')[0] : "Année Inconnue";
-    if (!groups[year]) groups[year] = [];
-    groups[year].push(d);
+    const ex = d.exercice_libelle || "Exercice Inconnu";
+    if (!groups[ex]) groups[ex] = [];
+    groups[ex].push(d);
     return groups;
   }, {});
 
-  const yearsSorted = Object.keys(groupedArchives).sort().reverse();
+  const exSorted = Object.keys(groupedArchives).sort().reverse();
 
   if (loading) {
     return (
@@ -52,7 +52,7 @@ export default function Archives() {
         <div className="demandes-header">
           <div className="page-header" style={{ marginBottom: 0 }}>
             <h1 className="page-title">Archives des <span className="text-primary">Congés Approuvés</span></h1>
-            <p className="page-subtitle">Retrouvez ici tous vos titres de congés officiels classés par année.</p>
+            <p className="page-subtitle">Retrouvez ici tous vos titres de congés officiels classés par exercice.</p>
           </div>
           <div className="icon-box-large">
              <History size={32} color="var(--primary)" />
@@ -96,24 +96,24 @@ export default function Archives() {
       <div className="demandes-header">
         <div className="page-header" style={{ marginBottom: 0 }}>
           <h1 className="page-title">Archives des <span className="text-primary">Congés Approuvés</span></h1>
-          <p className="page-subtitle">Retrouvez ici tous vos titres de congés officiels classés par année.</p>
+          <p className="page-subtitle">Retrouvez ici tous vos titres de congés officiels classés par exercice.</p>
         </div>
         <div className="icon-box-large">
            <History size={32} color="var(--primary)" />
         </div>
       </div>
 
-      {yearsSorted.length === 0 ? (
+      {exSorted.length === 0 ? (
         <div className="card-minimal td-empty" style={{ padding: '60px' }}>
           <History size={48} color="#cbd5e1" style={{ marginBottom: '16px' }} />
           <p>Vous n'avez pas encore de congés approuvés dans vos archives.</p>
         </div>
-      ) : yearsSorted.map(year => (
-        <div key={year} className="archive-section" style={{ marginBottom: '40px' }}>
+      ) : exSorted.map(ex => (
+        <div key={ex} className="archive-section" style={{ marginBottom: '40px' }}>
           <div className="section-title-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
             <Calendar size={20} color="var(--primary)" />
             <h2 className="section-title" style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-color)' }}>
-              Année {year}
+              Exercice {ex}
             </h2>
             <div style={{ height: '2px', flex: 1, backgroundColor: 'var(--border-color)', marginLeft: '10px', opacity: 0.5 }}></div>
           </div>
@@ -130,7 +130,7 @@ export default function Archives() {
                   </tr>
                 </thead>
                 <tbody>
-                  {groupedArchives[year].map((d: any) => (
+                  {groupedArchives[ex].map((d: any) => (
                     <tr key={d.id} className="table-row">
                       <td className="td-cell">
                         <div className="cell-icon-label">
