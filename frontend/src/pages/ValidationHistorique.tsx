@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import api from '../api/axiosConfig';
 import { User, History, Download, Filter, X, Eye } from 'lucide-react';
 import CustomSelect from '../components/CustomSelect';
+import { useAuth } from '../context/AuthContext';
+import DemandeDetailModal from '../components/DemandeDetailModal';
 import './validation.css';
 
 export default function ValidationHistorique() {
@@ -9,6 +11,7 @@ export default function ValidationHistorique() {
   const [historiqueFilter, setHistoriqueFilter] = useState('Tous');
   const [loading, setLoading] = useState(true);
   const [selectedDemande, setSelectedDemande] = useState<any | null>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     api.get('/demandes/historique/')
@@ -22,7 +25,7 @@ export default function ValidationHistorique() {
 
   const handleDownloadPDF = async (id: number) => {
     try {
-      const response = await api.get(`demandes/${id}/exporter_pdf/`, {
+      const response = await api.get(`/demandes/${id}/exporter_pdf/`, {
         responseType: 'blob',
       });
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -169,7 +172,7 @@ export default function ValidationHistorique() {
                     <td>Du {d.date_debut} au {d.date_fin}</td>
                     <td className="td-cell-right">
                       <div className="action-group">
-                        {d.statut === 'approuvee' && (
+                        {d.statut === 'approuvee' && (user?.role === 'responsable_rh' || user?.role === 'directeur_rh') && (
                           <button 
                             className="btn-icon" 
                             title="Télécharger le titre"
@@ -197,34 +200,13 @@ export default function ValidationHistorique() {
       </div>
 
       {selectedDemande && (
-        <div className="modal-overlay" onClick={() => setSelectedDemande(null)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2 className="modal-title">Détails de la décision</h2>
-              <button onClick={() => setSelectedDemande(null)} className="modal-close-btn">
-                <X size={24} color="var(--text-muted)" />
-              </button>
-            </div>
-
-            <div className="modal-detail-box">
-              <div className="modal-detail-grid">
-                <div><div className="detail-label">Employé</div><div className="detail-value">{selectedDemande.employe_noms}</div></div>
-                <div><div className="detail-label">Période</div><div className="detail-value">Du {selectedDemande.date_debut} au {selectedDemande.date_fin}</div></div>
-                <div><div className="detail-label">Type</div><div className="detail-value">{selectedDemande.type_conge_nom}</div></div>
-                <div><div className="detail-label">Durée</div><div className="detail-value">{selectedDemande.duree} jours</div></div>
-              </div>
-            </div>
-
-            <div className="modal-actions">
-              {selectedDemande.statut === 'approuvee' && (
-                <button className="btn-primary" onClick={() => handleDownloadPDF(selectedDemande.id)}>
-                   <Download size={18} /> Télécharger le titre
-                </button>
-              )}
-              <button className="btn-secondary" onClick={() => setSelectedDemande(null)}>Fermer</button>
-            </div>
-          </div>
-        </div>
+        <DemandeDetailModal
+          demande={selectedDemande}
+          onClose={() => setSelectedDemande(null)}
+          showEmployee={true}
+          canDownloadPDF={user?.role === 'responsable_rh' || user?.role === 'directeur_rh'}
+          onDownloadPDF={handleDownloadPDF}
+        />
       )}
     </div>
   );

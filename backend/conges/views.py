@@ -511,6 +511,10 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'], url_path='exporter_pdf', url_name='exporter_pdf')
     def exporter_pdf(self, request, pk=None):
         """Action : Génère et télécharge le titre de congé en PDF."""
+        user = request.user
+        if not user.is_superuser and user.role not in ['responsable_rh', 'directeur_rh']:
+            return Response({'detail': "Seul le service RH est autorisé à imprimer le titre de congé."}, status=status.HTTP_403_FORBIDDEN)
+            
         demande = self.get_object()
         
         if demande.statut != 'approuvee':
