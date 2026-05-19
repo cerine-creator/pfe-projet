@@ -129,7 +129,7 @@ export default function Archives() {
                            <div className="icon-box">
                               <FileText size={18} color="var(--primary)" />
                            </div>
-                           <span className="cell-label">{d.type_conge_nom}</span>
+                           <span className="cell-label">{d.motif ? 'Congé Exceptionnel' : d.type_conge_nom}</span>
                         </div>
                       </td>
                       <td className="td-period">

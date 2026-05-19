@@ -53,13 +53,7 @@ export default function NouvelleDemande() {
     let typeObj = null;
 
     if (natureConge === 'exceptionnel') {
-       if (formData.motif.includes('mariage')) typeObj = types.find(t => t.est_exceptionnel && t.nomType.toLowerCase().includes('mariage'));
-       else if (formData.motif.includes('deces')) typeObj = types.find(t => t.est_exceptionnel && t.nomType.toLowerCase().includes('décès'));
-       else if (formData.motif.includes('naissance')) typeObj = types.find(t => t.est_exceptionnel && t.nomType.toLowerCase().includes('naissance'));
-       
-       if (!typeObj) {
-         typeObj = types.find(t => t.est_exceptionnel === true || t.nomType.toLowerCase().includes('exceptionnel'));
-       }
+       typeObj = types.find(t => t.nomType.toLowerCase().includes('exceptionnel') || t.est_exceptionnel === true);
     } else if (natureConge === 'annuel') {
        typeObj = types.find(t => t.est_exceptionnel === false && t.nomType.toLowerCase().includes('annuel'));
     } else if (natureConge === 'sans_solde') {
