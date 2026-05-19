@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axiosConfig';
-import { User, History, Download, Filter, X, Eye } from 'lucide-react';
+import { User, History, Download, Filter, X, Eye, Search } from 'lucide-react';
 import CustomSelect from '../components/CustomSelect';
 import { useAuth } from '../context/AuthContext';
 import DemandeDetailModal from '../components/DemandeDetailModal';
@@ -9,6 +9,8 @@ import './validation.css';
 export default function ValidationHistorique() {
   const [historiqueDemandes, setHistoriqueDemandes] = useState<any[]>([]);
   const [historiqueFilter, setHistoriqueFilter] = useState('Tous');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dateSort, setDateSort] = useState('Aucun');
   const [loading, setLoading] = useState(true);
   const [selectedDemande, setSelectedDemande] = useState<any | null>(null);
   const { user } = useAuth();
@@ -42,8 +44,21 @@ export default function ValidationHistorique() {
   };
 
   const filteredHistory = historiqueDemandes.filter(d => {
-    if (historiqueFilter === 'Tous') return true;
-    return d.statut === historiqueFilter;
+    let matchStatus = true;
+    if (historiqueFilter !== 'Tous') {
+      matchStatus = d.statut === historiqueFilter;
+    }
+
+    const searchLower = searchTerm.toLowerCase();
+    const matchSearch = (d.employe_noms || '').toLowerCase().includes(searchLower) ||
+                        (d.type_conge_nom || '').toLowerCase().includes(searchLower) ||
+                        (d.date_debut || '').includes(searchTerm);
+
+    return matchStatus && matchSearch;
+  }).sort((a, b) => {
+    if (dateSort === 'Plus récent') return new Date(b.dateDemande).getTime() - new Date(a.dateDemande).getTime();
+    if (dateSort === 'Plus ancien') return new Date(a.dateDemande).getTime() - new Date(b.dateDemande).getTime();
+    return 0;
   });
 
   if (loading) {
@@ -108,21 +123,50 @@ export default function ValidationHistorique() {
 
       <div className="card-minimal card-no-padding">
         <div className="table-toolbar-light">
-          <div className="urgence-filter-wrap">
-            <Filter size={18} color="var(--text-muted)" />
-            <CustomSelect
-              className="filter-select urgence-filter-select"
-              value={historiqueFilter}
-              onChange={(val) => setHistoriqueFilter(val)}
-              placeholder="Tous les statuts"
-              options={[
-                { value: 'Tous', label: 'Tous les statuts' },
-                { value: 'approuvee', label: 'Approuvées' },
-                { value: 'refusee', label: 'Refusées' },
-                { value: 'en_attente_rh', label: 'En attente RH (Validation Responsable faite)' },
-                { value: 'expiree', label: 'Expirées' }
-              ]}
-            />
+          <div className="toolbar-left">
+            <div className="search-bar-white">
+              <Search size={18} color="var(--text-muted)" />
+              <input
+                type="text"
+                placeholder="Rechercher par employé ou date..."
+                className="search-input"
+                style={{ border: 'none', outline: 'none', background: 'transparent', width: '100%', color: 'inherit' }}
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+              />
+            </div>
+            
+            <div className="urgence-filter-wrap">
+              <Filter size={18} color="var(--text-muted)" />
+              <CustomSelect
+                className="filter-select urgence-filter-select"
+                value={historiqueFilter}
+                onChange={(val) => setHistoriqueFilter(val)}
+                placeholder="Tous les statuts"
+                options={[
+                  { value: 'Tous', label: 'Tous les statuts' },
+                  { value: 'approuvee', label: 'Approuvées' },
+                  { value: 'refusee', label: 'Refusées' },
+                  { value: 'en_attente_rh', label: 'En attente RH (Validation Responsable faite)' },
+                  { value: 'expiree', label: 'Expirées' }
+                ]}
+              />
+            </div>
+
+            <div className="urgence-filter-wrap">
+              <History size={18} color="var(--text-muted)" />
+              <CustomSelect
+                className="filter-select urgence-filter-select"
+                value={dateSort}
+                onChange={(val) => setDateSort(val)}
+                placeholder="Trier par date"
+                options={[
+                  { value: 'Aucun', label: 'Trier par date' },
+                  { value: 'Plus récent', label: 'Plus récent' },
+                  { value: 'Plus ancien', label: 'Plus ancien' }
+                ]}
+              />
+            </div>
           </div>
           <div className="badge-count">
             {filteredHistory.length} décision(s) archivée(s)
@@ -156,7 +200,7 @@ export default function ValidationHistorique() {
                         </div>
                         <div>
                           <div className="employee-name">{d.employe_noms}</div>
-                          <div className="employee-date">{d.type_conge_nom || 'Congé'}</div>
+                          <div className="employee-date">{d.motif ? 'Congé Exceptionnel' : (d.type_conge_nom || 'Congé')}</div>
                         </div>
                       </div>
                     </td>

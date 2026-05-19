@@ -1,9 +1,9 @@
 from django.contrib import admin
 from .models import Structure, Fonction, Employe, TypeConge, Exercice, DroitConge, DemandeConge, Notification, JourFerie
 
-@admin.register(JourFerie)
-class JourFerieAdmin(admin.ModelAdmin):
-    list_display = ('date', 'libelle')
+# @admin.register(JourFerie)
+# class JourFerieAdmin(admin.ModelAdmin):
+#     list_display = ('date', 'libelle')
 
 @admin.register(Structure)
 class StructureAdmin(admin.ModelAdmin):

@@ -80,7 +80,7 @@ export default function DemandeDetailModal({
 
           {/* Info grid */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-            <InfoRow label="Type" value={demande.type_conge_nom} />
+            <InfoRow label="Type" value={demande.motif ? 'Congé Exceptionnel' : demande.type_conge_nom} />
             <InfoRow label="Durée" value={`${demande.duree} jour(s)`} />
             <InfoRow label="Du" value={demande.date_debut} />
             <InfoRow label="Au" value={demande.date_fin} />

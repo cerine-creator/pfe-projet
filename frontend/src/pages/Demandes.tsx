@@ -13,9 +13,6 @@ export default function Demandes() {
   const navigate = useNavigate();
   const [demandes, setDemandes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('Tous');
-  const [durationSort, setDurationSort] = useState('Aucun');
   const [selectedDemande, setSelectedDemande] = useState<any | null>(null);
   const { user } = useAuth();
 
@@ -30,22 +27,8 @@ export default function Demandes() {
   }, []);
 
   const filteredDemandes = demandes.filter(d => {
-    // On exclut les approuvées car elles vont dans les archives
-    if (d.statut === 'approuvee') return false;
-
-    const matchSearch = (d.type_conge_nom || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (d.date_debut || '').includes(searchTerm);
-    let matchStatus = true;
-    if (statusFilter === 'refusee') matchStatus = d.statut === 'refusee';
-    else if (statusFilter === 'en_attente') matchStatus = d.statut === 'en_attente_resp' || d.statut === 'en_attente_rh';
-
-    return matchSearch && matchStatus;
-  }).sort((a, b) => {
-    if (durationSort === 'Croissant') return a.duree - b.duree;
-    if (durationSort === 'Décroissant') return b.duree - a.duree;
-    return 0;
+    return d.statut === 'en_attente_resp' || d.statut === 'en_attente_rh';
   });
-
 
 
   return (
@@ -53,7 +36,7 @@ export default function Demandes() {
       <div className="demandes-header">
         <div className="page-header" style={{ marginBottom: 0 }}>
           <h1 className="page-title">Mes Congés <span className="text-primary">Actuels</span></h1>
-          <p className="page-subtitle">Suivez l'état de vos demandes en attente ou refusées.</p>
+          <p className="page-subtitle">Suivez l'état de vos demandes en attente.</p>
         </div>
         <button
           className="btn-primary"
@@ -64,51 +47,7 @@ export default function Demandes() {
       </div>
 
       <div className="card-minimal card-no-padding">
-        <div className="table-toolbar-plain">
-          <div className="search-bar">
-            <Search size={18} color="var(--text-muted)" />
-            <input
-              type="text"
-              placeholder="Rechercher par date ou type..."
-              className="search-input"
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-            />
-          </div>
 
-          <div className="filter-group">
-            <div className="filter-wrap">
-              <FileText size={16} color="var(--text-muted)" />
-              <CustomSelect
-                className="filter-select"
-                value={statusFilter}
-                onChange={(val) => setStatusFilter(val)}
-                placeholder="Tous les statuts"
-                options={[
-                  { value: 'Tous', label: 'Tous les statuts' },
-                  { value: 'approuvee', label: 'Approuvée' },
-                  { value: 'refusee', label: 'Refusée' },
-                  { value: 'en_attente', label: 'En attente' }
-                ]}
-              />
-            </div>
-
-            <div className="filter-wrap">
-              <PlusCircle size={16} color="var(--text-muted)" style={{ transform: 'rotate(45deg)' }} />
-              <CustomSelect
-                className="filter-select"
-                value={durationSort}
-                onChange={(val) => setDurationSort(val)}
-                placeholder="Trier par durée"
-                options={[
-                  { value: 'Aucun', label: 'Trier par durée' },
-                  { value: 'Croissant', label: 'Durée croissante' },
-                  { value: 'Décroissant', label: 'Durée décroissante' }
-                ]}
-              />
-            </div>
-          </div>
-        </div>
 
         <div className="table-body">
           <table className="data-table">
@@ -148,7 +87,7 @@ export default function Demandes() {
                       <div className="icon-box">
                         <FileText size={20} color="var(--primary)" />
                       </div>
-                      <span className="cell-label">{d.type_conge_nom}</span>
+                      <span className="cell-label">{d.motif ? 'Congé Exceptionnel' : d.type_conge_nom}</span>
                     </div>
                   </td>
                   <td className="td-period">

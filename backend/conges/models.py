@@ -325,7 +325,6 @@ class DemandeConge(models.Model):
         return f"Demande {self.employe} ({self.duree}j)"
 
 
-
 class Notification(models.Model):
     dateNotif = models.DateField(auto_now_add=True)
     heureNotif = models.TimeField(auto_now_add=True)
