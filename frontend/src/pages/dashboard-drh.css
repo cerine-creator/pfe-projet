@@ -304,8 +304,9 @@
   overflow: hidden;
   border: 1px solid var(--border-color);
   margin: 0.5rem auto 1rem auto;
-  max-width: 900px; /* Limite la largeur pour ne plus être ultra big */
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  max-width: 900px;
+  /* Limite la largeur pour ne plus être ultra big */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
 .cal-header {
@@ -361,7 +362,8 @@
 }
 
 .cal-cell {
-  min-height: 80px; /* Moins haut */
+  min-height: 80px;
+  /* Moins haut */
   border: 1px solid rgba(255, 255, 255, 0.05);
   background: rgba(255, 255, 255, 0.02);
   border-radius: 6px;
@@ -457,8 +459,15 @@
 
 
 @keyframes slideInUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .cal-notes-header {
@@ -647,8 +656,8 @@
 }
 
 .modal-content {
-  background: #ffffff;
-  color: #1f2937;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   border-radius: 12px;
   width: 90%;
   max-width: 500px;
@@ -672,7 +681,7 @@
 .modal-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -846,4 +855,459 @@
     width: 95%;
     margin: 1rem;
   }
+}
+
+/* ─── Employees List Section ─── */
+.employes-section-card {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.section-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.section-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.search-box-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 320px;
+}
+
+.search-icon-inside {
+  position: absolute;
+  left: 12px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.search-input-field {
+  width: 100%;
+  padding: 0.6rem 2.5rem 0.6rem 2.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.search-input-field:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clear-search-btn:hover {
+  color: var(--text-primary);
+}
+
+.table-responsive-wrapper {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.employes-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.employes-data-table th {
+  background: var(--bg-tertiary);
+  padding: 0.75rem 1rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.employes-data-table td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+.employe-row-item {
+  transition: background-color 0.2s ease;
+}
+
+.employe-row-item:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+[data-theme='dark'] .employe-row-item:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.badge-matricule {
+  font-family: monospace;
+  font-weight: 700;
+  background: var(--bg-tertiary);
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  color: var(--text-secondary);
+}
+
+.emp-avatar-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.emp-avatar-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-color), #f43f5e);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.emp-fullname {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.emp-role-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.emp-structure-text,
+.emp-fonction-text {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.emp-contact-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.emp-email {
+  color: var(--text-primary);
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.emp-phone {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.emp-solde-badge {
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  display: inline-block;
+}
+
+.solde-green {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.solde-orange {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+.btn-view-profile {
+  background: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-view-profile:hover {
+  background: #be123c;
+  border-color: #be123c;
+  color: white;
+}
+
+.td-empty-employees {
+  text-align: center;
+  padding: 3rem !important;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ─── Detail Employee Modal Styles ─── */
+.profile-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1.25rem;
+}
+
+.large-avatar-badge {
+  width: 70px;
+  height: 70px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, var(--primary-color), #be123c);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 1.5rem;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+}
+
+.profile-detail-meta h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.profile-role-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: white;
+  background: var(--primary-color);
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-block;
+}
+
+.fiche-section-title {
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--primary-color);
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.detail-item-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-item-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.detail-item-val {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.solde-highlight {
+  grid-column: 1 / -1;
+  background: rgba(16, 185, 129, 0.05);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.solde-highlight .detail-item-val {
+  color: #10b981;
+}
+
+.font-large {
+  font-size: 1.25rem !important;
+  font-weight: 900 !important;
+}
+
+@media (max-width: 560px) {
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Pristine White Background Theme for Employee Details Modal - ONLY in Light Mode */
+[data-theme="light"] .employee-details-modal {
+  background: #ffffff !important;
+  color: #1e293b !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
+}
+
+[data-theme="light"] .employee-details-modal .modal-title {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .employee-details-modal .modal-close-btn svg {
+  stroke: #64748b !important;
+}
+
+[data-theme="light"] .employee-details-modal .profile-detail-header {
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .employee-details-modal .profile-detail-meta h3 {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .employee-details-modal .profile-role-tag {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .employee-details-modal .fiche-section-title {
+  color: #da0027 !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .employee-details-modal .detail-item-card {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .employee-details-modal .detail-item-label {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .employee-details-modal .detail-item-val {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .employee-details-modal .solde-highlight {
+  background: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+}
+
+[data-theme="light"] .employee-details-modal .solde-highlight .detail-item-label {
+  color: #047857 !important;
+}
+
+[data-theme="light"] .employee-details-modal .solde-highlight .detail-item-val {
+  color: #059669 !important;
+}
+
+/* ───────────────────────────────────────────────────────────── */
+/* Premium Dark Mode Styling for Employee Details Modal - ONLY in Dark Mode */
+[data-theme="dark"] .employee-details-modal {
+  background: #0f172a !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="dark"] .employee-details-modal .modal-title {
+  color: var(--text-primary) !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="dark"] .employee-details-modal .modal-close-btn svg {
+  stroke: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .employee-details-modal .profile-detail-header {
+  border-bottom: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .employee-details-modal .profile-detail-meta h3 {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .employee-details-modal .profile-role-tag {
+  background: var(--bg-tertiary) !important;
+  color: var(--text-muted) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .employee-details-modal .fiche-section-title {
+  color: #da0027 !important;
+  border-bottom-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .employee-details-modal .detail-item-card {
+  background: var(--bg-tertiary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .employee-details-modal .detail-item-label {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .employee-details-modal .detail-item-val {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .employee-details-modal .solde-highlight {
+  background: rgba(16, 185, 129, 0.05) !important;
+  border-color: rgba(16, 185, 129, 0.2) !important;
+}
+
+[data-theme="dark"] .employee-details-modal .solde-highlight .detail-item-label {
+  color: #10b981 !important;
+}
+
+[data-theme="dark"] .employee-details-modal .solde-highlight .detail-item-val {
+  color: #10b981 !important;
 }

@@ -385,6 +385,7 @@ export default function DashboardDRH() {
           </div>
         )}
 
+
         {/* ─── CHART (DRH only) ─── */}
         {user?.role === 'directeur_rh' && (
           <div className="chart-section">

@@ -284,7 +284,7 @@ export default function ValidationHistorique() {
                       </div>
                       <div>
                         <div className="card-employee-name">{d.employe_noms}</div>
-                        <div className="card-type-label">{d.type_conge_nom || 'Congé'}</div>
+                        <div className="card-type-label">{d.motif ? 'Congé Exceptionnel' : (d.type_conge_nom || 'Congé')}</div>
                       </div>
                     </div>
                     <span className={`badge ${

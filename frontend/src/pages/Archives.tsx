@@ -194,7 +194,7 @@ export default function Archives() {
                         <div className="icon-box">
                           <FileText size={18} color="var(--primary)" />
                         </div>
-                        <span className="card-label">{d.type_conge_nom}</span>
+                        <span className="card-label">{d.motif ? 'Congé Exceptionnel' : d.type_conge_nom}</span>
                       </div>
                       <span className={`badge ${d.statut === 'approuvee' ? 'badge-success' :
                           d.statut === 'refusee' ? 'badge-danger' :

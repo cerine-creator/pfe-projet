@@ -14,7 +14,8 @@ import {
   Moon,
   History,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Users
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import './layout.css';
@@ -124,9 +125,14 @@ export default function Layout() {
             )}
 
             {(user.role === 'responsable_rh' || user.role === 'directeur_rh') && (
-              <NavLink to="/rh/statistiques" className={({isActive}) => `sidebar-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
-                <PieChart size={18} /> Stats RH
-              </NavLink>
+              <>
+                <NavLink to="/rh/statistiques" className={({isActive}) => `sidebar-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
+                  <PieChart size={18} /> Stats RH
+                </NavLink>
+                <NavLink to="/rh/personnel" className={({isActive}) => `sidebar-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
+                  <Users size={18} /> Liste Personnel
+                </NavLink>
+              </>
             )}
           </nav>
         </div>
@@ -193,10 +199,15 @@ export default function Layout() {
                 </div>
               )}
 
-              {user.role === 'directeur_rh' && (
-                <NavLink to="/rh/statistiques" className={({isActive}) => `sidebar-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
-                  <PieChart size={18} /> Stats RH
-                </NavLink>
+              {(user.role === 'responsable_rh' || user.role === 'directeur_rh') && (
+                <>
+                  <NavLink to="/rh/statistiques" className={({isActive}) => `sidebar-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
+                    <PieChart size={18} /> Stats RH
+                  </NavLink>
+                  <NavLink to="/rh/personnel" className={({isActive}) => `sidebar-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
+                    <Users size={18} /> Liste Personnel
+                  </NavLink>
+                </>
               )}
             </nav>
 

@@ -1,20 +1,15 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axiosConfig';
-import { FileText, Search, PlusCircle, Eye, X } from 'lucide-react';
+import { FileText, PlusCircle, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import CustomSelect from '../components/CustomSelect';
 import DemandeDetailModal from '../components/DemandeDetailModal';
-import { useAuth } from '../context/AuthContext';
 import './demandes.css';
-
-const BACKEND_URL = 'http://127.0.0.1:8000';
 
 export default function Demandes() {
   const navigate = useNavigate();
   const [demandes, setDemandes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDemande, setSelectedDemande] = useState<any | null>(null);
-  const { user } = useAuth();
 
   useEffect(() => {
     api.get('/demandes/')
@@ -151,7 +146,7 @@ export default function Demandes() {
                       <div className="icon-box">
                         <FileText size={18} color="var(--primary)" />
                       </div>
-                      <span className="card-label">{d.type_conge_nom}</span>
+                      <span className="card-label">{d.motif ? 'Congé Exceptionnel' : d.type_conge_nom}</span>
                     </div>
                     <span className={`badge ${d.statut === 'approuvee' ? 'badge-success' :
                         d.statut === 'refusee' ? 'badge-danger' :

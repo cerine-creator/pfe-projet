@@ -11,6 +11,7 @@ import NouvelleDemande from './pages/NouvelleDemande'
 import Validation from './pages/Validation'
 import ValidationHistorique from './pages/ValidationHistorique'
 import DashboardDRH from './pages/DashboardDRH'
+import Personnel from './pages/Personnel'
 import Archives from './pages/Archives'
 import { WifiOff } from 'lucide-react'
 
@@ -107,6 +108,13 @@ export default function App() {
           <Route path="/rh/statistiques" element={
             <ProtectedRoute allowedRoles={['responsable_rh', 'directeur_rh']}>
               <DashboardDRH />
+            </ProtectedRoute>
+          } />
+
+          {/* Personnel — RH uniquement */}
+          <Route path="/rh/personnel" element={
+            <ProtectedRoute allowedRoles={['responsable_rh', 'directeur_rh']}>
+              <Personnel />
             </ProtectedRoute>
           } />
 
