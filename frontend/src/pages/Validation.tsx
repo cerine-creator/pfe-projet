@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../api/axiosConfig';
 import { useAuth } from '../context/AuthContext';
 import {
-  CheckCircle, XCircle, FileText, Search, User, Calendar, Clock,
+  CheckCircle, XCircle, FileText, Search, User,
   Zap, AlertTriangle, Filter, Paperclip, ExternalLink,
   Info, ArrowRight, Users
 } from 'lucide-react';
@@ -314,6 +314,95 @@ export default function Validation() {
               ))}
             </tbody>
           </table>
+
+          {/* Version mobile adaptative pour l'iPhone XR / petits écrans */}
+          <div className="mobile-validation-list">
+            {loading ? (
+              [...Array(3)].map((_, i) => (
+                <div key={`skel-card-v-${i}`} className="validation-card skeleton-card">
+                  <div className="card-header-row">
+                    <div className="card-employee-info">
+                      <div className="skeleton-avatar" style={{ width: '40px', height: '40px', borderRadius: '12px' }}></div>
+                      <div>
+                        <div className="skeleton-block" style={{ width: '120px', height: '16px', marginBottom: '6px' }}></div>
+                        <div className="skeleton-block" style={{ width: '80px', height: '12px' }}></div>
+                      </div>
+                    </div>
+                    <div className="skeleton-block" style={{ width: '70px', height: '24px', borderRadius: '20px' }}></div>
+                  </div>
+                  <div className="card-details-row">
+                    <div className="card-period-info">
+                      <div className="skeleton-block" style={{ width: '50px', height: '12px', marginBottom: '6px' }}></div>
+                      <div className="skeleton-block" style={{ width: '140px', height: '14px' }}></div>
+                    </div>
+                    <div className="card-duration-info">
+                      <div className="skeleton-block" style={{ width: '40px', height: '12px', marginBottom: '6px' }}></div>
+                      <div className="skeleton-block" style={{ width: '30px', height: '18px' }}></div>
+                    </div>
+                  </div>
+                  <div className="card-actions-row">
+                    <div className="skeleton-block" style={{ width: '100%', height: '36px', borderRadius: '8px' }}></div>
+                  </div>
+                </div>
+              ))
+            ) : demandesFiltrees.length === 0 ? (
+              <div className="td-empty" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                Aucune demande à traiter pour le moment.
+              </div>
+            ) : (
+              demandesFiltrees.map(d => (
+                <div 
+                  key={d.id} 
+                  className={`validation-card ${d.urgence_badge === 'urgent' ? 'card-urgent' : ''}`}
+                  onClick={() => { setSelectedDemande(d); setShowRefusalInput(false); setRefusalReason(""); }}
+                >
+                  <div className="card-header-row">
+                    <div className="card-employee-info">
+                      <div className={`avatar-placeholder avatar-${d.urgence_badge || 'normal'}`}>
+                        <User size={20} color="var(--primary)" />
+                      </div>
+                      <div>
+                        <div className="card-employee-name">{d.employe_noms}</div>
+                        <div className="card-type-label">{d.motif ? 'Exceptionnel' : d.type_conge_nom}</div>
+                      </div>
+                    </div>
+                    <UrgenceBadge level={d.urgence_badge || 'normal'} delai={d.delai_jours} />
+                  </div>
+                  
+                  <div className="card-details-row">
+                    <div className="card-period-info">
+                      <span className="period-label">Période</span>
+                      <span className="period-dates">
+                        Du <span className="highlight">{d.date_debut}</span> au <span className="highlight">{d.date_fin}</span>
+                      </span>
+                    </div>
+                    <div className="card-duration-info">
+                      <span className="duration-label">Durée</span>
+                      <span className="duration-val">{d.duree} <span>j</span></span>
+                    </div>
+                  </div>
+                  
+                  <div className="card-actions-row" style={{ flexDirection: 'column', gap: '8px', alignItems: 'stretch' }}>
+                    <div className="employee-date" style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                      Demandé le: {d.dateDemande}
+                    </div>
+                    <button 
+                      className="btn-primary" 
+                      style={{ width: '100%', justifyContent: 'center' }}
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        setSelectedDemande(d); 
+                        setShowRefusalInput(false); 
+                        setRefusalReason(""); 
+                      }}
+                    >
+                      Consulter
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
 

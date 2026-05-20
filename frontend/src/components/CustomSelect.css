@@ -135,3 +135,19 @@
 [data-theme='dark'] .custom-select-container.filter-select .custom-select-trigger {
   background: transparent;
 }
+
+/* Responsiveness for mobile screens (iPhone XR etc.) */
+@media (max-width: 768px) {
+  .custom-select-menu {
+    min-width: 100%;
+    max-width: calc(100vw - 32px);
+    box-sizing: border-box;
+  }
+
+  /* Align rightmost filter dropdowns to the right to prevent offscreen cut-offs */
+  .filter-wrap:last-child .custom-select-menu,
+  .filter-group > *:last-child .custom-select-menu {
+    right: 0;
+    left: auto;
+  }
+}

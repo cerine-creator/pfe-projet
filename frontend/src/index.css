@@ -750,8 +750,13 @@ body.mobile-menu-open {
   }
 
   .notif-panel {
-    width: min(360px, calc(100vw - 30px));
-    right: -2px;
+    position: fixed;
+    top: 76px;
+    left: 16px;
+    right: 16px;
+    width: auto;
+    max-width: none;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.22);
   }
 
   .card-minimal {

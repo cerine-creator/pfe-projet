@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axiosConfig';
-import { User, History, Download, Filter, X, Eye, Search } from 'lucide-react';
+import { User, History, Download, Filter, Eye, Search } from 'lucide-react';
 import CustomSelect from '../components/CustomSelect';
 import { useAuth } from '../context/AuthContext';
 import DemandeDetailModal from '../components/DemandeDetailModal';
@@ -103,6 +103,33 @@ export default function ValidationHistorique() {
                 ))}
               </tbody>
             </table>
+
+            {/* Version mobile skeleton adaptative */}
+            <div className="mobile-validation-list">
+              {[...Array(3)].map((_, i) => (
+                <div key={`skel-card-vh-${i}`} className="validation-card skeleton-card">
+                  <div className="card-header-row">
+                    <div className="card-employee-info">
+                      <div className="skeleton-avatar" style={{ width: '40px', height: '40px', borderRadius: '12px' }}></div>
+                      <div>
+                        <div className="skeleton-block" style={{ width: '100px', height: '16px', marginBottom: '6px' }}></div>
+                        <div className="skeleton-block" style={{ width: '60px', height: '12px' }}></div>
+                      </div>
+                    </div>
+                    <div className="skeleton-block" style={{ width: '70px', height: '24px', borderRadius: '20px' }}></div>
+                  </div>
+                  <div className="card-details-row">
+                    <div className="card-period-info">
+                      <div className="skeleton-block" style={{ width: '50px', height: '12px', marginBottom: '6px' }}></div>
+                      <div className="skeleton-block" style={{ width: '140px', height: '14px' }}></div>
+                    </div>
+                  </div>
+                  <div className="card-actions-row">
+                    <div className="skeleton-block" style={{ width: '120px', height: '32px', borderRadius: '8px' }}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -240,6 +267,71 @@ export default function ValidationHistorique() {
               )}
             </tbody>
           </table>
+
+          {/* Version mobile adaptative pour l'iPhone XR / petits écrans */}
+          <div className="mobile-validation-list">
+            {filteredHistory.length === 0 ? (
+              <div className="td-empty" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                Aucun historique correspondant.
+              </div>
+            ) : (
+              filteredHistory.map(d => (
+                <div key={d.id} className="validation-card" onClick={() => setSelectedDemande(d)}>
+                  <div className="card-header-row">
+                    <div className="card-employee-info">
+                      <div className="avatar-placeholder">
+                        <User size={20} color="var(--primary)" />
+                      </div>
+                      <div>
+                        <div className="card-employee-name">{d.employe_noms}</div>
+                        <div className="card-type-label">{d.type_conge_nom || 'Congé'}</div>
+                      </div>
+                    </div>
+                    <span className={`badge ${
+                      d.statut === 'approuvee' ? 'badge-success' :
+                      d.statut === 'refusee' ? 'badge-danger' :
+                      d.statut === 'expiree' ? 'badge-expired' : 'badge-pending'
+                    }`}>
+                      {d.statut_display}
+                    </span>
+                  </div>
+                  
+                  <div className="card-details-row">
+                    <div className="card-period-info">
+                      <span className="period-label">Période</span>
+                      <span className="period-dates">
+                        Du <span className="highlight">{d.date_debut}</span> au <span className="highlight">{d.date_fin}</span>
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="card-actions-row">
+                    <div className="employee-date" style={{ marginRight: 'auto', alignSelf: 'center', fontSize: '0.78rem' }}>
+                      Demandé le: {d.dateDemande}
+                    </div>
+                    <div className="action-buttons-wrap">
+                      {d.statut === 'approuvee' && (user?.role === 'responsable_rh' || user?.role === 'directeur_rh') && (
+                        <button 
+                          className="btn-icon" 
+                          title="Télécharger le titre"
+                          onClick={(e) => { e.stopPropagation(); handleDownloadPDF(d.id); }}
+                          style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          <Download size={16} />
+                        </button>
+                      )}
+                      <button 
+                        className="btn-card-action" 
+                        onClick={(e) => { e.stopPropagation(); setSelectedDemande(d); }}
+                      >
+                        <Eye size={16} /> Détails
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
 
