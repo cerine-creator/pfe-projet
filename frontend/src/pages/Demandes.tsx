@@ -113,6 +113,76 @@ export default function Demandes() {
               ))}
             </tbody>
           </table>
+
+          {/* Version mobile adaptative pour l'iPhone XR / petits écrans */}
+          <div className="mobile-demandes-list">
+            {loading ? (
+              [...Array(3)].map((_, i) => (
+                <div key={`skel-card-${i}`} className="demande-card skeleton-card">
+                  <div className="card-header-row">
+                    <div className="card-type-info">
+                      <div className="skeleton-avatar" style={{ width: '35px', height: '35px', borderRadius: '8px' }}></div>
+                      <div className="skeleton-block" style={{ width: '100px', height: '16px' }}></div>
+                    </div>
+                    <div className="skeleton-block" style={{ width: '70px', height: '24px', borderRadius: '20px' }}></div>
+                  </div>
+                  <div className="card-details-row">
+                    <div className="card-period-info">
+                      <div className="skeleton-block" style={{ width: '50px', height: '12px', marginBottom: '6px' }}></div>
+                      <div className="skeleton-block" style={{ width: '140px', height: '14px' }}></div>
+                    </div>
+                    <div className="card-duration-info">
+                      <div className="skeleton-block" style={{ width: '40px', height: '12px', marginBottom: '6px' }}></div>
+                      <div className="skeleton-block" style={{ width: '30px', height: '18px' }}></div>
+                    </div>
+                  </div>
+                  <div className="card-actions-row">
+                    <div className="skeleton-block" style={{ width: '120px', height: '32px', borderRadius: '8px' }}></div>
+                  </div>
+                </div>
+              ))
+            ) : filteredDemandes.length === 0 ? (
+              <div className="td-empty">Aucune demande trouvée.</div>
+            ) : (
+              filteredDemandes.map(d => (
+                <div key={d.id} className="demande-card" onClick={() => setSelectedDemande(d)}>
+                  <div className="card-header-row">
+                    <div className="card-type-info">
+                      <div className="icon-box">
+                        <FileText size={18} color="var(--primary)" />
+                      </div>
+                      <span className="card-label">{d.type_conge_nom}</span>
+                    </div>
+                    <span className={`badge ${d.statut === 'approuvee' ? 'badge-success' :
+                        d.statut === 'refusee' ? 'badge-danger' :
+                          d.statut === 'expiree' ? 'badge-expired' : 'badge-pending'
+                      }`}>
+                      {d.statut_display}
+                    </span>
+                  </div>
+                  
+                  <div className="card-details-row">
+                    <div className="card-period-info">
+                      <span className="period-label">Période</span>
+                      <span className="period-dates">
+                        Du <span className="highlight">{d.date_debut}</span> au <span className="highlight">{d.date_fin}</span>
+                      </span>
+                    </div>
+                    <div className="card-duration-info">
+                      <span className="duration-label">Durée</span>
+                      <span className="duration-val">{d.duree} <span>j</span></span>
+                    </div>
+                  </div>
+                  
+                  <div className="card-actions-row">
+                    <button className="btn-card-action" onClick={(e) => { e.stopPropagation(); setSelectedDemande(d); }}>
+                      <Eye size={16} /> Voir les détails
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
 

@@ -143,13 +143,44 @@
 }
 
 @media (max-width: 560px) {
+  .photo-card {
+    padding: 30px 16px;
+  }
+
+  .info-card {
+    padding: 24px 16px;
+  }
+
+  .avatar-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 32px;
+    margin-bottom: 16px;
+  }
+
+  .avatar-circle svg {
+    width: 48px;
+    height: 48px;
+  }
+
+  .user-name-heading {
+    font-size: 1.35rem;
+    margin-bottom: 4px;
+  }
+
+  .info-rows {
+    gap: 20px;
+  }
+
   .info-row {
-    gap: 12px;
+    gap: 14px;
     align-items: flex-start;
   }
 
   .info-row-value {
     font-size: 0.95rem;
     word-break: break-word;
+    margin-top: 2px;
+    display: inline-block;
   }
 }

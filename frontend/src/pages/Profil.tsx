@@ -44,7 +44,9 @@ export default function Profil() {
           <div className="avatar-circle">
             <User size={60} />
           </div>
-          <h3 className="user-name-heading">{user.first_name} {user.last_name}</h3>
+          <h3 className="user-name-heading">
+            {user.first_name || employe?.prenomEmpl ? `${user.first_name || employe?.prenomEmpl} ${user.last_name || employe?.nomEmpl}` : 'Utilisateur'}
+          </h3>
           <p className="user-role-text">{user.role_display}</p>
 
           {!loading && employe && (
