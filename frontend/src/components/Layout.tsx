@@ -12,9 +12,7 @@ import {
   Menu,
   Sun,
   Moon,
-  History,
   ChevronDown,
-  ChevronUp,
   Users
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
