@@ -7,3 +7,5 @@ Pillow
 python-decouple
 django-filter
 reportlab
+gunicorn
+whitenoise

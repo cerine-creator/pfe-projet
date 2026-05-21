@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: pfe-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: >
+      pip install -r requirements.txt &&
+      python manage.py collectstatic --no-input &&
+      python manage.py migrate
+    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "pfe-backend.onrender.com"
+      - key: DJANGO_CORS_ORIGINS
+        value: "https://pfe-projet.vercel.app"
