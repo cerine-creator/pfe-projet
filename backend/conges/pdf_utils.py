@@ -70,8 +70,8 @@ def generer_pdf_titre(demande):
 
     # --- 4. CORPS DU DOCUMENT ---
     date_reprise = demande.date_fin + timedelta(days=1)
-    droit = demande.employe.droits_conges.filter(exercice=demande.exercice).first()
-    solde_restant = int(droit.nbrJRes) if droit else 0
+    from django.db.models import Sum
+    solde_restant = int(demande.employe.droits_conges.aggregate(Sum('nbrJRes'))['nbrJRes__sum'] or 0)
 
     body_data = [
         [Paragraph("Bénéficiaire :", style_bold), Paragraph(f"{demande.employe.prenomEmpl} {demande.employe.nomEmpl}", style_normal), "", ""],
