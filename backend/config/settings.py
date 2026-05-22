@@ -166,3 +166,7 @@ SIMPLE_JWT = {
     'SIGNING_KEY': SECRET_KEY,
     'UPDATE_LAST_LOGIN': True,
 }
+
+WHITENOISE_MIMETYPES = {
+    '.svg': 'image/svg+xml'
+}

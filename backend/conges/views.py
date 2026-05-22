@@ -100,21 +100,21 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
             return base_qs.filter(employe=employe)
         return DemandeConge.objects.none()
 
-    def perform_create(self, serializer):
-        """Affecte l'employé connecté et l'exercice correspondant à la date de début."""
-        employe = getattr(self.request.user, 'employe', None)
-        date_debut = self.request.data.get('date_debut')
+    # def perform_create(self, serializer):
+    #     """Affecte l'employé connecté et l'exercice correspondant à la date de début."""
+    #     employe = getattr(self.request.user, 'employe', None)
+    #     date_debut = self.request.data.get('date_debut')
         
-        exercice = None
-        if date_debut:
-            # On cherche l'exercice qui couvre cette date
-            exercice = Exercice.objects.filter(
-                date_debut__lte=date_debut,
-                date_fin__gte=date_debut,
-                est_cloture=False
-            ).first()
+    #     exercice = None
+    #     if date_debut:
+    #         # On cherche l'exercice qui couvre cette date
+    #         exercice = Exercice.objects.filter(
+    #             date_debut__lte=date_debut,
+    #             date_fin__gte=date_debut,
+    #             est_cloture=False
+    #         ).first()
 
-        serializer.save(employe=employe, exercice=exercice)
+    #     serializer.save(employe=employe, exercice=exercice)
 
     @action(detail=False, methods=['get'])
     def a_valider(self, request):
@@ -328,7 +328,15 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
             
         # Sauvegarde de la demande avec gestion des erreurs de validation du modèle
         try:
-            demande = serializer.save(employe=employe)
+            exercice = None
+            date_debut = self.request.data.get('date_debut')
+            if date_debut:
+                exercice = Exercice.objects.filter(
+                    date_debut__lte=date_debut,
+                    date_fin__gte=date_debut,
+                    est_cloture=False
+                ).first()
+            demande = serializer.save(employe=employe, exercice=exercice)
         except DjangoValidationError as e:
             if hasattr(e, 'messages'):
                 raise DRFValidationError({'error': e.messages[0]})
