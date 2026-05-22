@@ -106,6 +106,9 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
 }
 
+# Dummy variable required by django-cloudinary-storage package which hasn't updated to Django 5.1+ STORAGES API
+STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
+
 STORAGES = {
     "default": {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
