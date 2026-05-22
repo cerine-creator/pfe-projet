@@ -88,10 +88,7 @@
 
 /* .btn-primary used for editing */
 
-/* ─── Info card ─── */
-.info-card {
-  /* inherits card-minimal */
-}
+/* ─── Info card inherits card-minimal ─── */
 
 .info-card-title {
   margin-bottom: 30px;

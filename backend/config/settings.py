@@ -1,13 +1,14 @@
+import os
 from pathlib import Path
 from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-=l$%45w-u$_!n-gshpui8tio2@hfi%5)f$^jd5wy&m_+1j1+o4'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-=l$%45w-u$_!n-gshpui8tio2@hfi%5)f$^jd5wy&m_+1j1+o4')
 
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 # ─── Applications ─────────────────────────────────────────────────────────────
 
@@ -38,6 +39,7 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',   # En premier pour gérer le CORS
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Sert les fichiers statiques en production
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -67,11 +69,13 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # ─── Database ──────────────────────────────────────────────────────────────────
 
+import dj_database_url
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600
+    )
 }
 
 # ─── Password Validation ───────────────────────────────────────────────────────
@@ -90,14 +94,16 @@ TIME_ZONE = 'Africa/Algiers'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ─── CORS ─────────────────────────────────────────────────────────────────────
 # CORS_ALLOW_CREDENTIALS = True est OBLIGATOIRE pour que le navigateur
 # envoie les cookies HttpOnly avec chaque requête cross-origin.
 # Les origines autorisées sont lues depuis .env (jamais hardcodées en production).
 
-import os
+# os already used above — no duplicate import needed
 
 # Lecture depuis l'environnement ou fallback par défaut
 cors_origins_str = os.environ.get(
