@@ -1,6 +1,6 @@
 import { X, Download, Paperclip, FileText, ExternalLink } from 'lucide-react';
 
-const BACKEND_URL = 'http://127.0.0.1:8000';
+const BACKEND_URL = import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, '') || 'http://127.0.0.1:8000';
 
 interface DemandeDetailModalProps {
   demande: any;
