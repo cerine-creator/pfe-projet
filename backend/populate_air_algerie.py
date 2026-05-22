@@ -111,17 +111,17 @@ def run():
     
     types_possibles = [annuel, maladie, deces, naissance]
     
-    # Générer un PDF valide avec ReportLab
+    # Générer une Image valide avec Pillow (PNG) pour éviter le blocage PDF de Cloudinary
     from django.core.files.base import ContentFile
     import io
-    from reportlab.pdfgen import canvas
+    from PIL import Image, ImageDraw, ImageFont
     
-    def generate_dummy_pdf(text):
+    def generate_dummy_image(text):
+        img = Image.new('RGB', (400, 200), color=(240, 248, 255))
+        d = ImageDraw.Draw(img)
+        d.text((20, 90), text, fill=(0, 0, 0))
         buffer = io.BytesIO()
-        p = canvas.Canvas(buffer)
-        p.drawString(100, 750, text)
-        p.showPage()
-        p.save()
+        img.save(buffer, format="PNG")
         return buffer.getvalue()
         
     start_history = date(2024, 8, 1)
@@ -154,9 +154,9 @@ def run():
                 
                 # Ajout du justificatif
                 if type_c == maladie or type_c.est_exceptionnel:
-                    # upload a dummy PDF (this will upload to Cloudinary due to our settings)
-                    pdf_bytes = generate_dummy_pdf(f"Justificatif pour {emp.prenomEmpl} {emp.nomEmpl}")
-                    demande.justificatif.save(f"justificatif_{emp.nomEmpl}_{i}.pdf", ContentFile(pdf_bytes), save=True)
+                    # upload a dummy PNG (this will upload to Cloudinary due to our settings)
+                    img_bytes = generate_dummy_image(f"Justificatif pour {emp.prenomEmpl} {emp.nomEmpl}")
+                    demande.justificatif.save(f"justificatif_{emp.nomEmpl}_{i}.png", ContentFile(img_bytes), save=True)
 
                 # DÉDUCTION DU SOLDE (seulement si non exceptionnel)
                 if not type_c.est_exceptionnel:
@@ -184,8 +184,8 @@ def run():
         exercice=ex_2024, statut='en_attente_rh'
     )
     # Ajouter un justificatif pour la demande de Samir
-    pdf_bytes_samir = generate_dummy_pdf(f"Justificatif Maladie pour {samir.prenomEmpl} {samir.nomEmpl}")
-    demande_samir.justificatif.save("justificatif_maladie_samir.pdf", ContentFile(pdf_bytes_samir), save=True)
+    img_bytes_samir = generate_dummy_image(f"Justificatif Maladie pour {samir.prenomEmpl} {samir.nomEmpl}")
+    demande_samir.justificatif.save("justificatif_maladie_samir.png", ContentFile(img_bytes_samir), save=True)
 
     print("\nTermine ! Base de donnees avec ARCHIVE, JUSTIFICATIFS et SOLDES a jour.")
 

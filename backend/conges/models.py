@@ -272,22 +272,20 @@ class DemandeConge(models.Model):
         # On ne bloque plus si ça dépasse, le système puisera dans les exercices successifs.
 
         # 2. Validation de l'exercice (Supprimé car géré par le waterfall RH)
-        if self.exercice and self.employe:
-            # On cherche s'il existe un exercice plus ancien (début avant l'exercice choisi)
-            # où il reste des jours de congé non consommés.
-            from .models import DroitConge
-            anciens_droits_non_soldes = DroitConge.objects.filter(
-                employe=self.employe,
-                exercice__date_debut__lt=self.exercice.date_debut,
-                nbrJRes__gt=0
-            ).order_by('exercice__date_debut')
+        # if self.exercice and self.employe and self.type_conge and not self.type_conge.est_exceptionnel and self.type_conge.nomType != 'Maladie':
+        #     from .models import DroitConge
+        #     anciens_droits_non_soldes = DroitConge.objects.filter(
+        #         employe=self.employe,
+        #         exercice__date_debut__lt=self.exercice.date_debut,
+        #         nbrJRes__gt=0
+        #     ).order_by('exercice__date_debut')
 
-            if anciens_droits_non_soldes.exists():
-                old_ex = anciens_droits_non_soldes.first().exercice
-                raise ValidationError(
-                    f"Action refusée : Vous avez encore un solde de {anciens_droits_non_soldes.first().nbrJRes} jours "
-                    f"sur l'exercice {old_ex.libelle}. Vous devez les consommer en priorité."
-                )
+        #     if anciens_droits_non_soldes.exists():
+        #         old_ex = anciens_droits_non_soldes.first().exercice
+        #         raise ValidationError(
+        #             f"Action refusée : Vous avez encore un solde de {anciens_droits_non_soldes.first().nbrJRes} jours "
+        #             f"sur l'exercice {old_ex.libelle}. Vous devez les consommer en priorité."
+        #         )
 
         # 3. Validation par motif exceptionnel
         if self.type_conge and 'exceptionnel' in self.type_conge.nomType.lower():
