@@ -57,7 +57,13 @@ class DroitCongeSerializer(serializers.ModelSerializer):
 
 class DemandeCongeSerializer(serializers.ModelSerializer):
     justificatif = serializers.FileField(required=False, allow_null=True)
-    justificatif_url = serializers.FileField(source='justificatif', read_only=True)
+
+    justificatif_url = serializers.SerializerMethodField()
+    def get_justificatif_url(self, obj):
+        if obj.justificatif:
+            return obj.justificatif.url
+        return None   
+
     employe_noms = serializers.SerializerMethodField(read_only=True)
     employe_role = serializers.CharField(source='employe.compte.role', read_only=True, default='')
     type_conge_nom = serializers.CharField(source='type_conge.nomType', read_only=True)

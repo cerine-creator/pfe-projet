@@ -328,7 +328,7 @@ class DemandeCongeViewSet(viewsets.ModelViewSet):
             
         # Sauvegarde de la demande avec gestion des erreurs de validation du modèle
         try:
-            demande = serializer.save(employe=employe, justificatif=justificatif_file)
+            demande = serializer.save(employe=employe)
         except DjangoValidationError as e:
             if hasattr(e, 'messages'):
                 raise DRFValidationError({'error': e.messages[0]})
