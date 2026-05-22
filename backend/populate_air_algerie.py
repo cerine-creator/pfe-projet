@@ -111,10 +111,19 @@ def run():
     
     types_possibles = [annuel, maladie, deces, naissance]
     
-    # Faux PDF pour les tests
+    # Générer un PDF valide avec ReportLab
     from django.core.files.base import ContentFile
-    dummy_pdf_content = b"%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Count 1/Kids[3 0 R]>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 612 792]/Parent 2 0 R/Resources<<>>>>endobj xref 0 4 0000000000 65535 f 0000000009 00000 n 0000000052 00000 n 0000000101 00000 n trailer<</Size 4/Root 1 0 R>> startxref 147 %%EOF"
+    import io
+    from reportlab.pdfgen import canvas
     
+    def generate_dummy_pdf(text):
+        buffer = io.BytesIO()
+        p = canvas.Canvas(buffer)
+        p.drawString(100, 750, text)
+        p.showPage()
+        p.save()
+        return buffer.getvalue()
+        
     start_history = date(2024, 8, 1)
     
     for emp in all_emps:
@@ -146,7 +155,8 @@ def run():
                 # Ajout du justificatif
                 if type_c == maladie or type_c.est_exceptionnel:
                     # upload a dummy PDF (this will upload to Cloudinary due to our settings)
-                    demande.justificatif.save(f"justificatif_{emp.nomEmpl}_{i}.pdf", ContentFile(dummy_pdf_content), save=True)
+                    pdf_bytes = generate_dummy_pdf(f"Justificatif pour {emp.prenomEmpl} {emp.nomEmpl}")
+                    demande.justificatif.save(f"justificatif_{emp.nomEmpl}_{i}.pdf", ContentFile(pdf_bytes), save=True)
 
                 # DÉDUCTION DU SOLDE (seulement si non exceptionnel)
                 if not type_c.est_exceptionnel:
@@ -174,7 +184,8 @@ def run():
         exercice=ex_2024, statut='en_attente_rh'
     )
     # Ajouter un justificatif pour la demande de Samir
-    demande_samir.justificatif.save("justificatif_maladie_samir.pdf", ContentFile(dummy_pdf_content), save=True)
+    pdf_bytes_samir = generate_dummy_pdf(f"Justificatif Maladie pour {samir.prenomEmpl} {samir.nomEmpl}")
+    demande_samir.justificatif.save("justificatif_maladie_samir.pdf", ContentFile(pdf_bytes_samir), save=True)
 
     print("\nTermine ! Base de donnees avec ARCHIVE, JUSTIFICATIFS et SOLDES a jour.")
 
