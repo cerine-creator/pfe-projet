@@ -109,30 +109,54 @@ def run():
     # 7. CRÉATION D'UNE ARCHIVE RÉALISTE (DEMANDES PASSÉES APPROUVÉES)
     print("\n Generation de l'archive (demandes passees avec deduction de solde)...")
     
-    types_normaux = [annuel, maladie]
+    types_possibles = [annuel, maladie, deces, naissance]
     
-    # On crée 2-3 demandes approuvées par employé dans le passé
+    # Faux PDF pour les tests
+    from django.core.files.base import ContentFile
+    dummy_pdf_content = b"%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Count 1/Kids[3 0 R]>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 612 792]/Parent 2 0 R/Resources<<>>>>endobj xref 0 4 0000000000 65535 f 0000000009 00000 n 0000000052 00000 n 0000000101 00000 n trailer<</Size 4/Root 1 0 R>> startxref 147 %%EOF"
+    
     start_history = date(2024, 8, 1)
     
     for emp in all_emps:
-        # On ne touche pas au solde des RH pour les tests si on veut
         for i in range(2):
             d_start = start_history + timedelta(days=random.randint(0, 150))
             d_end = d_start + timedelta(days=random.randint(2, 8))
             
+            type_c = random.choice(types_possibles)
+            motif_str = None
+            
+            # Ajustement pour congés exceptionnels
+            if type_c == naissance:
+                d_end = d_start + timedelta(days=2) # 3 jours max
+                motif_str = 'naissance'
+            elif type_c == deces:
+                d_end = d_start + timedelta(days=2) # 3 jours max
+                motif_str = 'deces_proche'
+            elif type_c == maladie:
+                d_end = d_start + timedelta(days=random.randint(2, 5))
+            
             # Vérifier chevauchement rapide
             if not DemandeConge.objects.filter(employe=emp, date_debut__lte=d_end, date_fin__gte=d_start).exists():
                 demande = DemandeConge.objects.create(
-                    employe=emp, type_conge=random.choice(types_normaux),
-                    date_debut=d_start, date_fin=d_end,
+                    employe=emp, type_conge=type_c,
+                    date_debut=d_start, date_fin=d_end, motif=motif_str,
                     exercice=ex_2024, statut='approuvee'
                 )
-                # DÉDUCTION DU SOLDE
-                try:
-                    deduire_solde_conge(demande)
-                    print(f" [Archive] {emp.nomEmpl} : {demande.duree}j deduits (Nouveau solde: {emp.droits_conges.first().nbrJRes}j)")
-                except Exception as e:
-                    print(f" [Erreur Solde] {emp.nomEmpl} : {e}")
+                
+                # Ajout du justificatif
+                if type_c == maladie or type_c.est_exceptionnel:
+                    # upload a dummy PDF (this will upload to Cloudinary due to our settings)
+                    demande.justificatif.save(f"justificatif_{emp.nomEmpl}_{i}.pdf", ContentFile(dummy_pdf_content), save=True)
+
+                # DÉDUCTION DU SOLDE (seulement si non exceptionnel)
+                if not type_c.est_exceptionnel:
+                    try:
+                        deduire_solde_conge(demande)
+                        print(f" [Archive] {emp.nomEmpl} ({type_c.nomType}) : {demande.duree}j deduits (Nouveau solde: {emp.droits_conges.first().nbrJRes}j)")
+                    except Exception as e:
+                        print(f" [Erreur Solde] {emp.nomEmpl} : {e}")
+                else:
+                    print(f" [Archive] {emp.nomEmpl} ({type_c.nomType}) : Approuvée sans déduction de solde.")
 
     # 8. DEMANDES ACTUELLES / EN ATTENTE
     print("\n Ajout de demandes en attente pour les tests UI...")
@@ -144,13 +168,15 @@ def run():
     )
     
     samir = Employe.objects.get(matricule="AH-8832")
-    DemandeConge.objects.create(
-        employe=samir, type_conge=annuel,
+    demande_samir = DemandeConge.objects.create(
+        employe=samir, type_conge=maladie,
         date_debut=date(2025, 6, 15), date_fin=date(2025, 6, 25),
         exercice=ex_2024, statut='en_attente_rh'
     )
+    # Ajouter un justificatif pour la demande de Samir
+    demande_samir.justificatif.save("justificatif_maladie_samir.pdf", ContentFile(dummy_pdf_content), save=True)
 
-    print("\nTermine ! Base de donnees avec ARCHIVE et SOLDES a jour.")
+    print("\nTermine ! Base de donnees avec ARCHIVE, JUSTIFICATIFS et SOLDES a jour.")
 
 if __name__ == '__main__':
     run()
