@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from datetime import timedelta
-import cloudinary
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,29 +20,27 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'cloudinary_storage',
-    'cloudinary',
     'django.contrib.staticfiles',
+    'cloudinary',
     # Third-party
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
     'django_filters',
     # Project apps
-    'accounts',   # Auth & CustomUser — doit être avant conges
-    'conges',     # Logique métier RH
+    'accounts',
+    'conges',
 ]
 
 # ─── Custom User Model ─────────────────────────────────────────────────────────
-# Remplace l'utilisateur Django par défaut par notre CustomUser.
-# DOIT être défini AVANT la première migration.
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
 # ─── Middleware ────────────────────────────────────────────────────────────────
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',   # En premier pour gérer le CORS
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Sert les fichiers statiques en production
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -72,8 +70,6 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # ─── Database ──────────────────────────────────────────────────────────────────
 
-import dj_database_url
-
 DATABASES = {
     'default': dj_database_url.config(
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
@@ -97,27 +93,31 @@ TIME_ZONE = 'Africa/Algiers'
 USE_I18N = True
 USE_TZ = True
 
+# ─── Static Files (whitenoise) ────────────────────────────────────────────────
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# ─── Media Files (Cloudinary) ─────────────────────────────────────────────────
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+}
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
 # ─── CORS ─────────────────────────────────────────────────────────────────────
-# CORS_ALLOW_CREDENTIALS = True est OBLIGATOIRE pour que le navigateur
-# envoie les cookies HttpOnly avec chaque requête cross-origin.
-# Les origines autorisées sont lues depuis .env (jamais hardcodées en production).
-
-# os already used above — no duplicate import needed
-
-# Lecture depuis l'environnement ou fallback par défaut
 cors_origins_str = os.environ.get(
-    'DJANGO_CORS_ORIGINS', 
+    'DJANGO_CORS_ORIGINS',
     'http://localhost:5173,http://127.0.0.1:5173'
 )
 CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins_str.split(',')]
 
 CORS_ALLOW_CREDENTIALS = True
 
-# Autorise le header Authorization (Bearer token) depuis le frontend cross-origin
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',
@@ -134,58 +134,35 @@ CORS_ALLOW_HEADERS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        # Notre classe qui lit le JWT depuis le cookie HttpOnly
         'accounts.authentication.CookieJWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
-    # Gestionnaire d'exceptions personnalisé — aucune stack trace vers le client
     'EXCEPTION_HANDLER': 'accounts.exceptions.custom_exception_handler',
-    # Pagination par défaut
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
-    # Throttling global — protection anti-brute-force
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '1000/day',      # Très large pour le dev
+        'anon': '1000/day',
         'user': '10000/day',
-        'login': '30/minute',    # Plus souple pour les tests
+        'login': '30/minute',
     },
 }
 
 # ─── JWT Configuration ────────────────────────────────────────────────────────
 
 SIMPLE_JWT = {
-    # Noms des cookies HttpOnly
     'AUTH_COOKIE': 'access',
     'REFRESH_COOKIE': 'refresh',
-    # Durées de vie des tokens
-    # Access : 8h → renouvellement silencieux par le frontend
-    # Refresh : 24h → déconnexion automatique après 24h sans activité (cohérent avec le rapport)
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=8),
     'REFRESH_TOKEN_LIFETIME': timedelta(hours=24),
-    'ROTATE_REFRESH_TOKENS': True,      # Génère un nouveau refresh à chaque usage
-    'BLACKLIST_AFTER_ROTATION': False,  # Pas de blacklist pour l'instant (SQLite)
-    # Algorithme de signature
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': False,
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': SECRET_KEY,
-    # Claims ajoutés au token
     'UPDATE_LAST_LOGIN': True,
 }
-
-# ─── Media Files (Justificatifs) ──────────────────────────────────────────────
-
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
-}
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-
