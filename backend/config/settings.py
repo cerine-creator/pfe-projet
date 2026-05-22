@@ -96,7 +96,7 @@ USE_TZ = True
 # ─── Static Files (whitenoise) ────────────────────────────────────────────────
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
 
 # ─── Media Files (Cloudinary) ─────────────────────────────────────────────────
 MEDIA_URL = '/media/'
