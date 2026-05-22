@@ -351,11 +351,16 @@
   backdrop-filter: blur(4px);
 }
 
-.modal-content {
-  background: white;
+.modal-content.leave-details-modal {
+  background: #ffffff !important; 
+  background-color: #ffffff !important;
+  color: #1e293b !important; /* Force le texte en foncé pour lisibilité sur blanc */
+  opacity: 1 !important;
+  backdrop-filter: none !important;
   padding: 30px;
   border-radius: 16px;
   width: 100%;
+  z-index: 1001;
   max-width: 600px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04);
@@ -376,6 +381,7 @@
 
 /* ─── Modal Header ─── */
 .modal-header {
+
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -396,7 +402,8 @@
 
 /* ─── Modal Detail Grid ─── */
 .modal-detail-box {
-  background: #f8fafc;
+  background: #ffffff !important;   /* Changé en blanc pur */
+  background-color: #ffffff !important;
   padding: 20px;
   border-radius: 12px;
   margin-bottom: 25px;
@@ -874,6 +881,8 @@
 
 /* ─── Decision Support System (DSS) ─── */
 .decision-support-panel {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
   margin-top: 25px;
   display: flex;
   flex-direction: column;

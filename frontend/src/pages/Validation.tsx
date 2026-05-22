@@ -408,7 +408,7 @@ export default function Validation() {
 
       {selectedDemande && (
         <div className="modal-overlay">
-          <div className="modal-content">
+          <div className="modal-content leave-details-modal">
             <div className="modal-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <h2 className="modal-title">Détails de la demande</h2>

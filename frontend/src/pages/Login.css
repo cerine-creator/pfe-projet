@@ -237,7 +237,8 @@
 
 /* Login Primary Button Overrides */
 .login-form .btn-primary {
-  width:280px;
+  width: 100%;
+  max-width: 280px;
   margin: 10px auto 0;
   display: flex;
   justify-content: center;
@@ -250,6 +251,17 @@
   margin-top: 24px;
   font-size: 12.5px;
   color: #64748b;
+}
+
+/* ─── Mobile Responsiveness ────────────────────────────────────────────────── */
+@media (max-width: 500px) {
+  .login-container {
+    padding: 24px; /* Réduire le padding pour les petits écrans */
+  }
+
+  .login-header {
+    margin-bottom: 24px; /* Ajuster l'espacement vertical */
+  }
 }
 
 /* ─── Animations ─────────────────────────────────────────────────────────── */
