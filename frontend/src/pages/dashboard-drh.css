@@ -656,6 +656,7 @@
 }
 
 .modal-content {
+  background-color: white;
   background: var(--bg-secondary);
   color: var(--text-primary);
   border-radius: 12px;
