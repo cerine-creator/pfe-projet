@@ -71,7 +71,7 @@ class LoginView(APIView):
             value=access_token,
             max_age=int(jwt_settings['ACCESS_TOKEN_LIFETIME'].total_seconds()),
             httponly=True,
-            samesite='Lax',
+            samesite='None',
             secure=is_secure,
             path='/',
         )
@@ -82,7 +82,7 @@ class LoginView(APIView):
             value=refresh_token,
             max_age=int(jwt_settings['REFRESH_TOKEN_LIFETIME'].total_seconds()),
             httponly=True,
-            samesite='Lax',
+            samesite='None',
             secure=is_secure,
             path='/',
         )
@@ -170,7 +170,7 @@ class TokenRefreshCookieView(APIView):
             value=new_access,
             max_age=int(jwt_settings['ACCESS_TOKEN_LIFETIME'].total_seconds()),
             httponly=True,
-            samesite='Lax',
+            samesite='None',
             secure=not settings.DEBUG,
             path='/',
         )
